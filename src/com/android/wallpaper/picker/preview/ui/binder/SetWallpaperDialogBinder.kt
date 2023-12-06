@@ -124,7 +124,12 @@ object SetWallpaperDialogBinder {
                         mainScope = mainScope,
                         viewLifecycleOwner = lifecycleOwner,
                         screen = screenId.key,
-                        orientation = getScreenOrientation(it, display),
+                        orientation =
+                            getScreenOrientation(
+                                it,
+                                wallpaperPreviewViewModel.wallpaperDisplaySize,
+                                display
+                            ),
                         foldableDisplay = display,
                         navigate = null,
                     )
@@ -150,7 +155,11 @@ object SetWallpaperDialogBinder {
                         .requireViewById(R.id.preview),
                 viewModel = wallpaperPreviewViewModel,
                 screen = screenId.key,
-                orientation = getScreenOrientation(displaySize),
+                orientation =
+                    getScreenOrientation(
+                        displaySize,
+                        wallpaperPreviewViewModel.wallpaperDisplaySize
+                    ),
                 foldableDisplay = null,
                 mainScope = mainScope,
                 viewLifecycleOwner = lifecycleOwner,

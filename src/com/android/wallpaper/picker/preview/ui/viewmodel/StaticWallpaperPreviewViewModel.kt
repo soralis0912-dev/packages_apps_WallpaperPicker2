@@ -62,7 +62,7 @@ constructor(
 
     private val cropHints: MutableStateFlow<Map<ScreenOrientation, Rect>?> = MutableStateFlow(null)
 
-    private val staticWallpaperModel: Flow<StaticWallpaperModel> =
+    val staticWallpaperModel: Flow<StaticWallpaperModel> =
         interactor.wallpaperModel.map { it as? StaticWallpaperModel }.filterNotNull()
     val lowResBitmap: Flow<Bitmap> =
         staticWallpaperModel

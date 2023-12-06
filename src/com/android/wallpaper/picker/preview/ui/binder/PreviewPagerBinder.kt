@@ -49,7 +49,11 @@ object PreviewPagerBinder {
                     view = viewHolder.itemView.requireViewById(R.id.preview),
                     viewModel = wallpaperPreviewViewModel,
                     screen = PreviewPagerPage.entries[position].screen,
-                    orientation = getScreenOrientation(previewDisplaySize),
+                    orientation =
+                        getScreenOrientation(
+                            previewDisplaySize,
+                            wallpaperPreviewViewModel.wallpaperDisplaySize
+                        ),
                     foldableDisplay = null,
                     mainScope = mainScope,
                     viewLifecycleOwner = viewLifecycleOwner,

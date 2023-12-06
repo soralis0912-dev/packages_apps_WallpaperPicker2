@@ -284,8 +284,8 @@ open class DefaultWallpaperPreferences(private val context: Context) : Wallpaper
             .remove(NoBackupKeys.KEY_HOME_WALLPAPER_BACKING_FILE)
             .remove(NoBackupKeys.KEY_CROP_HINT_PORTRAIT)
             .remove(NoBackupKeys.KEY_CROP_HINT_LANDSCAPE)
-            .remove(NoBackupKeys.KEY_CROP_HINT_UNFOLDED_PORTRAIT)
-            .remove(NoBackupKeys.KEY_CROP_HINT_UNFOLDED_LANDSCAPE)
+            .remove(NoBackupKeys.KEY_CROP_HINT_SQUARE_PORTRAIT)
+            .remove(NoBackupKeys.KEY_CROP_HINT_SQUARE_LANDSCAPE)
             .apply()
     }
 
@@ -505,8 +505,8 @@ open class DefaultWallpaperPreferences(private val context: Context) : Wallpaper
             .remove(NoBackupKeys.KEY_LOCK_WALLPAPER_BACKING_FILE)
             .remove(NoBackupKeys.KEY_CROP_HINT_PORTRAIT)
             .remove(NoBackupKeys.KEY_CROP_HINT_LANDSCAPE)
-            .remove(NoBackupKeys.KEY_CROP_HINT_UNFOLDED_PORTRAIT)
-            .remove(NoBackupKeys.KEY_CROP_HINT_UNFOLDED_LANDSCAPE)
+            .remove(NoBackupKeys.KEY_CROP_HINT_SQUARE_PORTRAIT)
+            .remove(NoBackupKeys.KEY_CROP_HINT_SQUARE_LANDSCAPE)
             .apply()
     }
 
@@ -932,8 +932,8 @@ open class DefaultWallpaperPreferences(private val context: Context) : Wallpaper
         return when (orientation) {
             ScreenOrientation.PORTRAIT -> NoBackupKeys.KEY_CROP_HINT_PORTRAIT
             ScreenOrientation.LANDSCAPE -> NoBackupKeys.KEY_CROP_HINT_LANDSCAPE
-            ScreenOrientation.UNFOLDED_LANDSCAPE -> NoBackupKeys.KEY_CROP_HINT_UNFOLDED_LANDSCAPE
-            ScreenOrientation.UNFOLDED_PORTRAIT -> NoBackupKeys.KEY_CROP_HINT_UNFOLDED_PORTRAIT
+            ScreenOrientation.SQUARE_LANDSCAPE -> NoBackupKeys.KEY_CROP_HINT_SQUARE_LANDSCAPE
+            ScreenOrientation.SQUARE_PORTRAIT -> NoBackupKeys.KEY_CROP_HINT_SQUARE_PORTRAIT
         }
     }
 

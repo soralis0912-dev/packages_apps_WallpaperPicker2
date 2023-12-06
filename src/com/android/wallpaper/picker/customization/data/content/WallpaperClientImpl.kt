@@ -18,6 +18,8 @@
 package com.android.wallpaper.picker.customization.data.content
 
 import android.app.WallpaperManager
+import android.app.WallpaperManager.FLAG_LOCK
+import android.app.WallpaperManager.FLAG_SYSTEM
 import android.content.ComponentName
 import android.content.ContentResolver
 import android.content.ContentValues
@@ -36,6 +38,7 @@ import com.android.wallpaper.model.LiveWallpaperPrefMetadata
 import com.android.wallpaper.model.StaticWallpaperPrefMetadata
 import com.android.wallpaper.model.WallpaperInfo
 import com.android.wallpaper.model.wallpaper.ScreenOrientation
+import com.android.wallpaper.model.wallpaper.getDisplaySize
 import com.android.wallpaper.module.InjectorProvider
 import com.android.wallpaper.module.WallpaperPreferences
 import com.android.wallpaper.module.logging.UserEventLogger.SetWallpaperEntryPoint
@@ -140,6 +143,7 @@ class WallpaperClientImpl(
         )
 
         // Save the static wallpaper to recent wallpapers
+        // TODO(b/309138446): check if we can update recent with all cropHints from WM later
         wallpaperPreferences.addStaticWallpaperToRecentWallpapers(
             destination,
             wallpaperModel,
@@ -167,18 +171,18 @@ class WallpaperClientImpl(
         cropHints: Map<ScreenOrientation, Rect>,
         destination: WallpaperDestination,
     ): Int {
-        // TODO (b/309138446): Use the new multi-crop API from WallpaperManager
         return if (inputStream != null) {
-            setStream(
+            setStreamWithCrops(
                 inputStream,
-                cropHints[ScreenOrientation.PORTRAIT],
-                true,
+                cropHints.mapKeys { getDisplaySize(it.key) },
+                /* allowBackup= */ true,
+                destination.toFlags(),
             )
         } else {
-            setBitmap(
+            setBitmapWithCrops(
                 bitmap,
-                cropHints[ScreenOrientation.PORTRAIT],
-                true,
+                cropHints.mapKeys { getDisplaySize(it.key) },
+                /* allowBackup= */ true,
                 destination.toFlags(),
             )
         }

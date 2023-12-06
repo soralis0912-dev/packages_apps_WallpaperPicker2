@@ -126,6 +126,7 @@ class WallpaperRepository(
         bitmap: Bitmap,
         cropHints: Map<ScreenOrientation, Rect>,
     ) {
+        // TODO(b/303317694): provide set wallpaper status as flow
         withContext(backgroundDispatcher) {
             client.setStaticWallpaper(
                 setWallpaperEntryPoint,
