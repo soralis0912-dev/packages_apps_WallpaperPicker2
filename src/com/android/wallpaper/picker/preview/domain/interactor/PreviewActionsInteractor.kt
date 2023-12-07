@@ -17,27 +17,31 @@
 package com.android.wallpaper.picker.preview.domain.interactor
 
 import com.android.wallpaper.model.wallpaper.WallpaperModel
-import com.android.wallpaper.picker.di.modules.BackgroundDispatcher
-import com.android.wallpaper.picker.di.modules.MainDispatcher
 import com.android.wallpaper.picker.preview.data.repository.WallpaperPreviewRepository
+import com.android.wallpaper.picker.preview.shared.model.LiveWallpaperDownloadResultModel
 import dagger.hilt.android.scopes.ActivityRetainedScoped
 import javax.inject.Inject
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 /** This class handles the business logic for Preview screen's action buttons */
 @ActivityRetainedScoped
 class PreviewActionsInteractor
 @Inject
 constructor(
-    @MainDispatcher private val mainScope: CoroutineScope,
-    @BackgroundDispatcher private val bgDispatcher: CoroutineDispatcher,
     private val wallpaperPreviewRepository: WallpaperPreviewRepository,
 ) {
     val wallpaperModel: StateFlow<WallpaperModel?> = wallpaperPreviewRepository.wallpaperModel
 
-    fun setWallpaperModel(wallpaperModel: WallpaperModel?) {
-        wallpaperPreviewRepository.setWallpaperModel(wallpaperModel)
+    private val _isDownloadingWallpaper = MutableStateFlow<Boolean>(false)
+    val isDownloadingWallpaper: Flow<Boolean> = _isDownloadingWallpaper.asStateFlow()
+
+    suspend fun downloadWallpaper(): LiveWallpaperDownloadResultModel? {
+        _isDownloadingWallpaper.value = true
+        val wallpaperModel = wallpaperPreviewRepository.downloadWallpaper()
+        _isDownloadingWallpaper.value = false
+        return wallpaperModel
     }
 }

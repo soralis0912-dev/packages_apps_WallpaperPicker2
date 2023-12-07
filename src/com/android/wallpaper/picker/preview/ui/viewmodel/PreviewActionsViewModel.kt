@@ -16,12 +16,11 @@
 
 package com.android.wallpaper.picker.preview.ui.viewmodel
 
+import com.android.wallpaper.model.wallpaper.DownloadableWallpaperData
 import com.android.wallpaper.model.wallpaper.WallpaperModel
-import com.android.wallpaper.picker.di.modules.MainDispatcher
 import com.android.wallpaper.picker.preview.domain.interactor.PreviewActionsInteractor
 import com.android.wallpaper.picker.preview.ui.viewmodel.Action.CUSTOMIZE
 import com.android.wallpaper.picker.preview.ui.viewmodel.Action.DELETE
-import com.android.wallpaper.picker.preview.ui.viewmodel.Action.DOWNLOAD
 import com.android.wallpaper.picker.preview.ui.viewmodel.Action.EDIT
 import com.android.wallpaper.picker.preview.ui.viewmodel.Action.EFFECTS
 import com.android.wallpaper.picker.preview.ui.viewmodel.Action.INFORMATION
@@ -29,7 +28,6 @@ import com.android.wallpaper.picker.preview.ui.viewmodel.Action.SHARE
 import com.android.wallpaper.picker.preview.ui.viewmodel.floatingSheet.InformationFloatingSheetViewModel
 import dagger.hilt.android.scopes.ViewModelScoped
 import javax.inject.Inject
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -41,10 +39,7 @@ import kotlinx.coroutines.flow.map
 @ViewModelScoped
 class PreviewActionsViewModel
 @Inject
-constructor(
-    interactor: PreviewActionsInteractor,
-    @MainDispatcher private val scope: CoroutineScope,
-) {
+constructor(private val interactor: PreviewActionsInteractor) {
     private val _informationFloatingSheetViewModel: Flow<InformationFloatingSheetViewModel?> =
         interactor.wallpaperModel.map { wallpaperModel ->
             if (wallpaperModel == null || !wallpaperModel.shouldShowInformationFloatingSheet()) {
@@ -60,10 +55,11 @@ constructor(
     /** Action's isVisible state */
     val isInformationVisible: Flow<Boolean> = _informationFloatingSheetViewModel.map { it != null }
 
-    val isDownloadVisible: Flow<Boolean> =
+    private val downloadableWallpaperData: Flow<DownloadableWallpaperData?> =
         interactor.wallpaperModel.map {
-            (it as? WallpaperModel.StaticWallpaperModel)?.downloadableWallpaperData != null
+            (it as? WallpaperModel.StaticWallpaperModel)?.downloadableWallpaperData
         }
+    val isDownloadVisible: Flow<Boolean> = downloadableWallpaperData.map { it != null }
 
     private val _isDeleteVisible: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isDeleteVisible: Flow<Boolean> = _isDeleteVisible.asStateFlow()
@@ -84,8 +80,7 @@ constructor(
     private val _isInformationChecked: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isInformationChecked: Flow<Boolean> = _isInformationChecked.asStateFlow()
 
-    private val _isDownloadChecked: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val isDownloadChecked: Flow<Boolean> = _isDownloadChecked.asStateFlow()
+    val isDownloading: Flow<Boolean> = interactor.isDownloadingWallpaper
 
     private val _isDeleteChecked: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isDeleteChecked: Flow<Boolean> = _isDeleteChecked.asStateFlow()
@@ -131,19 +126,14 @@ constructor(
             }
         }
 
-    val onDownloadClicked: Flow<(() -> Unit)?> =
-        combine(isDownloadVisible, isDownloadChecked) { show, isChecked ->
-            if (show) {
-                {
-                    if (!isChecked) {
-                        uncheckAllOthersExcept(DOWNLOAD)
-                    }
-                    _isDownloadChecked.value = !isChecked
-                }
-            } else {
-                null
-            }
+    val isDownloadButtonEnabled: Flow<Boolean> =
+        combine(downloadableWallpaperData, isDownloading) { downloadableData, isDownloading ->
+            downloadableData != null && !isDownloading
         }
+
+    suspend fun downloadWallpaper() {
+        interactor.downloadWallpaper()
+    }
 
     val onDeleteClicked: Flow<(() -> Unit)?> =
         combine(isDeleteVisible, isDeleteChecked) { show, isChecked ->
@@ -218,9 +208,6 @@ constructor(
     private fun uncheckAllOthersExcept(action: Action) {
         if (action != INFORMATION) {
             _isInformationChecked.value = false
-        }
-        if (action != DOWNLOAD) {
-            _isDownloadChecked.value = false
         }
         if (action != DELETE) {
             _isDeleteChecked.value = false
