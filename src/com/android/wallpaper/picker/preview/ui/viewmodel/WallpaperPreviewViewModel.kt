@@ -19,6 +19,7 @@ import androidx.lifecycle.ViewModel
 import com.android.wallpaper.model.wallpaper.FoldableDisplay
 import com.android.wallpaper.model.wallpaper.ScreenOrientation
 import com.android.wallpaper.model.wallpaper.WallpaperModel
+import com.android.wallpaper.model.wallpaper.WallpaperModel.Companion.isDownloadableWallpaper
 import com.android.wallpaper.module.CustomizationSections.Screen
 import com.android.wallpaper.picker.di.modules.PreviewUtilsModule.HomeScreenPreviewUtils
 import com.android.wallpaper.picker.di.modules.PreviewUtilsModule.LockScreenPreviewUtils
@@ -32,6 +33,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
 
 /** Top level [ViewModel] for [WallpaperPreviewActivity] and its fragments */
 @HiltViewModel
@@ -57,11 +59,16 @@ constructor(
         MutableStateFlow(null)
 
     // This is only used for the full screen wallpaper preview.
-    val fullWallpaper: Flow<Pair<WallpaperModel, WallpaperPreviewConfigViewModel>> =
-        combine(wallpaper, fullWallpaperPreviewConfigViewModel.filterNotNull()) {
-            wallpaper,
-            previewViewModel ->
-            Pair(wallpaper, previewViewModel)
+    val fullWallpaper: Flow<FullWallpaperPreviewViewModel> =
+        combine(wallpaper, fullWallpaperPreviewConfigViewModel.filterNotNull()) { wallpaper, config
+            ->
+            FullWallpaperPreviewViewModel(
+                wallpaper = wallpaper,
+                config = config,
+                allowUserCropping =
+                    wallpaper is WallpaperModel.StaticWallpaperModel &&
+                        !wallpaper.isDownloadableWallpaper()
+            )
         }
 
     // This is only used for the full screen wallpaper preview.
@@ -73,20 +80,28 @@ constructor(
     val fullWorkspacePreviewConfigViewModel: Flow<WorkspacePreviewConfigViewModel> =
         _fullWorkspacePreviewConfigViewModel.filterNotNull()
 
-    val onCropButtonClick: Flow<() -> Unit> =
+    val onCropButtonClick: Flow<(() -> Unit)?> =
         combine(wallpaper, fullWallpaperPreviewConfigViewModel.filterNotNull()) {
             wallpaper,
             previewViewModel ->
-            {
-                if (wallpaper is WallpaperModel.StaticWallpaperModel) {
+            if (
+                wallpaper is WallpaperModel.StaticWallpaperModel &&
+                    !wallpaper.isDownloadableWallpaper()
+            ) {
+                {
                     staticWallpaperPreviewViewModel.fullPreviewCrop?.let {
                         staticWallpaperPreviewViewModel.updateCropHints(
                             mapOf(previewViewModel.screenOrientation to it)
                         )
                     }
                 }
+            } else {
+                null
             }
         }
+
+    // If the wallpaper is a downloadable wallpaper, do not show the button
+    val isSetWallpaperButtonVisible: Flow<Boolean> = wallpaper.map { !it.isDownloadableWallpaper() }
 
     fun getWorkspacePreviewConfig(
         screen: Screen,
