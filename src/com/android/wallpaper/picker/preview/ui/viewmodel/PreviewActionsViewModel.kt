@@ -16,9 +16,11 @@
 
 package com.android.wallpaper.picker.preview.ui.viewmodel
 
+import android.content.Intent
 import com.android.wallpaper.model.wallpaper.DownloadableWallpaperData
 import com.android.wallpaper.model.wallpaper.WallpaperModel
 import com.android.wallpaper.picker.preview.domain.interactor.PreviewActionsInteractor
+import com.android.wallpaper.picker.preview.ui.util.LiveWallpaperDeleteUtil
 import com.android.wallpaper.picker.preview.ui.viewmodel.Action.CUSTOMIZE
 import com.android.wallpaper.picker.preview.ui.viewmodel.Action.DELETE
 import com.android.wallpaper.picker.preview.ui.viewmodel.Action.EDIT
@@ -39,7 +41,10 @@ import kotlinx.coroutines.flow.map
 @ViewModelScoped
 class PreviewActionsViewModel
 @Inject
-constructor(private val interactor: PreviewActionsInteractor) {
+constructor(
+    private val interactor: PreviewActionsInteractor,
+    liveWallpaperDeleteUtil: LiveWallpaperDeleteUtil,
+) {
     private val _informationFloatingSheetViewModel: Flow<InformationFloatingSheetViewModel?> =
         interactor.wallpaperModel.map { wallpaperModel ->
             if (wallpaperModel == null || !wallpaperModel.shouldShowInformationFloatingSheet()) {
@@ -61,8 +66,17 @@ constructor(private val interactor: PreviewActionsInteractor) {
         }
     val isDownloadVisible: Flow<Boolean> = downloadableWallpaperData.map { it != null }
 
-    private val _isDeleteVisible: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val isDeleteVisible: Flow<Boolean> = _isDeleteVisible.asStateFlow()
+    private val liveWallpaperDeleteIntent: Flow<Intent?> =
+        interactor.wallpaperModel.map {
+            if (it is WallpaperModel.LiveWallpaperModel) {
+                liveWallpaperDeleteUtil.getDeleteActionIntent(
+                    it.liveWallpaperData.systemWallpaperInfo
+                )
+            } else {
+                null
+            }
+        }
+    val isDeleteVisible: Flow<Boolean> = liveWallpaperDeleteIntent.map { it != null }
 
     private val _isEditVisible: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isEditVisible: Flow<Boolean> = _isEditVisible.asStateFlow()
@@ -134,6 +148,22 @@ constructor(private val interactor: PreviewActionsInteractor) {
     suspend fun downloadWallpaper() {
         interactor.downloadWallpaper()
     }
+
+    /**
+     * View model for delete confirmation dialog. Note that null means the dialog should show;
+     * otherwise, the dialog should hide.
+     */
+    val deleteConfirmationDialogViewModel: Flow<DeleteConfirmationDialogViewModel?> =
+        combine(isDeleteChecked, liveWallpaperDeleteIntent) { isChecked, intent ->
+            if (isChecked && intent != null) {
+                DeleteConfirmationDialogViewModel(
+                    onDismiss = { _isDeleteChecked.value = false },
+                    deleteIntent = intent,
+                )
+            } else {
+                null
+            }
+        }
 
     val onDeleteClicked: Flow<(() -> Unit)?> =
         combine(isDeleteVisible, isDeleteChecked) { show, isChecked ->
