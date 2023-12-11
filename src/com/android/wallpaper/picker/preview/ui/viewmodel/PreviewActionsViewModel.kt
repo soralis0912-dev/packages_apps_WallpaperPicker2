@@ -45,6 +45,7 @@ constructor(
     private val interactor: PreviewActionsInteractor,
     liveWallpaperDeleteUtil: LiveWallpaperDeleteUtil,
 ) {
+    /** [INFORMATION] */
     private val _informationFloatingSheetViewModel: Flow<InformationFloatingSheetViewModel?> =
         interactor.wallpaperModel.map { wallpaperModel ->
             if (wallpaperModel == null || !wallpaperModel.shouldShowInformationFloatingSheet()) {
@@ -57,64 +58,13 @@ constructor(
             }
         }
 
-    /** Action's isVisible state */
     val isInformationVisible: Flow<Boolean> = _informationFloatingSheetViewModel.map { it != null }
 
-    private val downloadableWallpaperData: Flow<DownloadableWallpaperData?> =
-        interactor.wallpaperModel.map {
-            (it as? WallpaperModel.StaticWallpaperModel)?.downloadableWallpaperData
-        }
-    val isDownloadVisible: Flow<Boolean> = downloadableWallpaperData.map { it != null }
-
-    private val liveWallpaperDeleteIntent: Flow<Intent?> =
-        interactor.wallpaperModel.map {
-            if (it is WallpaperModel.LiveWallpaperModel) {
-                liveWallpaperDeleteUtil.getDeleteActionIntent(
-                    it.liveWallpaperData.systemWallpaperInfo
-                )
-            } else {
-                null
-            }
-        }
-    val isDeleteVisible: Flow<Boolean> = liveWallpaperDeleteIntent.map { it != null }
-
-    private val _isEditVisible: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val isEditVisible: Flow<Boolean> = _isEditVisible.asStateFlow()
-
-    private val _isCustomizeVisible: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val isCustomizeVisible: Flow<Boolean> = _isCustomizeVisible.asStateFlow()
-
-    private val _isEffectsVisible: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val isEffectsVisible: Flow<Boolean> = _isEffectsVisible.asStateFlow()
-
-    private val _isShareVisible: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val isShareVisible: Flow<Boolean> = _isShareVisible.asStateFlow()
-
-    /** Action's isChecked state */
     private val _isInformationChecked: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isInformationChecked: Flow<Boolean> = _isInformationChecked.asStateFlow()
 
-    val isDownloading: Flow<Boolean> = interactor.isDownloadingWallpaper
-
-    private val _isDeleteChecked: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val isDeleteChecked: Flow<Boolean> = _isDeleteChecked.asStateFlow()
-
-    private val _isEditChecked: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val isEditChecked: Flow<Boolean> = _isEditChecked.asStateFlow()
-
-    private val _isCustomizeChecked: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val isCustomizeChecked: Flow<Boolean> = _isCustomizeChecked.asStateFlow()
-
-    private val _isEffectsChecked: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val isEffectsChecked: Flow<Boolean> = _isEffectsChecked.asStateFlow()
-
-    private val _isShareChecked: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val isShareChecked: Flow<Boolean> = _isShareChecked.asStateFlow()
-
-    /**
-     * Floating sheet contents for the bottom sheet dialog. If content is null, the bottom sheet
-     * should collapse, otherwise, expended.
-     */
+    // Floating sheet contents for the bottom sheet dialog. If content is null, the bottom sheet
+    // should collapse, otherwise, expended.
     val informationFloatingSheetViewModel: Flow<InformationFloatingSheetViewModel?> =
         combine(isInformationChecked, _informationFloatingSheetViewModel) { checked, viewModel ->
                 if (checked && viewModel != null) {
@@ -125,7 +75,6 @@ constructor(
             }
             .distinctUntilChanged()
 
-    /** Action listeners */
     val onInformationClicked: Flow<(() -> Unit)?> =
         combine(isInformationVisible, isInformationChecked) { show, isChecked ->
             if (show) {
@@ -140,6 +89,15 @@ constructor(
             }
         }
 
+    /** [DOWNLOAD] */
+    private val downloadableWallpaperData: Flow<DownloadableWallpaperData?> =
+        interactor.wallpaperModel.map {
+            (it as? WallpaperModel.StaticWallpaperModel)?.downloadableWallpaperData
+        }
+    val isDownloadVisible: Flow<Boolean> = downloadableWallpaperData.map { it != null }
+
+    val isDownloading: Flow<Boolean> = interactor.isDownloadingWallpaper
+
     val isDownloadButtonEnabled: Flow<Boolean> =
         combine(downloadableWallpaperData, isDownloading) { downloadableData, isDownloading ->
             downloadableData != null && !isDownloading
@@ -149,10 +107,25 @@ constructor(
         interactor.downloadWallpaper()
     }
 
-    /**
-     * View model for delete confirmation dialog. Note that null means the dialog should show;
-     * otherwise, the dialog should hide.
-     */
+    /** [DELETE] */
+    private val liveWallpaperDeleteIntent: Flow<Intent?> =
+        interactor.wallpaperModel.map {
+            if (it is WallpaperModel.LiveWallpaperModel) {
+                liveWallpaperDeleteUtil.getDeleteActionIntent(
+                    it.liveWallpaperData.systemWallpaperInfo
+                )
+            } else {
+                null
+            }
+        }
+
+    val isDeleteVisible: Flow<Boolean> = liveWallpaperDeleteIntent.map { it != null }
+
+    private val _isDeleteChecked: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isDeleteChecked: Flow<Boolean> = _isDeleteChecked.asStateFlow()
+
+    // View model for delete confirmation dialog. Note that null means the dialog should show;
+    // otherwise, the dialog should hide.
     val deleteConfirmationDialogViewModel: Flow<DeleteConfirmationDialogViewModel?> =
         combine(isDeleteChecked, liveWallpaperDeleteIntent) { isChecked, intent ->
             if (isChecked && intent != null) {
@@ -179,6 +152,13 @@ constructor(
             }
         }
 
+    /** [EDIT] */
+    private val _isEditVisible: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isEditVisible: Flow<Boolean> = _isEditVisible.asStateFlow()
+
+    private val _isEditChecked: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isEditChecked: Flow<Boolean> = _isEditChecked.asStateFlow()
+
     val onEditClicked: Flow<(() -> Unit)?> =
         combine(isEditVisible, isEditChecked) { show, isChecked ->
             if (show) {
@@ -192,6 +172,13 @@ constructor(
                 null
             }
         }
+
+    /** [CUSTOMIZE] */
+    private val _isCustomizeVisible: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isCustomizeVisible: Flow<Boolean> = _isCustomizeVisible.asStateFlow()
+
+    private val _isCustomizeChecked: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isCustomizeChecked: Flow<Boolean> = _isCustomizeChecked.asStateFlow()
 
     val onCustomizeClicked: Flow<(() -> Unit)?> =
         combine(isCustomizeVisible, isCustomizeChecked) { show, isChecked ->
@@ -207,6 +194,13 @@ constructor(
             }
         }
 
+    /** [EFFECTS] */
+    private val _isEffectsVisible: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isEffectsVisible: Flow<Boolean> = _isEffectsVisible.asStateFlow()
+
+    private val _isEffectsChecked: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isEffectsChecked: Flow<Boolean> = _isEffectsChecked.asStateFlow()
+
     val onEffectsClicked: Flow<(() -> Unit)?> =
         combine(isEffectsVisible, isEffectsChecked) { show, isChecked ->
             if (show) {
@@ -221,6 +215,13 @@ constructor(
             }
         }
 
+    /** [SHARE] */
+    private val _isShareVisible: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isShareVisible: Flow<Boolean> = _isShareVisible.asStateFlow()
+
+    private val _isShareChecked: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isShareChecked: Flow<Boolean> = _isShareChecked.asStateFlow()
+
     val onShareClicked: Flow<(() -> Unit)?> =
         combine(isShareVisible, isShareChecked) { show, isChecked ->
             if (show) {
@@ -234,6 +235,14 @@ constructor(
                 null
             }
         }
+
+    fun onFloatingSheetCollapsed() {
+        // When floating collapsed, we should look for those actions that expand the floating sheet
+        // and see which is checked, and uncheck it.
+        if (_isInformationChecked.value) {
+            _isInformationChecked.value = false
+        }
+    }
 
     private fun uncheckAllOthersExcept(action: Action) {
         if (action != INFORMATION) {
@@ -253,12 +262,6 @@ constructor(
         }
         if (action != SHARE) {
             _isShareChecked.value = false
-        }
-    }
-
-    fun onDialogCollapsed() {
-        if (_isInformationChecked.value) {
-            _isInformationChecked.value = false
         }
     }
 
