@@ -60,12 +60,13 @@ object SmallWallpaperPreviewBinder {
                 override fun surfaceCreated(holder: SurfaceHolder) {
                     job =
                         viewLifecycleOwner.lifecycleScope.launch {
-                            viewModel.wallpaper.collect { wallpaper ->
+                            viewModel.smallWallpaper.collect { (wallpaper, whichPreview) ->
                                 if (wallpaper is WallpaperModel.LiveWallpaperModel) {
                                     WallpaperConnectionUtils.connect(
                                         applicationContext,
                                         mainScope,
-                                        wallpaper.liveWallpaperData.systemWallpaperInfo,
+                                        wallpaper,
+                                        whichPreview,
                                         screen.toFlag(),
                                         surface,
                                     )
@@ -89,6 +90,10 @@ object SmallWallpaperPreviewBinder {
 
                 override fun surfaceDestroyed(holder: SurfaceHolder) {
                     job?.cancel()
+                    // Note that we disconnect wallpaper connection for live wallpapers in
+                    // WallpaperPreviewActivity's onDestroy().
+                    // This is to reduce multiple times of connecting and disconnecting live
+                    // wallpaper services, when going back and forth small and full preview.
                 }
             }
         )

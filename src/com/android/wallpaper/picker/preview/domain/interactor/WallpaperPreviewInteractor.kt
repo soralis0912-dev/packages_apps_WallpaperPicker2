@@ -20,8 +20,7 @@ import com.android.wallpaper.model.wallpaper.WallpaperModel
 import com.android.wallpaper.picker.preview.data.repository.WallpaperPreviewRepository
 import dagger.hilt.android.scopes.ActivityRetainedScoped
 import javax.inject.Inject
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.StateFlow
 
 @ActivityRetainedScoped
 class WallpaperPreviewInteractor
@@ -29,6 +28,5 @@ class WallpaperPreviewInteractor
 constructor(
     wallpaperPreviewRepository: WallpaperPreviewRepository,
 ) {
-    val wallpaperModel: Flow<WallpaperModel> =
-        wallpaperPreviewRepository.wallpaperModel.filterNotNull()
+    val wallpaperModel: StateFlow<WallpaperModel?> = wallpaperPreviewRepository.wallpaperModel
 }
