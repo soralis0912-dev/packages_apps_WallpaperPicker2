@@ -21,7 +21,7 @@ import android.content.pm.ActivityInfo
 import android.graphics.Color
 import android.os.Bundle
 import android.widget.Toast
-import androidx.activity.viewModels
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.WindowCompat
 import com.android.wallpaper.R
 import com.android.wallpaper.model.WallpaperInfo
@@ -29,7 +29,7 @@ import com.android.wallpaper.model.wallpaper.WallpaperModel
 import com.android.wallpaper.picker.AppbarFragment
 import com.android.wallpaper.picker.BasePreviewActivity
 import com.android.wallpaper.picker.preview.data.repository.WallpaperPreviewRepository
-import com.android.wallpaper.picker.preview.ui.viewmodel.WallpaperPreviewViewModel
+import com.android.wallpaper.picker.preview.data.util.LiveWallpaperDownloader
 import com.android.wallpaper.util.ActivityUtils
 import com.android.wallpaper.util.DisplayUtils
 import com.android.wallpaper.util.converter.WallpaperModelFactory
@@ -41,11 +41,11 @@ import javax.inject.Inject
 @AndroidEntryPoint(BasePreviewActivity::class)
 class WallpaperPreviewActivity :
     Hilt_WallpaperPreviewActivity(), AppbarFragment.AppbarFragmentHost {
-    private val viewModel: WallpaperPreviewViewModel by viewModels()
     @ApplicationContext @Inject lateinit var appContext: Context
     @Inject lateinit var displayUtils: DisplayUtils
     @Inject lateinit var wallpaperModelFactory: WallpaperModelFactory
     @Inject lateinit var wallpaperPreviewRepository: WallpaperPreviewRepository
+    @Inject lateinit var liveWallpaperDownloader: LiveWallpaperDownloader
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,6 +58,15 @@ class WallpaperPreviewActivity :
             checkNotNull(intent.getParcelableExtra(EXTRA_WALLPAPER_INFO, WallpaperInfo::class.java))
                 .convertToWallpaperModel()
         wallpaperPreviewRepository.setWallpaperModel(wallpaper)
+        if (
+            (wallpaper as? WallpaperModel.StaticWallpaperModel)?.downloadableWallpaperData != null
+        ) {
+            liveWallpaperDownloader.initiateDownloadableService(
+                this,
+                wallpaper,
+                registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) {}
+            )
+        }
     }
 
     override fun onUpArrowPressed() {
@@ -77,6 +86,11 @@ class WallpaperPreviewActivity :
             Toast.makeText(this, R.string.wallpaper_exit_split_screen, Toast.LENGTH_SHORT).show()
             onBackPressedDispatcher.onBackPressed()
         }
+    }
+
+    override fun onDestroy() {
+        liveWallpaperDownloader.cleanup()
+        super.onDestroy()
     }
 
     private fun WallpaperInfo.convertToWallpaperModel(): WallpaperModel {

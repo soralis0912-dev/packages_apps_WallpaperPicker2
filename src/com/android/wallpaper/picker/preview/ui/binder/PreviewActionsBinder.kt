@@ -84,17 +84,24 @@ object PreviewActionsBinder {
                     }
                 }
 
-                launch {
-                    viewModel.isDownloadChecked.collect { actionGroup.setIsChecked(DOWNLOAD, it) }
-                }
+                launch { viewModel.isDownloading.collect { actionGroup.setIsDownloading(it) } }
 
                 launch {
                     viewModel.isDownloadVisible.collect { actionGroup.setIsVisible(DOWNLOAD, it) }
                 }
 
                 launch {
-                    viewModel.onDownloadClicked.collect {
-                        actionGroup.setClickListener(DOWNLOAD, it)
+                    viewModel.isDownloadButtonEnabled.collect {
+                        actionGroup.setClickListener(
+                            DOWNLOAD,
+                            if (it) {
+                                {
+                                    lifecycleOwner.lifecycleScope.launch {
+                                        viewModel.downloadWallpaper()
+                                    }
+                                }
+                            } else null,
+                        )
                     }
                 }
 
