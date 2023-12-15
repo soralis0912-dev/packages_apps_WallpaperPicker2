@@ -78,7 +78,9 @@ interface WallpaperModelFactory {
             val wallpaperId =
                 WallpaperId(
                     componentName = componentName,
-                    uniqueId = wallpaperId,
+                    uniqueId =
+                        if (this is ImageWallpaperInfo && getWallpaperId() == null) uri.toString()
+                        else wallpaperId,
                     // TODO(b/308800470): Figure out the use of collection ID
                     collectionId = getCollectionId(context) ?: UNKNOWN_COLLECTION_ID,
                 )
