@@ -25,6 +25,8 @@ import androidx.activity.ComponentActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LifecycleOwner
 import com.android.customization.model.color.WallpaperColorResources
+import com.android.systemui.shared.settings.data.repository.SecureSettingsRepository
+import com.android.systemui.shared.settings.data.repository.SecureSettingsRepositoryImpl
 import com.android.wallpaper.config.BaseFlags
 import com.android.wallpaper.effects.EffectsController
 import com.android.wallpaper.model.CategoryProvider
@@ -52,8 +54,6 @@ import com.android.wallpaper.picker.di.modules.MainDispatcher
 import com.android.wallpaper.picker.individual.IndividualPickerFragment
 import com.android.wallpaper.picker.undo.data.repository.UndoRepository
 import com.android.wallpaper.picker.undo.domain.interactor.UndoInteractor
-import com.android.wallpaper.settings.data.repository.SecureSettingsRepository
-import com.android.wallpaper.settings.data.repository.SecureSettingsRepositoryImpl
 import com.android.wallpaper.util.DisplayUtils
 import javax.inject.Inject
 import javax.inject.Singleton
