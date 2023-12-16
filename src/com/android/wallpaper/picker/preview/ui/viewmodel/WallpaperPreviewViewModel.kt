@@ -15,59 +15,142 @@
  */
 package com.android.wallpaper.picker.preview.ui.viewmodel
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.android.wallpaper.model.WallpaperInfo
+import com.android.wallpaper.model.wallpaper.FoldableDisplay
+import com.android.wallpaper.model.wallpaper.ScreenOrientation
 import com.android.wallpaper.model.wallpaper.WallpaperModel
-import com.android.wallpaper.model.wallpaper.WallpaperModel.LiveWallpaperModel
-import com.android.wallpaper.model.wallpaper.WallpaperModel.StaticWallpaperModel
+import com.android.wallpaper.module.CustomizationSections.Screen
+import com.android.wallpaper.picker.di.modules.PreviewUtilsModule.HomeScreenPreviewUtils
+import com.android.wallpaper.picker.di.modules.PreviewUtilsModule.LockScreenPreviewUtils
+import com.android.wallpaper.picker.preview.domain.interactor.WallpaperPreviewInteractor
 import com.android.wallpaper.picker.preview.ui.WallpaperPreviewActivity
+import com.android.wallpaper.util.DisplayUtils
+import com.android.wallpaper.util.PreviewUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 
 /** Top level [ViewModel] for [WallpaperPreviewActivity] and its fragments */
 @HiltViewModel
 class WallpaperPreviewViewModel
 @Inject
 constructor(
-    private val staticWallpaperPreviewViewModel: StaticWallpaperPreviewViewModel,
-    private val previewActionsViewModel: PreviewActionsViewModel,
+    interactor: WallpaperPreviewInteractor,
+    val staticWallpaperPreviewViewModel: StaticWallpaperPreviewViewModel,
+    val previewActionsViewModel: PreviewActionsViewModel,
+    private val displayUtils: DisplayUtils,
+    @HomeScreenPreviewUtils private val homePreviewUtils: PreviewUtils,
+    @LockScreenPreviewUtils private val lockPreviewUtils: PreviewUtils,
 ) : ViewModel() {
 
-    /** User selected small preview configuration. */
-    var selectedSmallPreviewConfig: SmallPreviewConfigViewModel? = null
-    /** User selected workspace configuration. */
-    var selectedWorkspacePreviewConfig: WorkspacePreviewConfigViewModel? = null
+    val smallerDisplaySize = displayUtils.getRealSize(displayUtils.getSmallerDisplay())
+    val wallpaperDisplaySize = displayUtils.getRealSize(displayUtils.getWallpaperDisplay())
 
-    /**
-     * User selected [WallpaperInfo] for editing.
-     *
-     * TODO(b/303457890): using WallpaperModel instead.
-     */
-    var editingWallpaper: WallpaperInfo? = null
+    val wallpaper: Flow<WallpaperModel> = interactor.wallpaperModel
 
-    /** User selected [WallpaperModel] for editing. */
-    var editingWallpaperModel: WallpaperModel? = null
+    // This is only used for the full screen wallpaper preview.
+    private val fullWallpaperPreviewConfigViewModel:
+        MutableStateFlow<WallpaperPreviewConfigViewModel?> =
+        MutableStateFlow(null)
 
-    /** Gets the view model for static wallpaper preview views. */
-    fun getStaticWallpaperPreviewViewModel(): StaticWallpaperPreviewViewModel =
-        staticWallpaperPreviewViewModel
-
-    /** Gets the view model for action buttons and action sheet for small preview */
-    fun getPreviewActionsViewModel(): PreviewActionsViewModel = previewActionsViewModel
-
-    /** Initializes [WallpaperPreviewViewModel] and all its children view models. */
-    fun initializeViewModel(context: Context, wallpaper: WallpaperInfo, model: WallpaperModel) {
-        editingWallpaper = wallpaper
-        editingWallpaperModel = model
-        when (model) {
-            is StaticWallpaperModel ->
-                viewModelScope.launch {
-                    staticWallpaperPreviewViewModel.initializeViewModel(context, wallpaper, model)
-                }
-            is LiveWallpaperModel -> {}
+    // This is only used for the full screen wallpaper preview.
+    val fullWallpaper: Flow<Pair<WallpaperModel, WallpaperPreviewConfigViewModel>> =
+        combine(wallpaper, fullWallpaperPreviewConfigViewModel.filterNotNull()) {
+            wallpaper,
+            previewViewModel ->
+            Pair(wallpaper, previewViewModel)
         }
+
+    // This is only used for the full screen wallpaper preview.
+    private val _fullWorkspacePreviewConfigViewModel:
+        MutableStateFlow<WorkspacePreviewConfigViewModel?> =
+        MutableStateFlow(null)
+
+    // This is only used for the full screen wallpaper preview.
+    val fullWorkspacePreviewConfigViewModel: Flow<WorkspacePreviewConfigViewModel> =
+        _fullWorkspacePreviewConfigViewModel.filterNotNull()
+
+    val onCropButtonClick: Flow<() -> Unit> =
+        combine(wallpaper, fullWallpaperPreviewConfigViewModel.filterNotNull()) {
+            wallpaper,
+            previewViewModel ->
+            {
+                if (wallpaper is WallpaperModel.StaticWallpaperModel) {
+                    staticWallpaperPreviewViewModel.fullPreviewCrop?.let {
+                        staticWallpaperPreviewViewModel.updateCropHints(
+                            mapOf(previewViewModel.screenOrientation to it)
+                        )
+                    }
+                }
+            }
+        }
+
+    fun getWorkspacePreviewConfig(
+        screen: Screen,
+        foldableDisplay: FoldableDisplay?,
+    ): WorkspacePreviewConfigViewModel {
+        val previewUtils =
+            when (screen) {
+                Screen.HOME_SCREEN -> {
+                    homePreviewUtils
+                }
+                Screen.LOCK_SCREEN -> {
+                    lockPreviewUtils
+                }
+            }
+        val displayId =
+            when (foldableDisplay) {
+                FoldableDisplay.FOLDED -> {
+                    displayUtils.getSmallerDisplay().displayId
+                }
+                FoldableDisplay.UNFOLDED -> {
+                    displayUtils.getWallpaperDisplay().displayId
+                }
+                null -> {
+                    displayUtils.getWallpaperDisplay().displayId
+                }
+            }
+        return WorkspacePreviewConfigViewModel(
+            previewUtils = previewUtils,
+            displayId = displayId,
+        )
+    }
+
+    fun onSmallPreviewClicked(
+        screen: Screen,
+        orientation: ScreenOrientation,
+        foldableDisplay: FoldableDisplay?,
+    ) {
+        fullWallpaperPreviewConfigViewModel.value =
+            getWallpaperPreviewConfig(screen, orientation, foldableDisplay)
+        _fullWorkspacePreviewConfigViewModel.value =
+            getWorkspacePreviewConfig(screen, foldableDisplay)
+    }
+
+    private fun getWallpaperPreviewConfig(
+        screen: Screen,
+        orientation: ScreenOrientation,
+        foldableDisplay: FoldableDisplay?,
+    ): WallpaperPreviewConfigViewModel {
+        val displaySize =
+            when (foldableDisplay) {
+                FoldableDisplay.FOLDED -> {
+                    smallerDisplaySize
+                }
+                FoldableDisplay.UNFOLDED -> {
+                    wallpaperDisplaySize
+                }
+                null -> {
+                    wallpaperDisplaySize
+                }
+            }
+        return WallpaperPreviewConfigViewModel(
+            screen = screen,
+            displaySize = displaySize,
+            screenOrientation = orientation,
+        )
     }
 }

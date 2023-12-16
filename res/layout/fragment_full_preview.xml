@@ -27,11 +27,12 @@
         android:background="@android:color/transparent"
         android:contentDescription="@string/preview_screen_description"/>
 
-    <include layout="@layout/wallpaper_preview_crop"/>
+    <include layout="@layout/wallpaper_preview_full"/>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@android:color/transparent"
         android:fitsSystemWindows="true">
         <include
             android:id="@+id/toolbar_container"
@@ -50,6 +51,7 @@
             android:elevation="@dimen/wallpaper_preview_buttons_elevation"
             android:layout_marginEnd="@dimen/set_wallpaper_button_margin_end"
             android:contentDescription="@string/show_preview_controls_action"
+            android:textColor="@color/system_on_primary"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@id/toolbar_container"
             app:layout_constraintBottom_toBottomOf="@id/toolbar_container"/>

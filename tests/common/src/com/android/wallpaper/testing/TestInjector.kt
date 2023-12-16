@@ -15,6 +15,7 @@
  */
 package com.android.wallpaper.testing
 
+import android.app.WallpaperColors
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -22,6 +23,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LifecycleOwner
+import com.android.customization.model.color.WallpaperColorResources
 import com.android.systemui.shared.customization.data.content.CustomizationProviderClient
 import com.android.wallpaper.config.BaseFlags
 import com.android.wallpaper.effects.EffectsController
@@ -91,6 +93,7 @@ open class TestInjector @Inject constructor(private val userEventLogger: UserEve
     private var flags: BaseFlags? = null
     private var undoInteractor: UndoInteractor? = null
     private var wallpaperInteractor: WallpaperInteractor? = null
+    @Inject lateinit var injectedWallpaperInteractor: WallpaperInteractor
     private var wallpaperSnapshotRestorer: WallpaperSnapshotRestorer? = null
     private var wallpaperColorsRepository: WallpaperColorsRepository? = null
     private var wallpaperClient: FakeWallpaperClient? = null
@@ -262,6 +265,10 @@ open class TestInjector @Inject constructor(private val userEventLogger: UserEve
     }
 
     override fun getWallpaperInteractor(context: Context): WallpaperInteractor {
+        if (getFlags().isMultiCropEnabled() && getFlags().isMultiCropPreviewUiEnabled()) {
+            return injectedWallpaperInteractor
+        }
+
         return wallpaperInteractor
             ?: WallpaperInteractor(
                     repository =
@@ -282,6 +289,13 @@ open class TestInjector @Inject constructor(private val userEventLogger: UserEve
                     interactor = getWallpaperInteractor(context),
                 )
                 .also { wallpaperSnapshotRestorer = it }
+    }
+
+    override fun getWallpaperColorResources(
+        wallpaperColors: WallpaperColors,
+        context: Context
+    ): WallpaperColorResources {
+        return WallpaperColorResources(wallpaperColors)
     }
 
     override fun getWallpaperColorsRepository(): WallpaperColorsRepository {

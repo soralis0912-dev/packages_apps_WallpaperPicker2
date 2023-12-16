@@ -15,6 +15,7 @@
  */
 package com.android.wallpaper.module
 
+import android.app.WallpaperColors
 import android.app.WallpaperManager
 import android.content.Context
 import android.content.Intent
@@ -23,9 +24,10 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LifecycleOwner
+import com.android.customization.model.color.WallpaperColorResources
+import com.android.systemui.shared.settings.data.repository.SecureSettingsRepository
+import com.android.systemui.shared.settings.data.repository.SecureSettingsRepositoryImpl
 import com.android.wallpaper.config.BaseFlags
-import com.android.wallpaper.dispatchers.BackgroundDispatcher
-import com.android.wallpaper.dispatchers.MainDispatcher
 import com.android.wallpaper.effects.EffectsController
 import com.android.wallpaper.model.CategoryProvider
 import com.android.wallpaper.model.InlinePreviewIntentFactory
@@ -47,11 +49,11 @@ import com.android.wallpaper.picker.customization.data.repository.WallpaperColor
 import com.android.wallpaper.picker.customization.data.repository.WallpaperRepository
 import com.android.wallpaper.picker.customization.domain.interactor.WallpaperInteractor
 import com.android.wallpaper.picker.customization.domain.interactor.WallpaperSnapshotRestorer
+import com.android.wallpaper.picker.di.modules.BackgroundDispatcher
+import com.android.wallpaper.picker.di.modules.MainDispatcher
 import com.android.wallpaper.picker.individual.IndividualPickerFragment
 import com.android.wallpaper.picker.undo.data.repository.UndoRepository
 import com.android.wallpaper.picker.undo.domain.interactor.UndoInteractor
-import com.android.wallpaper.settings.data.repository.SecureSettingsRepository
-import com.android.wallpaper.settings.data.repository.SecureSettingsRepositoryImpl
 import com.android.wallpaper.util.DisplayUtils
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -88,6 +90,7 @@ internal constructor(
     private var flags: BaseFlags? = null
     private var undoInteractor: UndoInteractor? = null
     private var wallpaperInteractor: WallpaperInteractor? = null
+    @Inject lateinit var injectedWallpaperInteractor: WallpaperInteractor
     private var wallpaperSnapshotRestorer: WallpaperSnapshotRestorer? = null
     private var secureSettingsRepository: SecureSettingsRepository? = null
     private var wallpaperColorsRepository: WallpaperColorsRepository? = null
@@ -297,6 +300,10 @@ internal constructor(
     }
 
     override fun getWallpaperInteractor(context: Context): WallpaperInteractor {
+        if (getFlags().isMultiCropEnabled() && getFlags().isMultiCropPreviewUiEnabled()) {
+            return injectedWallpaperInteractor
+        }
+
         val appContext = context.applicationContext
         return wallpaperInteractor
             ?: WallpaperInteractor(
@@ -306,7 +313,6 @@ internal constructor(
                             client =
                                 WallpaperClientImpl(
                                     context = appContext,
-                                    infoFactory = getCurrentWallpaperInfoFactory(appContext),
                                     wallpaperManager = WallpaperManager.getInstance(appContext),
                                     wallpaperPreferences = getPreferences(appContext),
                                 ),
@@ -338,6 +344,13 @@ internal constructor(
     override fun getWallpaperColorsRepository(): WallpaperColorsRepository {
         return wallpaperColorsRepository
             ?: WallpaperColorsRepository().also { wallpaperColorsRepository = it }
+    }
+
+    override fun getWallpaperColorResources(
+        wallpaperColors: WallpaperColors,
+        context: Context
+    ): WallpaperColorResources {
+        return WallpaperColorResources(wallpaperColors)
     }
 
     override fun getMyPhotosIntentProvider(): MyPhotosStarter.MyPhotosIntentProvider {

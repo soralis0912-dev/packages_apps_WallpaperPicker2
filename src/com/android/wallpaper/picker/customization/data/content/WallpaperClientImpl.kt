@@ -34,7 +34,7 @@ import com.android.wallpaper.model.StaticWallpaperMetadata
 import com.android.wallpaper.model.WallpaperInfo
 import com.android.wallpaper.model.wallpaper.ScreenOrientation
 import com.android.wallpaper.model.wallpaper.WallpaperModel.StaticWallpaperModel
-import com.android.wallpaper.module.CurrentWallpaperInfoFactory
+import com.android.wallpaper.module.InjectorProvider
 import com.android.wallpaper.module.WallpaperPreferences
 import com.android.wallpaper.module.logging.UserEventLogger.SetWallpaperEntryPoint
 import com.android.wallpaper.picker.customization.shared.model.WallpaperDestination
@@ -49,7 +49,6 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 
 class WallpaperClientImpl(
     private val context: Context,
-    private val infoFactory: CurrentWallpaperInfoFactory,
     private val wallpaperManager: WallpaperManager,
     private val wallpaperPreferences: WallpaperPreferences,
 ) : WallpaperClient {
@@ -213,15 +212,20 @@ class WallpaperClientImpl(
                     val idColumnIndex = cursor.getColumnIndex(KEY_ID)
                     val placeholderColorColumnIndex = cursor.getColumnIndex(KEY_PLACEHOLDER_COLOR)
                     val lastUpdatedColumnIndex = cursor.getColumnIndex(KEY_LAST_UPDATED)
+                    val titleColumnIndex = cursor.getColumnIndex(TITLE)
                     while (cursor.moveToNext()) {
                         val wallpaperId = cursor.getString(idColumnIndex)
                         val placeholderColor = cursor.getInt(placeholderColorColumnIndex)
                         val lastUpdated = cursor.getLong(lastUpdatedColumnIndex)
+                        val title =
+                            if (titleColumnIndex > -1) cursor.getString(titleColumnIndex) else null
+
                         add(
                             WallpaperModel(
                                 wallpaperId = wallpaperId,
                                 placeholderColor = placeholderColor,
-                                lastUpdated = lastUpdated
+                                lastUpdated = lastUpdated,
+                                title = title,
                             )
                         )
                     }
@@ -242,19 +246,22 @@ class WallpaperClientImpl(
         val colors = wallpaperManager.getWallpaperColors(destination.toFlags())
 
         return WallpaperModel(
-            wallpaper.wallpaperId,
-            colors?.primaryColor?.toArgb() ?: Color.TRANSPARENT
+            wallpaperId = wallpaper.wallpaperId,
+            placeholderColor = colors?.primaryColor?.toArgb() ?: Color.TRANSPARENT,
+            title = wallpaper.getTitle(context)
         )
     }
 
     private suspend fun getCurrentWallpapers(): Pair<WallpaperInfo, WallpaperInfo?> =
         suspendCancellableCoroutine { continuation ->
-            infoFactory.createCurrentWallpaperInfos(
-                context,
-                false,
-            ) { homeWallpaper, lockWallpaper, _ ->
-                continuation.resume(Pair(homeWallpaper, lockWallpaper), null)
-            }
+            InjectorProvider.getInjector()
+                .getCurrentWallpaperInfoFactory(context)
+                .createCurrentWallpaperInfos(
+                    context,
+                    /* forceRefresh= */ false,
+                ) { homeWallpaper, lockWallpaper, _ ->
+                    continuation.resume(Pair(homeWallpaper, lockWallpaper), null)
+                }
         }
 
     override suspend fun loadThumbnail(
@@ -282,7 +289,11 @@ class WallpaperClientImpl(
                         }
                     }
             } catch (e: IOException) {
-                Log.e(TAG, "Error getting wallpaper preview: $wallpaperId", e)
+                Log.e(
+                    TAG,
+                    "Error getting wallpaper preview: $wallpaperId, destination: ${destination.asString()}",
+                    e
+                )
             }
         } else {
             val currentWallpapers = getCurrentWallpapers()
@@ -369,6 +380,8 @@ class WallpaperClientImpl(
         private const val SCREEN_ALL = "all_screens"
         private const val SCREEN_HOME = "home_screen"
         private const val SCREEN_LOCK = "lock_screen"
+
+        private const val TITLE = "title"
         /**
          * Key for a parameter used to get the placeholder color for a wallpaper from the content
          * provider.

@@ -16,30 +16,251 @@
 
 package com.android.wallpaper.picker.preview.ui.viewmodel
 
+import com.android.wallpaper.model.wallpaper.DownloadableWallpaperData
+import com.android.wallpaper.model.wallpaper.WallpaperModel
 import com.android.wallpaper.picker.preview.domain.interactor.PreviewActionsInteractor
-import com.android.wallpaper.picker.preview.ui.viewmodel.floatingSheet.InfoFloatingSheetViewModel
+import com.android.wallpaper.picker.preview.ui.viewmodel.Action.CUSTOMIZE
+import com.android.wallpaper.picker.preview.ui.viewmodel.Action.DELETE
+import com.android.wallpaper.picker.preview.ui.viewmodel.Action.EDIT
+import com.android.wallpaper.picker.preview.ui.viewmodel.Action.EFFECTS
+import com.android.wallpaper.picker.preview.ui.viewmodel.Action.INFORMATION
+import com.android.wallpaper.picker.preview.ui.viewmodel.Action.SHARE
+import com.android.wallpaper.picker.preview.ui.viewmodel.floatingSheet.InformationFloatingSheetViewModel
 import dagger.hilt.android.scopes.ViewModelScoped
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
-/** View model for preview action buttons [SmallPreviewFragment] */
+/** View model for the preview action buttons */
 @ViewModelScoped
 class PreviewActionsViewModel
 @Inject
-constructor(
-    private val previewActionsInteractor: PreviewActionsInteractor,
-) {
-
-    /**
-     * The info button is always visible unless in the anomalous case the wallpaper model is null
-     */
-    val infoButtonAndFloatingSheetViewModel: Flow<InfoFloatingSheetViewModel> =
-        previewActionsInteractor.wallpaperModel.filterNotNull().map { wallpaperModel ->
-            InfoFloatingSheetViewModel(wallpaperModel)
+constructor(private val interactor: PreviewActionsInteractor) {
+    private val _informationFloatingSheetViewModel: Flow<InformationFloatingSheetViewModel?> =
+        interactor.wallpaperModel.map { wallpaperModel ->
+            if (wallpaperModel == null || !wallpaperModel.shouldShowInformationFloatingSheet()) {
+                null
+            } else {
+                InformationFloatingSheetViewModel(
+                    wallpaperModel.commonWallpaperData.attributions,
+                    wallpaperModel.commonWallpaperData.exploreActionUrl,
+                )
+            }
         }
 
-    val showInfoButton: Flow<Boolean> =
-        previewActionsInteractor.wallpaperModel.map { wallpaperModel -> wallpaperModel == null }
+    /** Action's isVisible state */
+    val isInformationVisible: Flow<Boolean> = _informationFloatingSheetViewModel.map { it != null }
+
+    private val downloadableWallpaperData: Flow<DownloadableWallpaperData?> =
+        interactor.wallpaperModel.map {
+            (it as? WallpaperModel.StaticWallpaperModel)?.downloadableWallpaperData
+        }
+    val isDownloadVisible: Flow<Boolean> = downloadableWallpaperData.map { it != null }
+
+    private val _isDeleteVisible: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isDeleteVisible: Flow<Boolean> = _isDeleteVisible.asStateFlow()
+
+    private val _isEditVisible: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isEditVisible: Flow<Boolean> = _isEditVisible.asStateFlow()
+
+    private val _isCustomizeVisible: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isCustomizeVisible: Flow<Boolean> = _isCustomizeVisible.asStateFlow()
+
+    private val _isEffectsVisible: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isEffectsVisible: Flow<Boolean> = _isEffectsVisible.asStateFlow()
+
+    private val _isShareVisible: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isShareVisible: Flow<Boolean> = _isShareVisible.asStateFlow()
+
+    /** Action's isChecked state */
+    private val _isInformationChecked: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isInformationChecked: Flow<Boolean> = _isInformationChecked.asStateFlow()
+
+    val isDownloading: Flow<Boolean> = interactor.isDownloadingWallpaper
+
+    private val _isDeleteChecked: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isDeleteChecked: Flow<Boolean> = _isDeleteChecked.asStateFlow()
+
+    private val _isEditChecked: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isEditChecked: Flow<Boolean> = _isEditChecked.asStateFlow()
+
+    private val _isCustomizeChecked: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isCustomizeChecked: Flow<Boolean> = _isCustomizeChecked.asStateFlow()
+
+    private val _isEffectsChecked: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isEffectsChecked: Flow<Boolean> = _isEffectsChecked.asStateFlow()
+
+    private val _isShareChecked: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isShareChecked: Flow<Boolean> = _isShareChecked.asStateFlow()
+
+    /**
+     * Floating sheet contents for the bottom sheet dialog. If content is null, the bottom sheet
+     * should collapse, otherwise, expended.
+     */
+    val informationFloatingSheetViewModel: Flow<InformationFloatingSheetViewModel?> =
+        combine(isInformationChecked, _informationFloatingSheetViewModel) { checked, viewModel ->
+                if (checked && viewModel != null) {
+                    viewModel
+                } else {
+                    null
+                }
+            }
+            .distinctUntilChanged()
+
+    /** Action listeners */
+    val onInformationClicked: Flow<(() -> Unit)?> =
+        combine(isInformationVisible, isInformationChecked) { show, isChecked ->
+            if (show) {
+                {
+                    if (!isChecked) {
+                        uncheckAllOthersExcept(INFORMATION)
+                    }
+                    _isInformationChecked.value = !isChecked
+                }
+            } else {
+                null
+            }
+        }
+
+    val isDownloadButtonEnabled: Flow<Boolean> =
+        combine(downloadableWallpaperData, isDownloading) { downloadableData, isDownloading ->
+            downloadableData != null && !isDownloading
+        }
+
+    suspend fun downloadWallpaper() {
+        interactor.downloadWallpaper()
+    }
+
+    val onDeleteClicked: Flow<(() -> Unit)?> =
+        combine(isDeleteVisible, isDeleteChecked) { show, isChecked ->
+            if (show) {
+                {
+                    if (!isChecked) {
+                        uncheckAllOthersExcept(DELETE)
+                    }
+                    _isDeleteChecked.value = !isChecked
+                }
+            } else {
+                null
+            }
+        }
+
+    val onEditClicked: Flow<(() -> Unit)?> =
+        combine(isEditVisible, isEditChecked) { show, isChecked ->
+            if (show) {
+                {
+                    if (!isChecked) {
+                        uncheckAllOthersExcept(EDIT)
+                    }
+                    _isEditChecked.value = !isChecked
+                }
+            } else {
+                null
+            }
+        }
+
+    val onCustomizeClicked: Flow<(() -> Unit)?> =
+        combine(isCustomizeVisible, isCustomizeChecked) { show, isChecked ->
+            if (show) {
+                {
+                    if (!isChecked) {
+                        uncheckAllOthersExcept(CUSTOMIZE)
+                    }
+                    _isCustomizeChecked.value = !isChecked
+                }
+            } else {
+                null
+            }
+        }
+
+    val onEffectsClicked: Flow<(() -> Unit)?> =
+        combine(isEffectsVisible, isEffectsChecked) { show, isChecked ->
+            if (show) {
+                {
+                    if (!isChecked) {
+                        uncheckAllOthersExcept(EFFECTS)
+                    }
+                    _isEffectsChecked.value = !isChecked
+                }
+            } else {
+                null
+            }
+        }
+
+    val onShareClicked: Flow<(() -> Unit)?> =
+        combine(isShareVisible, isShareChecked) { show, isChecked ->
+            if (show) {
+                {
+                    if (!isChecked) {
+                        uncheckAllOthersExcept(SHARE)
+                    }
+                    _isShareChecked.value = !isChecked
+                }
+            } else {
+                null
+            }
+        }
+
+    private fun uncheckAllOthersExcept(action: Action) {
+        if (action != INFORMATION) {
+            _isInformationChecked.value = false
+        }
+        if (action != DELETE) {
+            _isDeleteChecked.value = false
+        }
+        if (action != EDIT) {
+            _isEditChecked.value = false
+        }
+        if (action != CUSTOMIZE) {
+            _isCustomizeChecked.value = false
+        }
+        if (action != EFFECTS) {
+            _isEffectsChecked.value = false
+        }
+        if (action != SHARE) {
+            _isShareChecked.value = false
+        }
+    }
+
+    fun onDialogCollapsed() {
+        if (_isInformationChecked.value) {
+            _isInformationChecked.value = false
+        }
+    }
+
+    companion object {
+        private fun WallpaperModel.shouldShowInformationFloatingSheet(): Boolean {
+            return if (
+                commonWallpaperData.attributions.isNullOrEmpty() &&
+                    commonWallpaperData.exploreActionUrl.isNullOrEmpty()
+            ) {
+                // If neither of the attributes nor the action url exists, do not show the
+                // information floating sheet.
+                false
+            } else if (
+                this is WallpaperModel.LiveWallpaperModel &&
+                    !liveWallpaperData.systemWallpaperInfo.showMetadataInPreview
+            ) {
+                // If the live wallpaper's flag of showMetadataInPreview is false, do not show the
+                // information floating sheet.
+                false
+            } else {
+                true
+            }
+        }
+    }
+}
+
+enum class Action {
+    INFORMATION,
+    DOWNLOAD,
+    DELETE,
+    EDIT,
+    CUSTOMIZE,
+    EFFECTS,
+    SHARE,
 }
