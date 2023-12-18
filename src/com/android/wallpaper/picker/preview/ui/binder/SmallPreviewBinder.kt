@@ -54,6 +54,8 @@ object SmallPreviewBinder {
         WorkspacePreviewBinder.bind(
             workspaceSurface,
             config,
+            viewModel,
+            viewLifecycleOwner,
         )
 
         SmallWallpaperPreviewBinder.bind(

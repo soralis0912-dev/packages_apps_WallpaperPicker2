@@ -27,6 +27,7 @@ import com.android.wallpaper.asset.StreamableAsset
 import com.android.wallpaper.model.wallpaper.ScreenOrientation
 import com.android.wallpaper.model.wallpaper.WallpaperModel.StaticWallpaperModel
 import com.android.wallpaper.module.WallpaperPreferences
+import com.android.wallpaper.picker.customization.shared.model.WallpaperColorsModel
 import com.android.wallpaper.picker.di.modules.BackgroundDispatcher
 import com.android.wallpaper.picker.preview.domain.interactor.WallpaperPreviewInteractor
 import com.android.wallpaper.picker.preview.ui.WallpaperPreviewActivity
@@ -40,6 +41,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -94,10 +96,14 @@ constructor(
             .flowOn(bgDispatcher)
     val subsamplingScaleImageViewModel: Flow<FullResWallpaperViewModel> =
         fullResWallpaperViewModel.filterNotNull()
-    val wallpaperColors: Flow<WallpaperColors> =
+    val wallpaperColors: Flow<WallpaperColorsModel> =
         staticWallpaperModel
-            .map { wallpaperPreferences.getWallpaperColors(it.commonWallpaperData.id.uniqueId) }
-            .filterNotNull()
+            .map {
+                WallpaperColorsModel.Loaded(
+                    wallpaperPreferences.getWallpaperColors(it.commonWallpaperData.id.uniqueId)
+                )
+            }
+            .distinctUntilChanged()
 
     fun updateCropHints(cropHints: Map<ScreenOrientation, Rect>) {
         this.cropHints.value = this.cropHints.value?.plus(cropHints) ?: cropHints

@@ -14,6 +14,7 @@ import android.service.wallpaper.IWallpaperService
 import android.util.Log
 import android.view.SurfaceView
 import android.view.WindowManager
+import com.android.wallpaper.util.WallpaperConnection
 import com.android.wallpaper.util.WallpaperConnection.WhichPreview
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
@@ -27,6 +28,7 @@ class WallpaperEngineConnection(
 
     var engine: IWallpaperEngine? = null
     private var engineContinuation: CancellableContinuation<IWallpaperEngine>? = null
+    private var listener: WallpaperEngineConnectionListener? = null
 
     suspend fun getEngine(
         wallpaperService: IWallpaperService,
@@ -84,12 +86,20 @@ class WallpaperEngineConnection(
         // Do nothing intended.
     }
 
-    override fun onWallpaperColorsChanged(p0: WallpaperColors?, p1: Int) {
-        // Do nothing intended.
+    override fun onWallpaperColorsChanged(colors: WallpaperColors?, displayId: Int) {
+        listener?.onWallpaperColorsChanged(colors, displayId)
     }
 
-    override fun setWallpaper(p0: String?): ParcelFileDescriptor {
+    override fun setWallpaper(name: String?): ParcelFileDescriptor {
         TODO("Not yet implemented")
+    }
+
+    fun setListener(listener: WallpaperEngineConnectionListener) {
+        this.listener = listener
+    }
+
+    fun removeListener() {
+        this.listener = null
     }
 
     companion object {
@@ -154,5 +164,11 @@ class WallpaperEngineConnection(
                 }
             }
         }
+    }
+
+    /** Interface to be notified of connect/disconnect events from [WallpaperConnection] */
+    interface WallpaperEngineConnectionListener {
+        /** Called after the wallpaper color is available or updated. */
+        fun onWallpaperColorsChanged(colors: WallpaperColors?, displayId: Int) {}
     }
 }
