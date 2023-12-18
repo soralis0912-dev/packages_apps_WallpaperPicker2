@@ -1,0 +1,90 @@
+/*
+ * Copyright (C) 2023 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.android.wallpaper.testing
+
+import android.app.WallpaperColors
+import android.content.ComponentName
+import android.graphics.Color
+import android.graphics.Rect
+import android.net.Uri
+import com.android.wallpaper.asset.Asset
+import com.android.wallpaper.model.wallpaper.ColorInfo
+import com.android.wallpaper.model.wallpaper.CommonWallpaperData
+import com.android.wallpaper.model.wallpaper.Destination
+import com.android.wallpaper.model.wallpaper.ImageWallpaperData
+import com.android.wallpaper.model.wallpaper.ScreenOrientation
+import com.android.wallpaper.model.wallpaper.StaticWallpaperData
+import com.android.wallpaper.model.wallpaper.WallpaperId
+import com.android.wallpaper.model.wallpaper.WallpaperModel
+import com.android.wallpaper.util.converter.WallpaperModelFactory
+
+class WallpaperModelUtils {
+    companion object {
+        const val DEFAULT_PLACEHOLDER_COLOR = 1200
+        const val DEFAULT_ACTION_URL = "http://www.bogus.com"
+        val DEFAULT_COLORS =
+            WallpaperColors(
+                Color.valueOf(Color.RED),
+                Color.valueOf(Color.GREEN),
+                Color.valueOf(Color.BLUE)
+            )
+        val DEFAULT_ASSET = TestAsset(TestStaticWallpaperInfo.COLOR_DEFAULT, false)
+
+        fun getStaticWallpaperModel(
+            wallpaperId: String,
+            collectionId: String,
+            placeholderColor: Int = DEFAULT_PLACEHOLDER_COLOR,
+            attribution: List<String> = emptyList(),
+            actionUrl: String = DEFAULT_ACTION_URL,
+            colors: WallpaperColors = DEFAULT_COLORS,
+            asset: Asset = DEFAULT_ASSET,
+        ): WallpaperModel.StaticWallpaperModel {
+            return WallpaperModel.StaticWallpaperModel(
+                commonWallpaperData =
+                    CommonWallpaperData(
+                        id =
+                            WallpaperId(
+                                ComponentName(
+                                    WallpaperModelFactory.STATIC_WALLPAPER_PACKAGE,
+                                    WallpaperModelFactory.STATIC_WALLPAPER_CLASS
+                                ),
+                                wallpaperId,
+                                collectionId,
+                            ),
+                        title = null,
+                        attributions = attribution,
+                        exploreActionUrl = actionUrl,
+                        thumbAsset = asset,
+                        placeholderColorInfo =
+                            ColorInfo(
+                                colors,
+                                placeholderColor,
+                            ),
+                        destination = Destination.NOT_APPLIED,
+                    ),
+                staticWallpaperData =
+                    StaticWallpaperData(
+                        asset,
+                        mapOf(ScreenOrientation.PORTRAIT to Rect(0, 0, 0, 0)),
+                    ),
+                imageWallpaperData = ImageWallpaperData(Uri.EMPTY),
+                networkWallpaperData = null,
+                downloadableWallpaperData = null,
+            )
+        }
+    }
+}
