@@ -16,7 +16,9 @@
 
 package com.android.wallpaper.picker.preview.ui.viewmodel
 
+import android.content.ClipData
 import android.content.Intent
+import com.android.wallpaper.model.wallpaper.CreativeWallpaperData
 import com.android.wallpaper.model.wallpaper.DownloadableWallpaperData
 import com.android.wallpaper.model.wallpaper.WallpaperModel
 import com.android.wallpaper.picker.preview.domain.interactor.PreviewActionsInteractor
@@ -216,25 +218,11 @@ constructor(
         }
 
     /** [SHARE] */
-    private val _isShareVisible: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val isShareVisible: Flow<Boolean> = _isShareVisible.asStateFlow()
-
-    private val _isShareChecked: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val isShareChecked: Flow<Boolean> = _isShareChecked.asStateFlow()
-
-    val onShareClicked: Flow<(() -> Unit)?> =
-        combine(isShareVisible, isShareChecked) { show, isChecked ->
-            if (show) {
-                {
-                    if (!isChecked) {
-                        uncheckAllOthersExcept(SHARE)
-                    }
-                    _isShareChecked.value = !isChecked
-                }
-            } else {
-                null
-            }
+    val shareIntent: Flow<Intent?> =
+        interactor.wallpaperModel.map {
+            (it as? WallpaperModel.LiveWallpaperModel)?.creativeWallpaperData?.getShareIntent()
         }
+    val isShareVisible: Flow<Boolean> = shareIntent.map { it != null }
 
     fun onFloatingSheetCollapsed() {
         // When floating collapsed, we should look for those actions that expand the floating sheet
@@ -260,9 +248,6 @@ constructor(
         if (action != EFFECTS) {
             _isEffectsChecked.value = false
         }
-        if (action != SHARE) {
-            _isShareChecked.value = false
-        }
     }
 
     companion object {
@@ -284,6 +269,15 @@ constructor(
             } else {
                 true
             }
+        }
+
+        private fun CreativeWallpaperData.getShareIntent(): Intent {
+            val shareIntent = Intent(Intent.ACTION_SEND)
+            shareIntent.putExtra(Intent.EXTRA_STREAM, shareUri)
+            shareIntent.setType("image/*")
+            shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            shareIntent.clipData = ClipData.newRawUri(null, shareUri)
+            return Intent.createChooser(shareIntent, null)
         }
     }
 }

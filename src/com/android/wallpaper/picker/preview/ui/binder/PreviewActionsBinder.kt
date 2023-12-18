@@ -47,6 +47,7 @@ object PreviewActionsBinder {
         viewModel: PreviewActionsViewModel,
         lifecycleOwner: LifecycleOwner,
         logger: UserEventLogger,
+        onStartShareActivity: (intent: Intent) -> Unit,
         finishActivity: () -> Unit,
     ) {
         val floatingSheetCallback =
@@ -201,13 +202,18 @@ object PreviewActionsBinder {
                     viewModel.onEffectsClicked.collect { actionGroup.setClickListener(EFFECTS, it) }
                 }
 
-                /** [EFFECTS] */
+                /** [SHARE] */
                 launch { viewModel.isShareVisible.collect { actionGroup.setIsVisible(SHARE, it) } }
 
-                launch { viewModel.isShareChecked.collect { actionGroup.setIsChecked(SHARE, it) } }
-
                 launch {
-                    viewModel.onShareClicked.collect { actionGroup.setClickListener(SHARE, it) }
+                    viewModel.shareIntent.collect {
+                        actionGroup.setClickListener(
+                            SHARE,
+                            if (it != null) {
+                                { onStartShareActivity.invoke(it) }
+                            } else null
+                        )
+                    }
                 }
             }
         }
