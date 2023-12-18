@@ -95,12 +95,14 @@ class SmallPreviewFragment : Hilt_SmallPreviewFragment() {
 
     private fun bindScreenPreview(view: View) {
         PreviewActionsBinder.bind(
-            view.requireViewById(R.id.action_button_group),
-            view.requireViewById(R.id.floating_sheet),
-            wallpaperPreviewViewModel.previewActionsViewModel,
-            viewLifecycleOwner,
-            logger,
-        )
+            actionGroup = view.requireViewById(R.id.action_button_group),
+            floatingSheet = view.requireViewById(R.id.floating_sheet),
+            viewModel = wallpaperPreviewViewModel.previewActionsViewModel,
+            lifecycleOwner = viewLifecycleOwner,
+            logger = logger,
+        ) {
+            activity?.finish()
+        }
         if (displayUtils.hasMultiInternalDisplays()) {
             val dualPreviewView: DualPreviewViewPager =
                 view.requireViewById(R.id.dual_preview_pager)
