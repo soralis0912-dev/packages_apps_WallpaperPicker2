@@ -15,6 +15,7 @@
  */
 package com.android.wallpaper.picker.preview.ui.fragment
 
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -176,9 +177,27 @@ class SmallPreviewFragment : Hilt_SmallPreviewFragment() {
             lifecycleOwner = viewLifecycleOwner,
             logger = logger,
             onStartShareActivity = { shareActivityResult.launch(it) },
-        ) {
-            activity?.finish()
-        }
+            onShowDeleteConfirmationDialog = { viewModel ->
+                val context = context ?: return@bind
+                AlertDialog.Builder(context)
+                    .setMessage(R.string.delete_wallpaper_confirmation)
+                    .setOnDismissListener { viewModel.onDismiss.invoke() }
+                    .setPositiveButton(R.string.delete_live_wallpaper) { _, _ ->
+                        if (viewModel.creativeWallpaperDeleteUri != null) {
+                            appContext.contentResolver.delete(
+                                viewModel.creativeWallpaperDeleteUri,
+                                null,
+                                null
+                            )
+                        } else if (viewModel.liveWallpaperDeleteIntent != null) {
+                            appContext.startService(viewModel.liveWallpaperDeleteIntent)
+                        }
+                        activity?.finish()
+                    }
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show()
+            },
+        )
     }
 
     companion object {

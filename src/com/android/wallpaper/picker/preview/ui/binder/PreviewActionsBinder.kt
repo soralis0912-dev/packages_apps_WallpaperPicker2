@@ -15,7 +15,6 @@
  */
 package com.android.wallpaper.picker.preview.ui.binder
 
-import android.app.AlertDialog
 import android.content.Intent
 import android.net.Uri
 import android.view.View
@@ -23,7 +22,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.android.wallpaper.R
 import com.android.wallpaper.module.logging.UserEventLogger
 import com.android.wallpaper.picker.preview.ui.view.PreviewActionFloatingSheet
 import com.android.wallpaper.picker.preview.ui.view.PreviewActionGroup
@@ -34,6 +32,7 @@ import com.android.wallpaper.picker.preview.ui.viewmodel.Action.EDIT
 import com.android.wallpaper.picker.preview.ui.viewmodel.Action.EFFECTS
 import com.android.wallpaper.picker.preview.ui.viewmodel.Action.INFORMATION
 import com.android.wallpaper.picker.preview.ui.viewmodel.Action.SHARE
+import com.android.wallpaper.picker.preview.ui.viewmodel.DeleteConfirmationDialogViewModel
 import com.android.wallpaper.picker.preview.ui.viewmodel.PreviewActionsViewModel
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_HIDDEN
@@ -48,7 +47,7 @@ object PreviewActionsBinder {
         lifecycleOwner: LifecycleOwner,
         logger: UserEventLogger,
         onStartShareActivity: (intent: Intent) -> Unit,
-        finishActivity: () -> Unit,
+        onShowDeleteConfirmationDialog: (videModel: DeleteConfirmationDialogViewModel) -> Unit,
     ) {
         val floatingSheetCallback =
             object : BottomSheetBehavior.BottomSheetCallback() {
@@ -151,16 +150,7 @@ object PreviewActionsBinder {
                 launch {
                     viewModel.deleteConfirmationDialogViewModel.collect { viewModel ->
                         if (viewModel != null) {
-                            val appContext = actionGroup.context.applicationContext
-                            AlertDialog.Builder(actionGroup.context)
-                                .setMessage(R.string.delete_wallpaper_confirmation)
-                                .setOnDismissListener { viewModel.onDismiss.invoke() }
-                                .setPositiveButton(R.string.delete_live_wallpaper) { _, _ ->
-                                    appContext.startService(viewModel.deleteIntent)
-                                    finishActivity.invoke()
-                                }
-                                .setNegativeButton(android.R.string.cancel, null)
-                                .show()
+                            onShowDeleteConfirmationDialog.invoke(viewModel)
                         }
                     }
                 }
