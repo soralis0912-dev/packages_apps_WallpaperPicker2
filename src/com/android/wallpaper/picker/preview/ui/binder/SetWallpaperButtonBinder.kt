@@ -17,14 +17,34 @@
 package com.android.wallpaper.picker.preview.ui.binder
 
 import android.widget.Button
+import androidx.core.view.isVisible
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import com.android.wallpaper.picker.preview.ui.viewmodel.WallpaperPreviewViewModel
+import kotlinx.coroutines.launch
 
 /** Binds the set wallpaper button on small preview. */
 object SetWallpaperButtonBinder {
 
     fun bind(
         button: Button,
+        viewModel: WallpaperPreviewViewModel,
+        lifecycleOwner: LifecycleOwner,
         navigate: () -> Unit,
     ) {
-        button.setOnClickListener { navigate.invoke() }
+        lifecycleOwner.lifecycleScope.launch {
+            lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.isSetWallpaperButtonVisible.collect { isVisible ->
+                    button.isVisible = isVisible
+                    if (isVisible) {
+                        button.setOnClickListener { navigate.invoke() }
+                    } else {
+                        button.setOnClickListener(null)
+                    }
+                }
+            }
+        }
     }
 }

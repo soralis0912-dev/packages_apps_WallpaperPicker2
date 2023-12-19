@@ -15,6 +15,7 @@
  */
 package com.android.wallpaper.picker.preview.ui.binder
 
+import android.app.AlertDialog
 import android.content.Intent
 import android.net.Uri
 import android.view.View
@@ -22,6 +23,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.android.wallpaper.R
 import com.android.wallpaper.module.logging.UserEventLogger
 import com.android.wallpaper.picker.preview.ui.view.PreviewActionFloatingSheet
 import com.android.wallpaper.picker.preview.ui.view.PreviewActionGroup
@@ -45,12 +47,13 @@ object PreviewActionsBinder {
         viewModel: PreviewActionsViewModel,
         lifecycleOwner: LifecycleOwner,
         logger: UserEventLogger,
+        finishActivity: () -> Unit,
     ) {
         val floatingSheetCallback =
             object : BottomSheetBehavior.BottomSheetCallback() {
                 override fun onStateChanged(view: View, newState: Int) {
                     if (newState == STATE_HIDDEN) {
-                        viewModel.onDialogCollapsed()
+                        viewModel.onFloatingSheetCollapsed()
                     }
                 }
 
@@ -66,12 +69,7 @@ object PreviewActionsBinder {
 
         lifecycleOwner.lifecycleScope.launch {
             lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch {
-                    viewModel.isInformationChecked.collect {
-                        actionGroup.setIsChecked(INFORMATION, it)
-                    }
-                }
-
+                /** [INFORMATION] */
                 launch {
                     viewModel.isInformationVisible.collect {
                         actionGroup.setIsVisible(INFORMATION, it)
@@ -79,84 +77,15 @@ object PreviewActionsBinder {
                 }
 
                 launch {
+                    viewModel.isInformationChecked.collect {
+                        actionGroup.setIsChecked(INFORMATION, it)
+                    }
+                }
+
+                launch {
                     viewModel.onInformationClicked.collect {
                         actionGroup.setClickListener(INFORMATION, it)
                     }
-                }
-
-                launch { viewModel.isDownloading.collect { actionGroup.setIsDownloading(it) } }
-
-                launch {
-                    viewModel.isDownloadVisible.collect { actionGroup.setIsVisible(DOWNLOAD, it) }
-                }
-
-                launch {
-                    viewModel.isDownloadButtonEnabled.collect {
-                        actionGroup.setClickListener(
-                            DOWNLOAD,
-                            if (it) {
-                                {
-                                    lifecycleOwner.lifecycleScope.launch {
-                                        viewModel.downloadWallpaper()
-                                    }
-                                }
-                            } else null,
-                        )
-                    }
-                }
-
-                launch {
-                    viewModel.isDeleteChecked.collect { actionGroup.setIsChecked(DELETE, it) }
-                }
-
-                launch {
-                    viewModel.isDeleteVisible.collect { actionGroup.setIsVisible(DELETE, it) }
-                }
-
-                launch {
-                    viewModel.onDeleteClicked.collect { actionGroup.setClickListener(DELETE, it) }
-                }
-
-                launch { viewModel.isEditChecked.collect { actionGroup.setIsChecked(EDIT, it) } }
-
-                launch { viewModel.isEditVisible.collect { actionGroup.setIsVisible(EDIT, it) } }
-
-                launch {
-                    viewModel.onEditClicked.collect { actionGroup.setClickListener(EDIT, it) }
-                }
-
-                launch {
-                    viewModel.isCustomizeChecked.collect { actionGroup.setIsChecked(CUSTOMIZE, it) }
-                }
-
-                launch {
-                    viewModel.isCustomizeVisible.collect { actionGroup.setIsVisible(CUSTOMIZE, it) }
-                }
-
-                launch {
-                    viewModel.onCustomizeClicked.collect {
-                        actionGroup.setClickListener(CUSTOMIZE, it)
-                    }
-                }
-
-                launch {
-                    viewModel.isEffectsChecked.collect { actionGroup.setIsChecked(EFFECTS, it) }
-                }
-
-                launch {
-                    viewModel.isEffectsVisible.collect { actionGroup.setIsVisible(EFFECTS, it) }
-                }
-
-                launch {
-                    viewModel.onEffectsClicked.collect { actionGroup.setClickListener(EFFECTS, it) }
-                }
-
-                launch { viewModel.isShareChecked.collect { actionGroup.setIsChecked(SHARE, it) } }
-
-                launch { viewModel.isShareVisible.collect { actionGroup.setIsVisible(SHARE, it) } }
-
-                launch {
-                    viewModel.onShareClicked.collect { actionGroup.setClickListener(SHARE, it) }
                 }
 
                 launch {
@@ -181,6 +110,104 @@ object PreviewActionsBinder {
                             floatingSheet.expand()
                         }
                     }
+                }
+
+                /** [DOWNLOAD] */
+                launch {
+                    viewModel.isDownloadVisible.collect { actionGroup.setIsVisible(DOWNLOAD, it) }
+                }
+
+                launch { viewModel.isDownloading.collect { actionGroup.setIsDownloading(it) } }
+
+                launch {
+                    viewModel.isDownloadButtonEnabled.collect {
+                        actionGroup.setClickListener(
+                            DOWNLOAD,
+                            if (it) {
+                                {
+                                    lifecycleOwner.lifecycleScope.launch {
+                                        viewModel.downloadWallpaper()
+                                    }
+                                }
+                            } else null,
+                        )
+                    }
+                }
+
+                /** [DELETE] */
+                launch {
+                    viewModel.isDeleteVisible.collect { actionGroup.setIsVisible(DELETE, it) }
+                }
+
+                launch {
+                    viewModel.isDeleteChecked.collect { actionGroup.setIsChecked(DELETE, it) }
+                }
+
+                launch {
+                    viewModel.onDeleteClicked.collect { actionGroup.setClickListener(DELETE, it) }
+                }
+
+                launch {
+                    viewModel.deleteConfirmationDialogViewModel.collect { viewModel ->
+                        if (viewModel != null) {
+                            val appContext = actionGroup.context.applicationContext
+                            AlertDialog.Builder(actionGroup.context)
+                                .setMessage(R.string.delete_wallpaper_confirmation)
+                                .setOnDismissListener { viewModel.onDismiss.invoke() }
+                                .setPositiveButton(R.string.delete_live_wallpaper) { _, _ ->
+                                    appContext.startService(viewModel.deleteIntent)
+                                    finishActivity.invoke()
+                                }
+                                .setNegativeButton(android.R.string.cancel, null)
+                                .show()
+                        }
+                    }
+                }
+
+                /** [EDIT] */
+                launch { viewModel.isEditVisible.collect { actionGroup.setIsVisible(EDIT, it) } }
+
+                launch { viewModel.isEditChecked.collect { actionGroup.setIsChecked(EDIT, it) } }
+
+                launch {
+                    viewModel.onEditClicked.collect { actionGroup.setClickListener(EDIT, it) }
+                }
+
+                /** [CUSTOMIZE] */
+                launch {
+                    viewModel.isCustomizeVisible.collect { actionGroup.setIsVisible(CUSTOMIZE, it) }
+                }
+
+                launch {
+                    viewModel.isCustomizeChecked.collect { actionGroup.setIsChecked(CUSTOMIZE, it) }
+                }
+
+                launch {
+                    viewModel.onCustomizeClicked.collect {
+                        actionGroup.setClickListener(CUSTOMIZE, it)
+                    }
+                }
+
+                /** [EFFECTS] */
+                launch {
+                    viewModel.isEffectsVisible.collect { actionGroup.setIsVisible(EFFECTS, it) }
+                }
+
+                launch {
+                    viewModel.isEffectsChecked.collect { actionGroup.setIsChecked(EFFECTS, it) }
+                }
+
+                launch {
+                    viewModel.onEffectsClicked.collect { actionGroup.setClickListener(EFFECTS, it) }
+                }
+
+                /** [EFFECTS] */
+                launch { viewModel.isShareVisible.collect { actionGroup.setIsVisible(SHARE, it) } }
+
+                launch { viewModel.isShareChecked.collect { actionGroup.setIsChecked(SHARE, it) } }
+
+                launch {
+                    viewModel.onShareClicked.collect { actionGroup.setClickListener(SHARE, it) }
                 }
             }
         }

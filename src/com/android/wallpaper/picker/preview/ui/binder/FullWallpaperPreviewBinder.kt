@@ -77,7 +77,8 @@ object FullWallpaperPreviewBinder {
                 override fun surfaceCreated(holder: SurfaceHolder) {
                     job =
                         lifecycleOwner.lifecycleScope.launch {
-                            viewModel.fullWallpaper.collect { (wallpaper, config) ->
+                            viewModel.fullWallpaper.collect { (wallpaper, config, allowUserCropping)
+                                ->
                                 if (wallpaper is WallpaperModel.LiveWallpaperModel) {
                                     WallpaperConnectionUtils.connect(
                                         applicationContext,
@@ -91,11 +92,19 @@ object FullWallpaperPreviewBinder {
                                         initStaticPreviewSurface(
                                             applicationContext,
                                             surfaceView,
-                                            surfaceTouchForwardingLayout,
                                         ) { rect ->
                                             viewModel.staticWallpaperPreviewViewModel
                                                 .fullPreviewCrop = rect
                                         }
+
+                                    // We do not allow users to pinch to crop if it is a
+                                    // downloadable wallpaper.
+                                    if (allowUserCropping) {
+                                        surfaceTouchForwardingLayout.initTouchForwarding(
+                                            fullResImageView
+                                        )
+                                    }
+
                                     // Bind static wallpaper
                                     StaticWallpaperPreviewBinder.bind(
                                         lowResImageView,
@@ -120,7 +129,6 @@ object FullWallpaperPreviewBinder {
     private fun initStaticPreviewSurface(
         applicationContext: Context,
         surfaceView: SurfaceView,
-        surfaceTouchForwardingLayout: TouchForwardingLayout,
         onNewCrop: (crop: Rect) -> Unit
     ): Pair<ImageView, SubsamplingScaleImageView> {
         val preview =
@@ -129,7 +137,6 @@ object FullWallpaperPreviewBinder {
         surfaceView.attachView(preview)
         val fullResImageView =
             preview.requireViewById<SubsamplingScaleImageView>(R.id.full_res_image)
-        surfaceTouchForwardingLayout.initTouchForwarding(fullResImageView)
         fullResImageView.setOnNewCropListener { onNewCrop.invoke(it) }
         return Pair(preview.requireViewById(R.id.low_res_image), fullResImageView)
     }
