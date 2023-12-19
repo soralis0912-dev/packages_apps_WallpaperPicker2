@@ -17,37 +17,40 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:paddingStart="@dimen/spacing_8dp"
+    android:paddingEnd="@dimen/spacing_8dp">
 
     <TextView
         android:id="@+id/title"
         style="@style/TextAppearance.SetWallpaperDialog.Title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingLeft="?attr/dialogPreferredPadding"
-        android:paddingRight="?attr/dialogPreferredPadding"
-        android:paddingTop="@dimen/abc_dialog_padding_top_material"
-        android:text="Set wallpaper"
+        android:text="@string/set_wallpaper_button_text"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <android.widget.Space
-        android:id="@+id/titleDividerNoCustom"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/abc_dialog_title_divider_material"
-        app:layout_constraintTop_toBottomOf="@id/title"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-    <LinearLayout
-        android:id="@+id/previews"
+    <include layout="@layout/set_wallpaper_dialog_foldable_preview"
+        android:id="@+id/foldable_previews"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintTop_toBottomOf="@+id/titleDividerNoCustom"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@+id/title"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent">
+    </include>
 
+    <include layout="@layout/set_wallpaper_dialog_handheld_preview"
+        android:id="@+id/handheld_previews"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@+id/title"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+    </include>
 </androidx.constraintlayout.widget.ConstraintLayout>

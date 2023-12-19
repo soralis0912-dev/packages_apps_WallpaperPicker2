@@ -18,20 +18,95 @@ package com.android.wallpaper.picker.preview.ui.binder
 
 import android.app.AlertDialog
 import android.app.Dialog
+import android.view.View
+import android.widget.FrameLayout
+import androidx.core.view.isVisible
+import androidx.lifecycle.LifecycleOwner
+import com.android.wallpaper.R
+import com.android.wallpaper.model.wallpaper.FoldableDisplay
+import com.android.wallpaper.model.wallpaper.getScreenOrientation
+import com.android.wallpaper.module.CustomizationSections.Screen
+import com.android.wallpaper.picker.preview.ui.view.DualDisplayAspectRatioLayout
+import com.android.wallpaper.picker.preview.ui.view.DualDisplayAspectRatioLayout.Companion.getViewId
+import com.android.wallpaper.picker.preview.ui.viewmodel.WallpaperPreviewViewModel
+import kotlinx.coroutines.CoroutineScope
 
 /** Binds the dialog on small preview confirming and setting wallpaper with destination. */
 object SetWallpaperDialogBinder {
+    private val PreviewScreenIds =
+        mapOf(Screen.LOCK_SCREEN to R.id.lock_preview, Screen.HOME_SCREEN to R.id.home_preview)
 
     fun bind(
         dialog: AlertDialog,
-        primaryText: String,
-        secondaryText: String,
+        dialogContent: View,
+        wallpaperPreviewViewModel: WallpaperPreviewViewModel,
+        isFoldable: Boolean,
+        lifecycleOwner: LifecycleOwner,
+        mainScope: CoroutineScope,
         navigate: () -> Unit,
     ) {
+        if (isFoldable)
+            bindFoldablePreview(
+                dialogContent.requireViewById(R.id.foldable_previews),
+                wallpaperPreviewViewModel,
+                lifecycleOwner,
+                mainScope,
+            )
+        else bindHandheldPreview()
+
         // TODO(b/303457019): For the set button, listen to a data flow of onClick listener
         dialog.apply {
-            setButton(Dialog.BUTTON_POSITIVE, primaryText) { _, _ -> navigate.invoke() }
-            setButton(Dialog.BUTTON_NEGATIVE, secondaryText) { _, _ -> navigate.invoke() }
+            setButton(
+                Dialog.BUTTON_POSITIVE,
+                dialogContent.resources.getString(R.string.set_wallpaper_button_text)
+            ) { _, _ ->
+                navigate.invoke()
+            }
+            setButton(Dialog.BUTTON_NEGATIVE, dialogContent.resources.getString(R.string.cancel)) {
+                _,
+                _ ->
+                navigate.invoke()
+            }
         }
     }
+
+    private fun bindFoldablePreview(
+        previewLayout: View,
+        wallpaperPreviewViewModel: WallpaperPreviewViewModel,
+        lifecycleOwner: LifecycleOwner,
+        mainScope: CoroutineScope,
+    ) {
+        previewLayout.isVisible = true
+        PreviewScreenIds.forEach { screenId ->
+            val dualDisplayAspectRatioLayout: DualDisplayAspectRatioLayout =
+                previewLayout
+                    .requireViewById<FrameLayout>(screenId.value)
+                    .requireViewById(R.id.dual_preview)
+
+            dualDisplayAspectRatioLayout.setDisplaySizes(
+                mapOf(
+                    FoldableDisplay.FOLDED to wallpaperPreviewViewModel.smallerDisplaySize,
+                    FoldableDisplay.UNFOLDED to wallpaperPreviewViewModel.wallpaperDisplaySize,
+                )
+            )
+            FoldableDisplay.entries.forEach { display ->
+                val previewDisplaySize = dualDisplayAspectRatioLayout.getPreviewDisplaySize(display)
+                previewDisplaySize?.let {
+                    SmallPreviewBinder.bind(
+                        applicationContext = previewLayout.context.applicationContext,
+                        view = dualDisplayAspectRatioLayout.requireViewById(display.getViewId()),
+                        viewModel = wallpaperPreviewViewModel,
+                        mainScope = mainScope,
+                        viewLifecycleOwner = lifecycleOwner,
+                        screen = screenId.key,
+                        orientation = getScreenOrientation(it, display),
+                        foldableDisplay = display,
+                        navigate = null,
+                    )
+                }
+            }
+        }
+    }
+
+    private fun bindHandheldPreview() {}
 }
