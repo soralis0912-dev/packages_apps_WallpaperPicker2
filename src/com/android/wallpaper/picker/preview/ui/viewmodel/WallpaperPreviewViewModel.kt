@@ -163,6 +163,15 @@ constructor(
             getWorkspacePreviewConfig(screen, foldableDisplay)
     }
 
+    fun setDefaultWallpaperPreviewConfigViewModel() {
+        fullWallpaperPreviewConfigViewModel.value =
+            WallpaperPreviewConfigViewModel(
+                Screen.HOME_SCREEN,
+                wallpaperDisplaySize,
+                ScreenOrientation.PORTRAIT
+            )
+    }
+
     private fun getWallpaperPreviewConfig(
         screen: Screen,
         orientation: ScreenOrientation,

@@ -173,9 +173,19 @@ class SmallPreviewFragment : Hilt_SmallPreviewFragment() {
         PreviewActionsBinder.bind(
             actionGroup = view.requireViewById(R.id.action_button_group),
             floatingSheet = view.requireViewById(R.id.floating_sheet),
-            viewModel = wallpaperPreviewViewModel.previewActionsViewModel,
+            previewViewModel = wallpaperPreviewViewModel,
+            actionsViewModel = wallpaperPreviewViewModel.previewActionsViewModel,
             lifecycleOwner = viewLifecycleOwner,
             logger = logger,
+            onStartEditActivity = {
+                findNavController()
+                    .navigate(
+                        resId = R.id.action_smallPreviewFragment_to_fullPreviewFragment,
+                        args = Bundle().apply { putParcelable(ARG_EDIT_INTENT, it) },
+                        navOptions = null,
+                        navigatorExtras = null,
+                    )
+            },
             onStartShareActivity = { shareActivityResult.launch(it) },
             onShowDeleteConfirmationDialog = { viewModel ->
                 val context = context ?: return@bind
@@ -203,5 +213,6 @@ class SmallPreviewFragment : Hilt_SmallPreviewFragment() {
     companion object {
         const val SMALL_PREVIEW_SHARED_ELEMENT_ID = "small_preview_shared_element"
         const val FULL_PREVIEW_SHARED_ELEMENT_ID = "full_preview_shared_element"
+        const val ARG_EDIT_INTENT = "arg_edit_intent"
     }
 }

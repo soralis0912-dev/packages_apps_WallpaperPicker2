@@ -17,10 +17,13 @@
 package com.android.wallpaper.picker.preview.ui.viewmodel
 
 import android.content.ClipData
+import android.content.ComponentName
 import android.content.Intent
 import android.net.Uri
+import android.service.wallpaper.WallpaperSettingsActivity
 import com.android.wallpaper.model.wallpaper.CreativeWallpaperData
 import com.android.wallpaper.model.wallpaper.DownloadableWallpaperData
+import com.android.wallpaper.model.wallpaper.LiveWallpaperData
 import com.android.wallpaper.model.wallpaper.WallpaperModel
 import com.android.wallpaper.model.wallpaper.WallpaperModel.LiveWallpaperModel
 import com.android.wallpaper.picker.preview.domain.interactor.PreviewActionsInteractor
@@ -172,25 +175,14 @@ constructor(
         }
 
     /** [EDIT] */
-    private val _isEditVisible: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val isEditVisible: Flow<Boolean> = _isEditVisible.asStateFlow()
+    val editIntent: Flow<Intent?> =
+        interactor.wallpaperModel.map {
+            (it as? WallpaperModel.LiveWallpaperModel)?.liveWallpaperData?.getEditActivityIntent()
+        }
+    val isEditVisible: Flow<Boolean> = editIntent.map { it != null }
 
     private val _isEditChecked: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isEditChecked: Flow<Boolean> = _isEditChecked.asStateFlow()
-
-    val onEditClicked: Flow<(() -> Unit)?> =
-        combine(isEditVisible, isEditChecked) { show, isChecked ->
-            if (show) {
-                {
-                    if (!isChecked) {
-                        uncheckAllOthersExcept(EDIT)
-                    }
-                    _isEditChecked.value = !isChecked
-                }
-            } else {
-                null
-            }
-        }
 
     /** [CUSTOMIZE] */
     private val _isCustomizeVisible: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -305,6 +297,23 @@ constructor(
             } else {
                 !liveWallpaperData.isApplied
             }
+        }
+
+        fun LiveWallpaperData.getEditActivityIntent(): Intent? {
+            val settingsActivity = systemWallpaperInfo.settingsActivity
+            if (settingsActivity.isNullOrEmpty()) {
+                return null
+            }
+            val intent =
+                Intent().apply {
+                    component = ComponentName(systemWallpaperInfo.packageName, settingsActivity)
+                    putExtra(WallpaperSettingsActivity.EXTRA_PREVIEW_MODE, true)
+                }
+            return intent
+        }
+
+        fun LiveWallpaperModel.isNewCreativeWallpaper(): Boolean {
+            return creativeWallpaperData?.deleteUri?.toString()?.isEmpty() == true
         }
     }
 }

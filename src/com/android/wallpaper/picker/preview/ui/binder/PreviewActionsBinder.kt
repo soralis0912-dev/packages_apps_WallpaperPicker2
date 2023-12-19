@@ -34,6 +34,7 @@ import com.android.wallpaper.picker.preview.ui.viewmodel.Action.INFORMATION
 import com.android.wallpaper.picker.preview.ui.viewmodel.Action.SHARE
 import com.android.wallpaper.picker.preview.ui.viewmodel.DeleteConfirmationDialogViewModel
 import com.android.wallpaper.picker.preview.ui.viewmodel.PreviewActionsViewModel
+import com.android.wallpaper.picker.preview.ui.viewmodel.WallpaperPreviewViewModel
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_HIDDEN
 import kotlinx.coroutines.launch
@@ -43,9 +44,11 @@ object PreviewActionsBinder {
     fun bind(
         actionGroup: PreviewActionGroup,
         floatingSheet: PreviewActionFloatingSheet,
-        viewModel: PreviewActionsViewModel,
+        previewViewModel: WallpaperPreviewViewModel,
+        actionsViewModel: PreviewActionsViewModel,
         lifecycleOwner: LifecycleOwner,
         logger: UserEventLogger,
+        onStartEditActivity: (intent: Intent) -> Unit,
         onStartShareActivity: (intent: Intent) -> Unit,
         onShowDeleteConfirmationDialog: (videModel: DeleteConfirmationDialogViewModel) -> Unit,
     ) {
@@ -53,7 +56,7 @@ object PreviewActionsBinder {
             object : BottomSheetBehavior.BottomSheetCallback() {
                 override fun onStateChanged(view: View, newState: Int) {
                     if (newState == STATE_HIDDEN) {
-                        viewModel.onFloatingSheetCollapsed()
+                        actionsViewModel.onFloatingSheetCollapsed()
                     }
                 }
 
@@ -71,25 +74,25 @@ object PreviewActionsBinder {
             lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 /** [INFORMATION] */
                 launch {
-                    viewModel.isInformationVisible.collect {
+                    actionsViewModel.isInformationVisible.collect {
                         actionGroup.setIsVisible(INFORMATION, it)
                     }
                 }
 
                 launch {
-                    viewModel.isInformationChecked.collect {
+                    actionsViewModel.isInformationChecked.collect {
                         actionGroup.setIsChecked(INFORMATION, it)
                     }
                 }
 
                 launch {
-                    viewModel.onInformationClicked.collect {
+                    actionsViewModel.onInformationClicked.collect {
                         actionGroup.setClickListener(INFORMATION, it)
                     }
                 }
 
                 launch {
-                    viewModel.informationFloatingSheetViewModel.collect { viewModel ->
+                    actionsViewModel.informationFloatingSheetViewModel.collect { viewModel ->
                         if (viewModel == null) {
                             floatingSheet.collapse()
                         } else {
@@ -114,19 +117,23 @@ object PreviewActionsBinder {
 
                 /** [DOWNLOAD] */
                 launch {
-                    viewModel.isDownloadVisible.collect { actionGroup.setIsVisible(DOWNLOAD, it) }
+                    actionsViewModel.isDownloadVisible.collect {
+                        actionGroup.setIsVisible(DOWNLOAD, it)
+                    }
                 }
 
-                launch { viewModel.isDownloading.collect { actionGroup.setIsDownloading(it) } }
+                launch {
+                    actionsViewModel.isDownloading.collect { actionGroup.setIsDownloading(it) }
+                }
 
                 launch {
-                    viewModel.isDownloadButtonEnabled.collect {
+                    actionsViewModel.isDownloadButtonEnabled.collect {
                         actionGroup.setClickListener(
                             DOWNLOAD,
                             if (it) {
                                 {
                                     lifecycleOwner.lifecycleScope.launch {
-                                        viewModel.downloadWallpaper()
+                                        actionsViewModel.downloadWallpaper()
                                     }
                                 }
                             } else null,
@@ -136,19 +143,25 @@ object PreviewActionsBinder {
 
                 /** [DELETE] */
                 launch {
-                    viewModel.isDeleteVisible.collect { actionGroup.setIsVisible(DELETE, it) }
+                    actionsViewModel.isDeleteVisible.collect {
+                        actionGroup.setIsVisible(DELETE, it)
+                    }
                 }
 
                 launch {
-                    viewModel.isDeleteChecked.collect { actionGroup.setIsChecked(DELETE, it) }
+                    actionsViewModel.isDeleteChecked.collect {
+                        actionGroup.setIsChecked(DELETE, it)
+                    }
                 }
 
                 launch {
-                    viewModel.onDeleteClicked.collect { actionGroup.setClickListener(DELETE, it) }
+                    actionsViewModel.onDeleteClicked.collect {
+                        actionGroup.setClickListener(DELETE, it)
+                    }
                 }
 
                 launch {
-                    viewModel.deleteConfirmationDialogViewModel.collect { viewModel ->
+                    actionsViewModel.deleteConfirmationDialogViewModel.collect { viewModel ->
                         if (viewModel != null) {
                             onShowDeleteConfirmationDialog.invoke(viewModel)
                         }
@@ -156,47 +169,75 @@ object PreviewActionsBinder {
                 }
 
                 /** [EDIT] */
-                launch { viewModel.isEditVisible.collect { actionGroup.setIsVisible(EDIT, it) } }
-
-                launch { viewModel.isEditChecked.collect { actionGroup.setIsChecked(EDIT, it) } }
+                launch {
+                    actionsViewModel.isEditVisible.collect { actionGroup.setIsVisible(EDIT, it) }
+                }
 
                 launch {
-                    viewModel.onEditClicked.collect { actionGroup.setClickListener(EDIT, it) }
+                    actionsViewModel.isEditChecked.collect { actionGroup.setIsChecked(EDIT, it) }
+                }
+
+                launch {
+                    actionsViewModel.editIntent.collect {
+                        actionGroup.setClickListener(
+                            EDIT,
+                            if (it != null) {
+                                {
+                                    // We need to set default wallpaper preview config view model
+                                    // before entering full screen with edit activity overlay.
+                                    previewViewModel.setDefaultWallpaperPreviewConfigViewModel()
+                                    onStartEditActivity.invoke(it)
+                                }
+                            } else null
+                        )
+                    }
                 }
 
                 /** [CUSTOMIZE] */
                 launch {
-                    viewModel.isCustomizeVisible.collect { actionGroup.setIsVisible(CUSTOMIZE, it) }
+                    actionsViewModel.isCustomizeVisible.collect {
+                        actionGroup.setIsVisible(CUSTOMIZE, it)
+                    }
                 }
 
                 launch {
-                    viewModel.isCustomizeChecked.collect { actionGroup.setIsChecked(CUSTOMIZE, it) }
+                    actionsViewModel.isCustomizeChecked.collect {
+                        actionGroup.setIsChecked(CUSTOMIZE, it)
+                    }
                 }
 
                 launch {
-                    viewModel.onCustomizeClicked.collect {
+                    actionsViewModel.onCustomizeClicked.collect {
                         actionGroup.setClickListener(CUSTOMIZE, it)
                     }
                 }
 
                 /** [EFFECTS] */
                 launch {
-                    viewModel.isEffectsVisible.collect { actionGroup.setIsVisible(EFFECTS, it) }
+                    actionsViewModel.isEffectsVisible.collect {
+                        actionGroup.setIsVisible(EFFECTS, it)
+                    }
                 }
 
                 launch {
-                    viewModel.isEffectsChecked.collect { actionGroup.setIsChecked(EFFECTS, it) }
+                    actionsViewModel.isEffectsChecked.collect {
+                        actionGroup.setIsChecked(EFFECTS, it)
+                    }
                 }
 
                 launch {
-                    viewModel.onEffectsClicked.collect { actionGroup.setClickListener(EFFECTS, it) }
+                    actionsViewModel.onEffectsClicked.collect {
+                        actionGroup.setClickListener(EFFECTS, it)
+                    }
                 }
 
                 /** [SHARE] */
-                launch { viewModel.isShareVisible.collect { actionGroup.setIsVisible(SHARE, it) } }
+                launch {
+                    actionsViewModel.isShareVisible.collect { actionGroup.setIsVisible(SHARE, it) }
+                }
 
                 launch {
-                    viewModel.shareIntent.collect {
+                    actionsViewModel.shareIntent.collect {
                         actionGroup.setClickListener(
                             SHARE,
                             if (it != null) {
