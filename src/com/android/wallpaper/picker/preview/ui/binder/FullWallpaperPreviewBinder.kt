@@ -59,7 +59,7 @@ object FullWallpaperPreviewBinder {
             view.requireViewById(R.id.wallpaper_preview_crop)
         lifecycleOwner.lifecycleScope.launch {
             lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.fullWallpaper.collect { (_, config) ->
+                viewModel.fullWallpaper.collect { (_, config, _) ->
                     wallpaperPreviewCrop.setCurrentAndTargetDisplaySize(
                         displayUtils.getRealSize(checkNotNull(view.context.display)),
                         config.displaySize,
@@ -77,13 +77,14 @@ object FullWallpaperPreviewBinder {
                 override fun surfaceCreated(holder: SurfaceHolder) {
                     job =
                         lifecycleOwner.lifecycleScope.launch {
-                            viewModel.fullWallpaper.collect { (wallpaper, config, allowUserCropping)
-                                ->
+                            viewModel.fullWallpaper.collect {
+                                (wallpaper, config, allowUserCropping, whichPreview) ->
                                 if (wallpaper is WallpaperModel.LiveWallpaperModel) {
                                     WallpaperConnectionUtils.connect(
                                         applicationContext,
                                         mainScope,
-                                        wallpaper.liveWallpaperData.systemWallpaperInfo,
+                                        wallpaper,
+                                        whichPreview,
                                         config.screen.toFlag(),
                                         surfaceView,
                                     )
@@ -120,6 +121,10 @@ object FullWallpaperPreviewBinder {
 
                 override fun surfaceDestroyed(holder: SurfaceHolder) {
                     job?.cancel()
+                    // Note that we disconnect wallpaper connection for live wallpapers in
+                    // WallpaperPreviewActivity's onDestroy().
+                    // This is to reduce multiple times of connecting and disconnecting live
+                    // wallpaper services, when going back and forth small and full preview.
                 }
             }
         )

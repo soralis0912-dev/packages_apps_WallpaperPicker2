@@ -16,9 +16,11 @@
 package com.android.wallpaper.picker.preview.ui.viewmodel
 
 import com.android.wallpaper.model.wallpaper.WallpaperModel
+import com.android.wallpaper.util.WallpaperConnection.WhichPreview
 
 data class FullWallpaperPreviewViewModel(
     val wallpaper: WallpaperModel,
     val config: WallpaperPreviewConfigViewModel,
     val allowUserCropping: Boolean,
+    val whichPreview: WhichPreview,
 )
