@@ -16,24 +16,22 @@
 
 package com.android.wallpaper.picker.preview.data.repository
 
-import android.content.Context
-import android.content.pm.ActivityInfo
-import androidx.fragment.app.FragmentActivity
-import androidx.test.core.app.ActivityScenario
-import androidx.test.core.app.ApplicationProvider
+import android.app.Activity
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
+import com.android.wallpaper.model.wallpaper.WallpaperModel
+import com.android.wallpaper.picker.preview.data.util.LiveWallpaperDownloader
+import com.android.wallpaper.picker.preview.shared.model.LiveWallpaperDownloadResultCode
+import com.android.wallpaper.picker.preview.shared.model.LiveWallpaperDownloadResultModel
 import com.android.wallpaper.testing.WallpaperModelUtils.Companion.getStaticWallpaperModel
 import com.google.common.truth.Truth.assertThat
-import dagger.hilt.android.AndroidEntryPoint
-import dagger.hilt.android.testing.HiltAndroidRule
-import dagger.hilt.android.testing.HiltAndroidTest
-import dagger.hilt.android.testing.HiltTestApplication
-import javax.inject.Inject
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runTest
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.Shadows.shadowOf
 
 /**
  * Tests for {@link WallpaperPreviewRepository}.
@@ -42,50 +40,72 @@ import org.robolectric.Shadows.shadowOf
  * ActivityRetainedScoped. We make an instance available via TestActivity, which can inject the SUT
  * and expose it for testing.
  */
-@HiltAndroidTest
 @RunWith(RobolectricTestRunner::class)
 class WallpaperPreviewRepositoryTest {
-    @get:Rule var hiltRule = HiltAndroidRule(this)
+    private val testDownloader = TestLiveWallpaperDownloader()
 
-    private lateinit var context: Context
-    private lateinit var scenario: ActivityScenario<TestActivity>
+    private lateinit var testScope: TestScope
+    private lateinit var repo: WallpaperPreviewRepository
 
     @Before
     fun setUp() {
-        hiltRule.inject()
-        context = ApplicationProvider.getApplicationContext<HiltTestApplication>()
-
-        // Workaround for Studio issues with test-only activities and manifests.
-        // See https://github.com/robolectric/robolectric/pull/4736.
-        val activityInfo =
-            ActivityInfo().apply {
-                name = TestActivity::class.java.name
-                packageName = context.packageName
-            }
-        shadowOf(context.packageManager).addOrUpdateActivity(activityInfo)
-
-        scenario = ActivityScenario.launch(TestActivity::class.java)
+        val testDispatcher = StandardTestDispatcher()
+        testScope = TestScope(testDispatcher)
+        repo = WallpaperPreviewRepository(testDownloader, testDispatcher)
     }
 
     @Test
     fun setWallpaperModel() {
-        scenario.onActivity {
-            val wallpaperModel =
-                getStaticWallpaperModel(
-                    wallpaperId = "aaa",
-                    collectionId = "testCollection",
-                )
-            val repo = it.repo
-            assertThat(repo.wallpaperModel.value).isNull()
+        val wallpaperModel =
+            getStaticWallpaperModel(
+                wallpaperId = "aaa",
+                collectionId = "testCollection",
+            )
+        assertThat(repo.wallpaperModel.value).isNull()
 
-            repo.setWallpaperModel(wallpaperModel)
+        repo.setWallpaperModel(wallpaperModel)
 
-            assertThat(repo.wallpaperModel.value).isEqualTo(wallpaperModel)
-        }
+        assertThat(repo.wallpaperModel.value).isEqualTo(wallpaperModel)
     }
+
+    @Test
+    fun downloadWallpaper_fails() =
+        testScope.runTest {
+            val result = repo.downloadWallpaper()
+
+            assertThat(result).isNull()
+        }
+
+    @Test
+    fun downloadWallpaper_succeeds() =
+        testScope.runTest {
+            testDownloader.setDownloadResult(
+                LiveWallpaperDownloadResultModel(LiveWallpaperDownloadResultCode.SUCCESS, null)
+            )
+
+            val result = repo.downloadWallpaper()
+
+            assertThat(result).isNotNull()
+            assertThat(result!!.wallpaperModel).isNull()
+        }
 }
 
-@AndroidEntryPoint(FragmentActivity::class)
-class TestActivity @Inject constructor() : Hilt_TestActivity() {
-    @Inject lateinit var repo: WallpaperPreviewRepository
+class TestLiveWallpaperDownloader : LiveWallpaperDownloader {
+    private var downloadResult: LiveWallpaperDownloadResultModel? = null
+
+    override fun initiateDownloadableService(
+        activity: Activity,
+        wallpaperData: WallpaperModel.StaticWallpaperModel,
+        intentSenderLauncher: ActivityResultLauncher<IntentSenderRequest>
+    ) {}
+
+    override fun cleanup() {}
+
+    fun setDownloadResult(result: LiveWallpaperDownloadResultModel) {
+        downloadResult = result
+    }
+
+    override suspend fun downloadWallpaper(): LiveWallpaperDownloadResultModel? {
+        return downloadResult
+    }
 }
