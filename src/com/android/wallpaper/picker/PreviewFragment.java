@@ -60,6 +60,7 @@ import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat.AccessibilityActionCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
+import androidx.lifecycle.LifecycleOwnerKt;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.android.wallpaper.R;
@@ -80,6 +81,10 @@ import com.android.wallpaper.widget.floatingsheetcontent.WallpaperInfoContent;
 
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.transition.MaterialSharedAxis;
+
+import kotlinx.coroutines.BuildersKt;
+import kotlinx.coroutines.CoroutineStart;
+import kotlinx.coroutines.Dispatchers;
 
 /**
  * Base Fragment to display the UI for previewing an individual wallpaper.
@@ -440,20 +445,37 @@ public abstract class PreviewFragment extends Fragment implements WallpaperColor
         }
         // Apply the wallpaper color resources to the fragment context. So the views created by
         // the context will apply the given wallpaper color.
-        InjectorProvider.getInjector().getWallpaperColorResources(colors, context).apply(context);
-        mSetWallpaperButton.setBackground(null);
-        mSetWallpaperButton.setBackgroundResource(R.drawable.set_wallpaper_button_background);
-        mExitFullPreviewButton.setForeground(
-                AppCompatResources.getDrawable(context, R.drawable.exit_full_preview_cross));
-        mWallpaperControlButtonGroup.updateBackgroundColor();
-        mOverlayTabs.updateBackgroundColor();
+        BuildersKt.launch(
+                LifecycleOwnerKt.getLifecycleScope(getViewLifecycleOwner()),
+                Dispatchers.getIO(),
+                CoroutineStart.DEFAULT,
+                (coroutineScope, continuation) ->
+                        InjectorProvider.getInjector().getWallpaperColorResources(colors,
+                                context).apply(
+                                    context,
+                                    () -> {
+                                        requireActivity().runOnUiThread(() -> {
+                                            mSetWallpaperButton.setBackground(null);
+                                            mSetWallpaperButton.setBackgroundResource(
+                                                    R.drawable.set_wallpaper_button_background);
+                                            mExitFullPreviewButton.setForeground(
+                                                    AppCompatResources.getDrawable(context,
+                                                            R.drawable.exit_full_preview_cross));
+                                            mWallpaperControlButtonGroup.updateBackgroundColor();
+                                            mOverlayTabs.updateBackgroundColor();
+                                            mFloatingSheet.setColor(context);
+                                        });
+                                        return null;
+                                    }, continuation
+                        )
+        );
+
         // Update the color theme for the home screen overlay
         updateWorkspacePreview(mWorkspaceSurface, mWorkspaceSurfaceCallback, colors,
                 /* hideBottomRow= */ mOverlayTabs.getVisibility() == VISIBLE);
         // Update the color theme for the lock screen overlay
         updateWorkspacePreview(mLockSurface, mLockSurfaceCallback, colors,
                 /* hideBottomRow= */ mOverlayTabs.getVisibility() == VISIBLE);
-        mFloatingSheet.setColor(context);
     }
 
     private void updateScreenPreviewOverlay(@DuoTabs.Tab int tab) {
