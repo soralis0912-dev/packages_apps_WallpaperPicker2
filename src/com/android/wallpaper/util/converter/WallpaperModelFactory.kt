@@ -124,7 +124,7 @@ interface WallpaperModelFactory {
                 author = author ?: "",
                 description = description ?: "",
                 contentDescription = contentDescription,
-                isCurrent = isCurrent.toString(), // Convert boolean to String
+                isCurrent = isCurrent,
             )
         }
 

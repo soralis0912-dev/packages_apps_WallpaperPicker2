@@ -15,6 +15,7 @@
  */
 package com.android.wallpaper.picker.preview.ui.fragment
 
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -172,17 +173,46 @@ class SmallPreviewFragment : Hilt_SmallPreviewFragment() {
         PreviewActionsBinder.bind(
             actionGroup = view.requireViewById(R.id.action_button_group),
             floatingSheet = view.requireViewById(R.id.floating_sheet),
-            viewModel = wallpaperPreviewViewModel.previewActionsViewModel,
+            previewViewModel = wallpaperPreviewViewModel,
+            actionsViewModel = wallpaperPreviewViewModel.previewActionsViewModel,
             lifecycleOwner = viewLifecycleOwner,
             logger = logger,
+            onStartEditActivity = {
+                findNavController()
+                    .navigate(
+                        resId = R.id.action_smallPreviewFragment_to_fullPreviewFragment,
+                        args = Bundle().apply { putParcelable(ARG_EDIT_INTENT, it) },
+                        navOptions = null,
+                        navigatorExtras = null,
+                    )
+            },
             onStartShareActivity = { shareActivityResult.launch(it) },
-        ) {
-            activity?.finish()
-        }
+            onShowDeleteConfirmationDialog = { viewModel ->
+                val context = context ?: return@bind
+                AlertDialog.Builder(context)
+                    .setMessage(R.string.delete_wallpaper_confirmation)
+                    .setOnDismissListener { viewModel.onDismiss.invoke() }
+                    .setPositiveButton(R.string.delete_live_wallpaper) { _, _ ->
+                        if (viewModel.creativeWallpaperDeleteUri != null) {
+                            appContext.contentResolver.delete(
+                                viewModel.creativeWallpaperDeleteUri,
+                                null,
+                                null
+                            )
+                        } else if (viewModel.liveWallpaperDeleteIntent != null) {
+                            appContext.startService(viewModel.liveWallpaperDeleteIntent)
+                        }
+                        activity?.finish()
+                    }
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show()
+            },
+        )
     }
 
     companion object {
         const val SMALL_PREVIEW_SHARED_ELEMENT_ID = "small_preview_shared_element"
         const val FULL_PREVIEW_SHARED_ELEMENT_ID = "full_preview_shared_element"
+        const val ARG_EDIT_INTENT = "arg_edit_intent"
     }
 }

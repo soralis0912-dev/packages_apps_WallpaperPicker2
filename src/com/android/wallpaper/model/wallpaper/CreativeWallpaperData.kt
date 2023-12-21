@@ -28,5 +28,5 @@ data class CreativeWallpaperData(
     val author: String,
     val description: String,
     val contentDescription: String,
-    val isCurrent: String,
+    val isCurrent: Boolean,
 )
