@@ -24,17 +24,20 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.android.wallpaper.R
+import com.android.wallpaper.picker.di.modules.MainDispatcher
 import com.android.wallpaper.picker.preview.ui.binder.SetWallpaperDialogBinder
 import com.android.wallpaper.picker.preview.ui.viewmodel.WallpaperPreviewViewModel
 import com.android.wallpaper.util.DisplayUtils
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineScope
 
 /** Shows LS/HS previews and confirmation to set as wallpaper for HS, LS or both. */
 @AndroidEntryPoint(DialogFragment::class)
 class SetWallpaperDialogFragment : Hilt_SetWallpaperDialogFragment() {
 
     @Inject lateinit var displayUtils: DisplayUtils
+    @Inject @MainDispatcher lateinit var mainScope: CoroutineScope
 
     private val wallpaperPreviewViewModel by activityViewModels<WallpaperPreviewViewModel>()
 
@@ -49,8 +52,11 @@ class SetWallpaperDialogFragment : Hilt_SetWallpaperDialogFragment() {
                 .create()
         SetWallpaperDialogBinder.bind(
             dialog,
-            "Set",
-            "Cancel",
+            layout,
+            wallpaperPreviewViewModel,
+            displayUtils.hasMultiInternalDisplays(),
+            lifecycleOwner = this,
+            mainScope,
         ) {
             findNavController().popBackStack()
         }

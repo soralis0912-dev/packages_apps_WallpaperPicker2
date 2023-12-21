@@ -16,6 +16,9 @@
 
 package com.android.wallpaper.model.wallpaper
 
+import android.content.Intent
+import android.service.wallpaper.WallpaperService
+
 /**
  * Represents the model class that would be used for instantiating any type of wallpaper in the
  * picker. Any wallpaper should be of type LiveWallpaper or StaticWallpaperModel and depending on
@@ -47,6 +50,13 @@ sealed class WallpaperModel {
     companion object {
         fun WallpaperModel.isDownloadableWallpaper(): Boolean {
             return this is StaticWallpaperModel && this.downloadableWallpaperData != null
+        }
+
+        fun LiveWallpaperModel.getWallpaperIntent(): Intent {
+            return liveWallpaperData.systemWallpaperInfo.let {
+                Intent(WallpaperService.SERVICE_INTERFACE)
+                    .setClassName(it.packageName, it.serviceName)
+            }
         }
     }
 }
