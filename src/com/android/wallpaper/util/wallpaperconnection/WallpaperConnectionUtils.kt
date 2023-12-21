@@ -10,12 +10,12 @@ import android.graphics.Point
 import android.os.RemoteException
 import android.service.wallpaper.IWallpaperEngine
 import android.service.wallpaper.IWallpaperService
+import android.service.wallpaper.WallpaperService
 import android.util.Log
 import android.view.Display
 import android.view.SurfaceControl
 import android.view.SurfaceView
 import android.view.View
-import com.android.wallpaper.model.wallpaper.WallpaperModel.Companion.getWallpaperIntent
 import com.android.wallpaper.model.wallpaper.WallpaperModel.LiveWallpaperModel
 import com.android.wallpaper.picker.di.modules.MainDispatcher
 import com.android.wallpaper.util.ScreenSizeCalculator
@@ -67,7 +67,7 @@ object WallpaperConnectionUtils {
                         mainScope.async {
                             initEngine(
                                 context,
-                                wallpaperModel.getWallpaperIntent(),
+                                wallpaperModel.getWallpaperServiceIntent(),
                                 displayMetrics,
                                 destinationFlag,
                                 whichPreview,
@@ -80,6 +80,12 @@ object WallpaperConnectionUtils {
 
         engineMap[engineKey]?.await()?.let { (_, engine) ->
             mirrorAndReparent(engineKey, engine, surfaceView, displayMetrics)
+        }
+    }
+
+    private fun LiveWallpaperModel.getWallpaperServiceIntent(): Intent {
+        return liveWallpaperData.systemWallpaperInfo.let {
+            Intent(WallpaperService.SERVICE_INTERFACE).setClassName(it.packageName, it.serviceName)
         }
     }
 

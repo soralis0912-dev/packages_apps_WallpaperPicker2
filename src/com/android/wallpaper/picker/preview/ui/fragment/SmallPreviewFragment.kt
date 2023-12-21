@@ -16,10 +16,12 @@
 package com.android.wallpaper.picker.preview.ui.fragment
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContract
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.fragment.app.activityViewModels
@@ -35,6 +37,8 @@ import com.android.wallpaper.picker.preview.ui.binder.PreviewSelectorBinder
 import com.android.wallpaper.picker.preview.ui.binder.SetWallpaperButtonBinder
 import com.android.wallpaper.picker.preview.ui.fragment.smallpreview.DualPreviewViewPager
 import com.android.wallpaper.picker.preview.ui.fragment.smallpreview.views.TabsPagerContainer
+import com.android.wallpaper.picker.preview.ui.view.PreviewActionGroup
+import com.android.wallpaper.picker.preview.ui.viewmodel.Action
 import com.android.wallpaper.picker.preview.ui.viewmodel.WallpaperPreviewViewModel
 import com.android.wallpaper.util.DisplayUtils
 import dagger.hilt.android.AndroidEntryPoint
@@ -71,6 +75,7 @@ class SmallPreviewFragment : Hilt_SmallPreviewFragment() {
             )
         setUpToolbar(view)
         bindScreenPreview(view)
+        bindPreviewActions(view)
 
         SetWallpaperButtonBinder.bind(
             button = view.requireViewById(R.id.button_set_wallpaper),
@@ -96,15 +101,6 @@ class SmallPreviewFragment : Hilt_SmallPreviewFragment() {
     }
 
     private fun bindScreenPreview(view: View) {
-        PreviewActionsBinder.bind(
-            actionGroup = view.requireViewById(R.id.action_button_group),
-            floatingSheet = view.requireViewById(R.id.floating_sheet),
-            viewModel = wallpaperPreviewViewModel.previewActionsViewModel,
-            lifecycleOwner = viewLifecycleOwner,
-            logger = logger,
-        ) {
-            activity?.finish()
-        }
         if (displayUtils.hasMultiInternalDisplays()) {
             val dualPreviewView: DualPreviewViewPager =
                 view.requireViewById(R.id.dual_preview_pager)
@@ -153,6 +149,35 @@ class SmallPreviewFragment : Hilt_SmallPreviewFragment() {
                         navigatorExtras = extras
                     )
             }
+        }
+    }
+
+    private fun bindPreviewActions(view: View) {
+        val shareActivityResult =
+            registerForActivityResult(
+                object : ActivityResultContract<Intent, Int>() {
+                    override fun createIntent(context: Context, input: Intent): Intent {
+                        return input
+                    }
+
+                    override fun parseResult(resultCode: Int, intent: Intent?): Int {
+                        return resultCode
+                    }
+                },
+            ) {
+                view
+                    .findViewById<PreviewActionGroup>(R.id.action_button_group)
+                    ?.setIsChecked(Action.SHARE, false)
+            }
+        PreviewActionsBinder.bind(
+            actionGroup = view.requireViewById(R.id.action_button_group),
+            floatingSheet = view.requireViewById(R.id.floating_sheet),
+            viewModel = wallpaperPreviewViewModel.previewActionsViewModel,
+            lifecycleOwner = viewLifecycleOwner,
+            logger = logger,
+            onStartShareActivity = { shareActivityResult.launch(it) },
+        ) {
+            activity?.finish()
         }
     }
 
