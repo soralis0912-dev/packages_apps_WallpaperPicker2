@@ -51,10 +51,10 @@ class SetWallpaperDialogFragment : Hilt_SetWallpaperDialogFragment() {
                 .setView(layout)
                 .create()
         SetWallpaperDialogBinder.bind(
-            dialog,
             layout,
             wallpaperPreviewViewModel,
             displayUtils.hasMultiInternalDisplays(),
+            displayUtils.getRealSize(displayUtils.getWallpaperDisplay()),
             lifecycleOwner = this,
             mainScope,
         ) {

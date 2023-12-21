@@ -16,9 +16,9 @@
 
 package com.android.wallpaper.picker.preview.ui.binder
 
-import android.app.AlertDialog
-import android.app.Dialog
+import android.graphics.Point
 import android.view.View
+import android.widget.Button
 import android.widget.FrameLayout
 import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleOwner
@@ -37,10 +37,10 @@ object SetWallpaperDialogBinder {
         mapOf(Screen.LOCK_SCREEN to R.id.lock_preview, Screen.HOME_SCREEN to R.id.home_preview)
 
     fun bind(
-        dialog: AlertDialog,
         dialogContent: View,
         wallpaperPreviewViewModel: WallpaperPreviewViewModel,
         isFoldable: Boolean,
+        handheldDisplaySize: Point,
         lifecycleOwner: LifecycleOwner,
         mainScope: CoroutineScope,
         navigate: () -> Unit,
@@ -52,21 +52,21 @@ object SetWallpaperDialogBinder {
                 lifecycleOwner,
                 mainScope,
             )
-        else bindHandheldPreview()
+        else
+            bindHandheldPreview(
+                dialogContent.requireViewById(R.id.handheld_previews),
+                wallpaperPreviewViewModel,
+                handheldDisplaySize,
+                lifecycleOwner,
+                mainScope,
+            )
 
         // TODO(b/303457019): For the set button, listen to a data flow of onClick listener
-        dialog.apply {
-            setButton(
-                Dialog.BUTTON_POSITIVE,
-                dialogContent.resources.getString(R.string.set_wallpaper_button_text)
-            ) { _, _ ->
-                navigate.invoke()
-            }
-            setButton(Dialog.BUTTON_NEGATIVE, dialogContent.resources.getString(R.string.cancel)) {
-                _,
-                _ ->
-                navigate.invoke()
-            }
+        dialogContent.requireViewById<Button>(R.id.button_set).setOnClickListener {
+            navigate.invoke()
+        }
+        dialogContent.requireViewById<Button>(R.id.button_cancel).setOnClickListener {
+            navigate.invoke()
         }
     }
 
@@ -108,5 +108,29 @@ object SetWallpaperDialogBinder {
         }
     }
 
-    private fun bindHandheldPreview() {}
+    private fun bindHandheldPreview(
+        previewLayout: View,
+        wallpaperPreviewViewModel: WallpaperPreviewViewModel,
+        displaySize: Point,
+        lifecycleOwner: LifecycleOwner,
+        mainScope: CoroutineScope,
+    ) {
+        previewLayout.isVisible = true
+        PreviewScreenIds.forEach { screenId ->
+            SmallPreviewBinder.bind(
+                applicationContext = previewLayout.context.applicationContext,
+                view =
+                    previewLayout
+                        .requireViewById<FrameLayout>(screenId.value)
+                        .requireViewById(R.id.preview),
+                viewModel = wallpaperPreviewViewModel,
+                screen = screenId.key,
+                orientation = getScreenOrientation(displaySize),
+                foldableDisplay = null,
+                mainScope = mainScope,
+                viewLifecycleOwner = lifecycleOwner,
+                navigate = null,
+            )
+        }
+    }
 }
