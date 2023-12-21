@@ -21,7 +21,10 @@ import android.view.View
 import android.widget.Button
 import android.widget.FrameLayout
 import androidx.core.view.isVisible
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.android.wallpaper.R
 import com.android.wallpaper.model.wallpaper.FoldableDisplay
 import com.android.wallpaper.model.wallpaper.getScreenOrientation
@@ -30,6 +33,7 @@ import com.android.wallpaper.picker.preview.ui.view.DualDisplayAspectRatioLayout
 import com.android.wallpaper.picker.preview.ui.view.DualDisplayAspectRatioLayout.Companion.getViewId
 import com.android.wallpaper.picker.preview.ui.viewmodel.WallpaperPreviewViewModel
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 /** Binds the dialog on small preview confirming and setting wallpaper with destination. */
 object SetWallpaperDialogBinder {
@@ -43,7 +47,8 @@ object SetWallpaperDialogBinder {
         handheldDisplaySize: Point,
         lifecycleOwner: LifecycleOwner,
         mainScope: CoroutineScope,
-        navigate: () -> Unit,
+        onFinishActivity: () -> Unit,
+        onDismissDialog: () -> Unit,
     ) {
         if (isFoldable)
             bindFoldablePreview(
@@ -60,13 +65,25 @@ object SetWallpaperDialogBinder {
                 lifecycleOwner,
                 mainScope,
             )
-
-        // TODO(b/303457019): For the set button, listen to a data flow of onClick listener
-        dialogContent.requireViewById<Button>(R.id.button_set).setOnClickListener {
-            navigate.invoke()
+        val confirmSetWallpaperButton = dialogContent.requireViewById<Button>(R.id.button_set)
+        lifecycleOwner.lifecycleScope.launch {
+            lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    wallpaperPreviewViewModel.onConfirmSetWallpaper.collect { onConfirmSetWallpaper
+                        ->
+                        // TODO(b/303457019): For the set button, listen to a data flow of onClick
+                        // listener
+                        confirmSetWallpaperButton.setOnClickListener {
+                            onConfirmSetWallpaper?.invoke()
+                            onFinishActivity.invoke()
+                        }
+                    }
+                }
+            }
         }
+
         dialogContent.requireViewById<Button>(R.id.button_cancel).setOnClickListener {
-            navigate.invoke()
+            onDismissDialog.invoke()
         }
     }
 

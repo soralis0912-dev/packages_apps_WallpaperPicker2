@@ -16,10 +16,12 @@
 
 package com.android.wallpaper.picker.preview.ui.fragment
 
+import android.app.Activity
 import android.app.AlertDialog
 import android.app.Dialog
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -57,9 +59,19 @@ class SetWallpaperDialogFragment : Hilt_SetWallpaperDialogFragment() {
             displayUtils.getRealSize(displayUtils.getWallpaperDisplay()),
             lifecycleOwner = this,
             mainScope,
-        ) {
-            findNavController().popBackStack()
-        }
+            onFinishActivity = {
+                val activity = activity ?: return@bind
+                Toast.makeText(
+                        activity,
+                        R.string.wallpaper_set_successfully_message,
+                        Toast.LENGTH_SHORT
+                    )
+                    .show()
+                activity.setResult(Activity.RESULT_OK)
+                activity.finish()
+            },
+            onDismissDialog = { findNavController().popBackStack() },
+        )
 
         return dialog
     }

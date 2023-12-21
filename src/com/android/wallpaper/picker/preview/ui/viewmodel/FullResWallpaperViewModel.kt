@@ -19,9 +19,11 @@ import android.graphics.Bitmap
 import android.graphics.Point
 import android.graphics.Rect
 import com.android.wallpaper.model.wallpaper.ScreenOrientation
+import java.io.InputStream
 
 data class FullResWallpaperViewModel(
     val rawWallpaperBitmap: Bitmap,
     val rawWallpaperSize: Point,
     val cropHints: Map<ScreenOrientation, Rect>?,
+    val stream: InputStream?,
 )

@@ -121,6 +121,18 @@ constructor(
     val isSetWallpaperButtonVisible: Flow<Boolean> =
         wallpaper.filterNotNull().map { !it.isDownloadableWallpaper() }
 
+    val onConfirmSetWallpaper: Flow<(() -> Unit)?> =
+        combine(
+            wallpaper.filterNotNull().map { it.isDownloadableWallpaper() },
+            staticWallpaperPreviewViewModel.onSetWallpaperClicked,
+        ) { isDownloadableWallpaper, onSetWallpaperClicked ->
+            if (isDownloadableWallpaper) {
+                null
+            } else {
+                onSetWallpaperClicked
+            }
+        }
+
     fun getWorkspacePreviewConfig(
         screen: Screen,
         foldableDisplay: FoldableDisplay?,
