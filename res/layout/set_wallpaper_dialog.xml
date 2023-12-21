@@ -38,7 +38,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintTop_toBottomOf="@+id/title"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
         <include layout="@layout/set_wallpaper_dialog_foldable_preview"
@@ -52,7 +51,7 @@
         <include layout="@layout/set_wallpaper_dialog_handheld_preview"
             android:id="@+id/handheld_previews"
             android:layout_width="@dimen/set_wallpaper_dialog_handheld_width"
-            android:layout_height="@dimen/set_wallpaper_dialog_handheld_height"
+            android:layout_height="wrap_content"
             android:paddingTop="@dimen/abc_dialog_title_divider_material"
             android:paddingBottom="@dimen/abc_dialog_title_divider_material"
             android:visibility="gone">
@@ -67,6 +66,7 @@
         android:text="@string/set_wallpaper_dialog_set_button"
         android:layout_marginVertical="@dimen/set_wallpaper_dialog_button_margin_vertical"
         app:layout_constraintTop_toBottomOf="@id/preview_container"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
     <Button

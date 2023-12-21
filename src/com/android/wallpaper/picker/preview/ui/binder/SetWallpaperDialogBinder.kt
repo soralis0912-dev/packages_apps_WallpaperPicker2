@@ -37,7 +37,10 @@ import kotlinx.coroutines.launch
 /** Binds the dialog on small preview confirming and setting wallpaper with destination. */
 object SetWallpaperDialogBinder {
     private val PreviewScreenIds =
-        mapOf(Screen.LOCK_SCREEN to R.id.lock_preview, Screen.HOME_SCREEN to R.id.home_preview)
+        mapOf(
+            Screen.LOCK_SCREEN to R.id.lock_preview_selector,
+            Screen.HOME_SCREEN to R.id.home_preview_selector
+        )
 
     fun bind(
         dialogContent: View,
@@ -46,8 +49,10 @@ object SetWallpaperDialogBinder {
         handheldDisplaySize: Point,
         lifecycleOwner: LifecycleOwner,
         mainScope: CoroutineScope,
+        currentNavDestId: Int,
         onFinishActivity: () -> Unit,
         onDismissDialog: () -> Unit,
+        navigate: ((View) -> Unit)?,
     ) {
         if (isFoldable)
             bindFoldablePreview(
@@ -55,6 +60,8 @@ object SetWallpaperDialogBinder {
                 wallpaperPreviewViewModel,
                 lifecycleOwner,
                 mainScope,
+                currentNavDestId,
+                navigate,
             )
         else
             bindHandheldPreview(
@@ -63,6 +70,8 @@ object SetWallpaperDialogBinder {
                 handheldDisplaySize,
                 lifecycleOwner,
                 mainScope,
+                currentNavDestId,
+                navigate,
             )
         val confirmButton = dialogContent.requireViewById<Button>(R.id.button_set)
         val cancelButton = dialogContent.requireViewById<Button>(R.id.button_cancel)
@@ -99,6 +108,8 @@ object SetWallpaperDialogBinder {
         wallpaperPreviewViewModel: WallpaperPreviewViewModel,
         lifecycleOwner: LifecycleOwner,
         mainScope: CoroutineScope,
+        currentNavDestId: Int,
+        navigate: ((View) -> Unit)?,
     ) {
         previewLayout.isVisible = true
         PreviewScreenIds.forEach { screenId ->
@@ -113,6 +124,7 @@ object SetWallpaperDialogBinder {
                     FoldableDisplay.UNFOLDED to wallpaperPreviewViewModel.wallpaperDisplaySize,
                 )
             )
+            bindPreviewSelector(previewLayout.requireViewById(screenId.value))
             FoldableDisplay.entries.forEach { display ->
                 val previewDisplaySize = dualDisplayAspectRatioLayout.getPreviewDisplaySize(display)
                 previewDisplaySize?.let {
@@ -125,7 +137,8 @@ object SetWallpaperDialogBinder {
                         screen = screenId.key,
                         displaySize = it,
                         foldableDisplay = display,
-                        navigate = null,
+                        currentNavDestId = currentNavDestId,
+                        navigate = navigate,
                     )
                 }
             }
@@ -138,9 +151,12 @@ object SetWallpaperDialogBinder {
         displaySize: Point,
         lifecycleOwner: LifecycleOwner,
         mainScope: CoroutineScope,
+        currentNavDestId: Int,
+        navigate: ((View) -> Unit)?,
     ) {
         previewLayout.isVisible = true
         PreviewScreenIds.forEach { screenId ->
+            bindPreviewSelector(previewLayout.requireViewById(screenId.value))
             SmallPreviewBinder.bind(
                 applicationContext = previewLayout.context.applicationContext,
                 view =
@@ -153,8 +169,15 @@ object SetWallpaperDialogBinder {
                 foldableDisplay = null,
                 mainScope = mainScope,
                 viewLifecycleOwner = lifecycleOwner,
-                navigate = null,
+                currentNavDestId = currentNavDestId,
+                navigate = navigate,
             )
         }
+    }
+
+    private fun bindPreviewSelector(
+        selector: View,
+    ) {
+        selector.setOnClickListener { selector.isActivated = !selector.isActivated }
     }
 }
