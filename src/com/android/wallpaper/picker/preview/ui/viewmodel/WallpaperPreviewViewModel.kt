@@ -19,7 +19,6 @@ import androidx.lifecycle.ViewModel
 import com.android.wallpaper.model.wallpaper.FoldableDisplay
 import com.android.wallpaper.model.wallpaper.ScreenOrientation
 import com.android.wallpaper.model.wallpaper.WallpaperModel
-import com.android.wallpaper.model.wallpaper.WallpaperModel.Companion.isDownloadableWallpaper
 import com.android.wallpaper.module.CustomizationSections.Screen
 import com.android.wallpaper.picker.di.modules.PreviewUtilsModule.HomeScreenPreviewUtils
 import com.android.wallpaper.picker.di.modules.PreviewUtilsModule.LockScreenPreviewUtils
@@ -164,6 +163,15 @@ constructor(
             getWorkspacePreviewConfig(screen, foldableDisplay)
     }
 
+    fun setDefaultWallpaperPreviewConfigViewModel() {
+        fullWallpaperPreviewConfigViewModel.value =
+            WallpaperPreviewConfigViewModel(
+                Screen.HOME_SCREEN,
+                wallpaperDisplaySize,
+                ScreenOrientation.PORTRAIT
+            )
+    }
+
     private fun getWallpaperPreviewConfig(
         screen: Screen,
         orientation: ScreenOrientation,
@@ -186,5 +194,12 @@ constructor(
             displaySize = displaySize,
             screenOrientation = orientation,
         )
+    }
+
+    companion object {
+        private fun WallpaperModel.isDownloadableWallpaper(): Boolean {
+            return this is WallpaperModel.StaticWallpaperModel &&
+                this.downloadableWallpaperData != null
+        }
     }
 }

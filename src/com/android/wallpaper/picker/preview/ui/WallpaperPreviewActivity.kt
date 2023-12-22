@@ -24,6 +24,7 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.view.WindowCompat
+import androidx.navigation.fragment.NavHostFragment
 import com.android.wallpaper.R
 import com.android.wallpaper.model.WallpaperInfo
 import com.android.wallpaper.model.wallpaper.WallpaperModel
@@ -31,6 +32,9 @@ import com.android.wallpaper.picker.AppbarFragment
 import com.android.wallpaper.picker.BasePreviewActivity
 import com.android.wallpaper.picker.preview.data.repository.WallpaperPreviewRepository
 import com.android.wallpaper.picker.preview.data.util.LiveWallpaperDownloader
+import com.android.wallpaper.picker.preview.ui.fragment.SmallPreviewFragment
+import com.android.wallpaper.picker.preview.ui.viewmodel.PreviewActionsViewModel.Companion.getEditActivityIntent
+import com.android.wallpaper.picker.preview.ui.viewmodel.PreviewActionsViewModel.Companion.isNewCreativeWallpaper
 import com.android.wallpaper.picker.preview.ui.viewmodel.WallpaperPreviewViewModel
 import com.android.wallpaper.util.ActivityUtils
 import com.android.wallpaper.util.DisplayUtils
@@ -77,6 +81,28 @@ class WallpaperPreviewActivity :
                 this,
                 wallpaper,
                 registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) {}
+            )
+        }
+
+        val liveWallpaperModel = (wallpaper as? WallpaperModel.LiveWallpaperModel)
+        if (liveWallpaperModel != null && liveWallpaperModel.isNewCreativeWallpaper()) {
+            // If it's a new creative wallpaper, override the start destination to the fullscreen
+            // fragment for the create-new flow of creative wallpapers
+            val navController =
+                (supportFragmentManager.findFragmentById(R.id.wallpaper_preview_nav_host)
+                        as NavHostFragment)
+                    .navController
+            val navGraph =
+                navController.navInflater.inflate(R.navigation.wallpaper_preview_nav_graph)
+            navGraph.setStartDestination(R.id.creativeNewPreviewFragment)
+            navController.setGraph(
+                navGraph,
+                Bundle().apply {
+                    putParcelable(
+                        SmallPreviewFragment.ARG_EDIT_INTENT,
+                        liveWallpaperModel.liveWallpaperData.getEditActivityIntent()
+                    )
+                }
             )
         }
     }

@@ -15,6 +15,7 @@
  */
 package com.android.wallpaper.picker.preview.ui.fragment
 
+import android.app.Activity.RESULT_OK
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -25,18 +26,13 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.Toolbar
 import androidx.activity.result.contract.ActivityResultContract
-import androidx.core.content.ContextCompat
-import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
-import androidx.transition.TransitionInflater
 import com.android.wallpaper.R
 import com.android.wallpaper.picker.AppbarFragment
 import com.android.wallpaper.picker.di.modules.MainDispatcher
-import com.android.wallpaper.picker.preview.ui.binder.CropWallpaperButtonBinder
 import com.android.wallpaper.picker.preview.ui.binder.FullWallpaperPreviewBinder
-import com.android.wallpaper.picker.preview.ui.binder.WorkspacePreviewBinder
 import com.android.wallpaper.picker.preview.ui.fragment.SmallPreviewFragment.Companion.ARG_EDIT_INTENT
 import com.android.wallpaper.picker.preview.ui.viewmodel.WallpaperPreviewViewModel
 import com.android.wallpaper.util.DisplayUtils
@@ -45,23 +41,15 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 
-/** Shows full preview of user selected wallpaper for cropping, zooming and positioning. */
+/** Shows full preview with an edit activity overlay. */
 @AndroidEntryPoint(AppbarFragment::class)
-class FullPreviewFragment : Hilt_FullPreviewFragment() {
+class CreativeNewPreviewFragment : Hilt_CreativeNewPreviewFragment() {
 
     @Inject @ApplicationContext lateinit var appContext: Context
     @Inject lateinit var displayUtils: DisplayUtils
     @Inject @MainDispatcher lateinit var mainScope: CoroutineScope
 
     private val wallpaperPreviewViewModel by activityViewModels<WallpaperPreviewViewModel>()
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        if (ENABLE_ANIMATION) {
-            sharedElementEnterTransition =
-                TransitionInflater.from(appContext).inflateTransition(R.transition.shared_view)
-        }
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -71,9 +59,25 @@ class FullPreviewFragment : Hilt_FullPreviewFragment() {
         val view = inflater.inflate(R.layout.fragment_full_preview, container, false)
         setUpToolbar(view)
 
-        val wallpaperSurface: SurfaceView = view.requireViewById(R.id.wallpaper_surface)
-        ViewCompat.setTransitionName(wallpaperSurface, "full_preview_shared_element")
+        FullWallpaperPreviewBinder.bind(
+            applicationContext = appContext,
+            view = view,
+            viewModel = wallpaperPreviewViewModel,
+            displayUtils = displayUtils,
+            lifecycleOwner = viewLifecycleOwner,
+            mainScope = mainScope,
+        )
 
+        wallpaperPreviewViewModel.setDefaultWallpaperPreviewConfigViewModel()
+        view.requireViewById<Toolbar>(R.id.toolbar).isVisible = false
+        view.requireViewById<SurfaceView>(R.id.workspace_surface).isVisible = false
+        view.requireViewById<Button>(R.id.crop_wallpaper_button).isVisible = false
+
+        val intent =
+            arguments?.getParcelable(ARG_EDIT_INTENT, Intent::class.java)
+                ?: throw IllegalArgumentException(
+                    "To render the first screen in the create new creative wallpaper flow, the intent for rendering the edit activity overlay can not be null."
+                )
         val creativeWallpaperEditActivityResult =
             registerForActivityResult(
                 object : ActivityResultContract<Intent, Int>() {
@@ -88,58 +92,16 @@ class FullPreviewFragment : Hilt_FullPreviewFragment() {
             ) {
                 // Callback when the overlaying edit activity is finished. Result code of RESULT_OK
                 // means the user clicked on the check button; RESULT_CANCELED otherwise.
-                findNavController().popBackStack()
+                if (it == RESULT_OK) {
+                    // When clicking on the check button, navigate to the small preview fragment.
+                    findNavController()
+                        .navigate(R.id.action_creativeNewPreviewFragment_to_smallPreviewFragment)
+                } else {
+                    activity?.finish()
+                }
             }
-        // If edit intent is nonnull, we launch the edit overlay activity, with the wallpaper
-        // preview from the Wallpaper Picker app's fragment.
-        arguments?.getParcelable(ARG_EDIT_INTENT, Intent::class.java)?.let {
-            view.requireViewById<Toolbar>(R.id.toolbar).isVisible = false
-            view.requireViewById<SurfaceView>(R.id.workspace_surface).isVisible = false
-            view.requireViewById<Button>(R.id.crop_wallpaper_button).isVisible = false
-            creativeWallpaperEditActivityResult.launch(it)
-            return view
-        }
-
-        FullWallpaperPreviewBinder.bind(
-            applicationContext = appContext,
-            view = view,
-            viewModel = wallpaperPreviewViewModel,
-            displayUtils = displayUtils,
-            lifecycleOwner = viewLifecycleOwner,
-            mainScope = mainScope,
-        )
-
-        CropWallpaperButtonBinder.bind(
-            button = view.requireViewById(R.id.crop_wallpaper_button),
-            viewModel = wallpaperPreviewViewModel,
-            lifecycleOwner = viewLifecycleOwner,
-        ) {
-            findNavController().popBackStack()
-        }
-
-        WorkspacePreviewBinder.bindFullWorkspacePreview(
-            surface = view.requireViewById(R.id.workspace_surface),
-            viewModel = wallpaperPreviewViewModel,
-            lifecycleOwner = viewLifecycleOwner,
-        )
+        creativeWallpaperEditActivityResult.launch(intent)
 
         return view
-    }
-
-    // TODO(b/291761856): Use real string
-    override fun getDefaultTitle(): CharSequence {
-        return ""
-    }
-
-    override fun getToolbarColorId(): Int {
-        return android.R.color.transparent
-    }
-
-    override fun getToolbarTextColor(): Int {
-        return ContextCompat.getColor(requireContext(), R.color.system_on_surface)
-    }
-
-    companion object {
-        const val ENABLE_ANIMATION = false
     }
 }

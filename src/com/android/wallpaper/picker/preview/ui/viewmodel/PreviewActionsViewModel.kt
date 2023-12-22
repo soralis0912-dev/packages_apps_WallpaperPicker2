@@ -16,9 +16,16 @@
 
 package com.android.wallpaper.picker.preview.ui.viewmodel
 
+import android.content.ClipData
+import android.content.ComponentName
 import android.content.Intent
+import android.net.Uri
+import android.service.wallpaper.WallpaperSettingsActivity
+import com.android.wallpaper.model.wallpaper.CreativeWallpaperData
 import com.android.wallpaper.model.wallpaper.DownloadableWallpaperData
+import com.android.wallpaper.model.wallpaper.LiveWallpaperData
 import com.android.wallpaper.model.wallpaper.WallpaperModel
+import com.android.wallpaper.model.wallpaper.WallpaperModel.LiveWallpaperModel
 import com.android.wallpaper.picker.preview.domain.interactor.PreviewActionsInteractor
 import com.android.wallpaper.picker.preview.ui.util.LiveWallpaperDeleteUtil
 import com.android.wallpaper.picker.preview.ui.viewmodel.Action.CUSTOMIZE
@@ -110,7 +117,7 @@ constructor(
     /** [DELETE] */
     private val liveWallpaperDeleteIntent: Flow<Intent?> =
         interactor.wallpaperModel.map {
-            if (it is WallpaperModel.LiveWallpaperModel) {
+            if (it is LiveWallpaperModel && it.creativeWallpaperData == null && it.canBeDeleted()) {
                 liveWallpaperDeleteUtil.getDeleteActionIntent(
                     it.liveWallpaperData.systemWallpaperInfo
                 )
@@ -118,8 +125,19 @@ constructor(
                 null
             }
         }
-
-    val isDeleteVisible: Flow<Boolean> = liveWallpaperDeleteIntent.map { it != null }
+    private val creativeWallpaperDeleteUri: Flow<Uri?> =
+        interactor.wallpaperModel.map {
+            val deleteUri = (it as? LiveWallpaperModel)?.creativeWallpaperData?.deleteUri
+            if (deleteUri != null && it.canBeDeleted()) {
+                deleteUri
+            } else {
+                null
+            }
+        }
+    val isDeleteVisible: Flow<Boolean> =
+        combine(liveWallpaperDeleteIntent, creativeWallpaperDeleteUri) { intent, uri ->
+            intent != null || uri != null
+        }
 
     private val _isDeleteChecked: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isDeleteChecked: Flow<Boolean> = _isDeleteChecked.asStateFlow()
@@ -127,11 +145,15 @@ constructor(
     // View model for delete confirmation dialog. Note that null means the dialog should show;
     // otherwise, the dialog should hide.
     val deleteConfirmationDialogViewModel: Flow<DeleteConfirmationDialogViewModel?> =
-        combine(isDeleteChecked, liveWallpaperDeleteIntent) { isChecked, intent ->
-            if (isChecked && intent != null) {
+        combine(isDeleteChecked, liveWallpaperDeleteIntent, creativeWallpaperDeleteUri) {
+            isChecked,
+            intent,
+            uri ->
+            if (isChecked && (intent != null || uri != null)) {
                 DeleteConfirmationDialogViewModel(
                     onDismiss = { _isDeleteChecked.value = false },
-                    deleteIntent = intent,
+                    liveWallpaperDeleteIntent = intent,
+                    creativeWallpaperDeleteUri = uri,
                 )
             } else {
                 null
@@ -153,25 +175,14 @@ constructor(
         }
 
     /** [EDIT] */
-    private val _isEditVisible: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val isEditVisible: Flow<Boolean> = _isEditVisible.asStateFlow()
+    val editIntent: Flow<Intent?> =
+        interactor.wallpaperModel.map {
+            (it as? WallpaperModel.LiveWallpaperModel)?.liveWallpaperData?.getEditActivityIntent()
+        }
+    val isEditVisible: Flow<Boolean> = editIntent.map { it != null }
 
     private val _isEditChecked: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isEditChecked: Flow<Boolean> = _isEditChecked.asStateFlow()
-
-    val onEditClicked: Flow<(() -> Unit)?> =
-        combine(isEditVisible, isEditChecked) { show, isChecked ->
-            if (show) {
-                {
-                    if (!isChecked) {
-                        uncheckAllOthersExcept(EDIT)
-                    }
-                    _isEditChecked.value = !isChecked
-                }
-            } else {
-                null
-            }
-        }
 
     /** [CUSTOMIZE] */
     private val _isCustomizeVisible: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -216,25 +227,11 @@ constructor(
         }
 
     /** [SHARE] */
-    private val _isShareVisible: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val isShareVisible: Flow<Boolean> = _isShareVisible.asStateFlow()
-
-    private val _isShareChecked: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val isShareChecked: Flow<Boolean> = _isShareChecked.asStateFlow()
-
-    val onShareClicked: Flow<(() -> Unit)?> =
-        combine(isShareVisible, isShareChecked) { show, isChecked ->
-            if (show) {
-                {
-                    if (!isChecked) {
-                        uncheckAllOthersExcept(SHARE)
-                    }
-                    _isShareChecked.value = !isChecked
-                }
-            } else {
-                null
-            }
+    val shareIntent: Flow<Intent?> =
+        interactor.wallpaperModel.map {
+            (it as? LiveWallpaperModel)?.creativeWallpaperData?.getShareIntent()
         }
+    val isShareVisible: Flow<Boolean> = shareIntent.map { it != null }
 
     fun onFloatingSheetCollapsed() {
         // When floating collapsed, we should look for those actions that expand the floating sheet
@@ -260,9 +257,6 @@ constructor(
         if (action != EFFECTS) {
             _isEffectsChecked.value = false
         }
-        if (action != SHARE) {
-            _isShareChecked.value = false
-        }
     }
 
     companion object {
@@ -275,7 +269,7 @@ constructor(
                 // information floating sheet.
                 false
             } else if (
-                this is WallpaperModel.LiveWallpaperModel &&
+                this is LiveWallpaperModel &&
                     !liveWallpaperData.systemWallpaperInfo.showMetadataInPreview
             ) {
                 // If the live wallpaper's flag of showMetadataInPreview is false, do not show the
@@ -284,6 +278,42 @@ constructor(
             } else {
                 true
             }
+        }
+
+        private fun CreativeWallpaperData.getShareIntent(): Intent {
+            val shareIntent = Intent(Intent.ACTION_SEND)
+            shareIntent.putExtra(Intent.EXTRA_STREAM, shareUri)
+            shareIntent.setType("image/*")
+            shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            shareIntent.clipData = ClipData.newRawUri(null, shareUri)
+            return Intent.createChooser(shareIntent, null)
+        }
+
+        private fun LiveWallpaperModel.canBeDeleted(): Boolean {
+            return if (creativeWallpaperData != null) {
+                !liveWallpaperData.isApplied &&
+                    !creativeWallpaperData.isCurrent &&
+                    creativeWallpaperData.deleteUri.toString().isNotEmpty()
+            } else {
+                !liveWallpaperData.isApplied
+            }
+        }
+
+        fun LiveWallpaperData.getEditActivityIntent(): Intent? {
+            val settingsActivity = systemWallpaperInfo.settingsActivity
+            if (settingsActivity.isNullOrEmpty()) {
+                return null
+            }
+            val intent =
+                Intent().apply {
+                    component = ComponentName(systemWallpaperInfo.packageName, settingsActivity)
+                    putExtra(WallpaperSettingsActivity.EXTRA_PREVIEW_MODE, true)
+                }
+            return intent
+        }
+
+        fun LiveWallpaperModel.isNewCreativeWallpaper(): Boolean {
+            return creativeWallpaperData?.deleteUri?.toString()?.isEmpty() == true
         }
     }
 }
