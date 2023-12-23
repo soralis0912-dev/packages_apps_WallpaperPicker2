@@ -23,6 +23,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LifecycleOwner
+import com.android.customization.model.color.DefaultWallpaperColorResources
 import com.android.customization.model.color.WallpaperColorResources
 import com.android.systemui.shared.customization.data.content.CustomizationProviderClient
 import com.android.wallpaper.config.BaseFlags
@@ -295,7 +296,7 @@ open class TestInjector @Inject constructor(private val userEventLogger: UserEve
         wallpaperColors: WallpaperColors,
         context: Context
     ): WallpaperColorResources {
-        return WallpaperColorResources(wallpaperColors)
+        return DefaultWallpaperColorResources(wallpaperColors)
     }
 
     override fun getWallpaperColorsRepository(): WallpaperColorsRepository {

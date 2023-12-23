@@ -21,6 +21,7 @@
   <uses-permission android:name="android.permission.BIND_WALLPAPER" />
   <uses-permission android:name="android.permission.WAKE_LOCK"/>
   <uses-permission android:name="com.android.wallpaper.NOTIFY_ROTATING_WALLPAPER_CHANGED"/>
+  <uses-permission android:name="android.permission.SET_WALLPAPER_DIM_AMOUNT" />
 
   <queries>
       <!-- Specific intents Wallpaper picker query for -->
