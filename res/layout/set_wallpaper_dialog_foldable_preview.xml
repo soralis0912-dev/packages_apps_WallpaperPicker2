@@ -19,10 +19,6 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <android.widget.Space
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/abc_dialog_title_divider_material"/>
-
     <include layout="@layout/preview_foldable_card_view"
         android:id="@+id/lock_preview"
         android:layout_width="@dimen/set_wallpaper_dialog_foldable_preview_width"
@@ -48,9 +44,5 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:text="@string/set_wallpaper_home_screen_destination"/>
-
-    <android.widget.Space
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/abc_dialog_title_divider_material"/>
 
 </LinearLayout>
