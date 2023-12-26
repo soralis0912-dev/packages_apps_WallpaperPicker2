@@ -143,7 +143,7 @@ constructor(
                                         {
                                             // A selectable option can become selected.
                                             coroutineScope.launch {
-                                                interactor.setWallpaper(
+                                                interactor.setRecentWallpaper(
                                                     setWallpaperEntryPoint =
                                                         SET_WALLPAPER_ENTRY_POINT_WALLPAPER_QUICK_SWITCHER,
                                                     destination = destination,
