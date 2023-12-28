@@ -114,7 +114,7 @@ class WallpaperRepository(
     }
 
     /** Sets the wallpaper to the one with the given ID. */
-    suspend fun setWallpaper(
+    suspend fun setRecentWallpaper(
         @SetWallpaperEntryPoint setWallpaperEntryPoint: Int,
         destination: WallpaperDestination,
         wallpaperId: String,
