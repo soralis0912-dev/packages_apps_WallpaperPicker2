@@ -104,6 +104,8 @@
     <string name="home_wallpaper_preview_card_content_description" msgid="4059418716070821630">"গৃহ স্ক্ৰীনৰ ৱালপেপাৰৰ পূৰ্বদৰ্শন"</string>
     <string name="collection_not_exist_msg" msgid="3504852962885064842">"এই সংগ্ৰহটোৰ অস্তিত্ব নাই"</string>
     <string name="wallpaper_exit_split_screen" msgid="1928870664619591636">"অনুগ্ৰহ কৰি, বিভাজিত-স্ক্ৰীন ম’ডটোৰ পৰা বাহিৰ হৈ পুনৰ চেষ্টা কৰক"</string>
+    <!-- no translation found for set_wallpaper_dialog_set_button (5760149969510325088) -->
+    <skip />
     <string name="cancel" msgid="4970902691067201584">"বাতিল কৰক"</string>
     <string name="hide_ui_preview_text" msgid="6766076482511252295">"UIৰ পূৰ্বদৰ্শন লুকুৱাওক"</string>
     <string name="hint_hide_ui_preview" msgid="4527603797714586070">"পূর্বদর্শনত UI লুকুওৱা হৈছে। দেখুৱাবলৈ দুবাৰ টিপক"</string>

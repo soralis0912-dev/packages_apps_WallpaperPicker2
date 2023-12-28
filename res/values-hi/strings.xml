@@ -104,6 +104,8 @@
     <string name="home_wallpaper_preview_card_content_description" msgid="4059418716070821630">"होम स्क्रीन पर दिखने वाले वॉलपेपर की झलक"</string>
     <string name="collection_not_exist_msg" msgid="3504852962885064842">"वॉलपेपर का संग्रह मौजूद नहीं है"</string>
     <string name="wallpaper_exit_split_screen" msgid="1928870664619591636">"दो-स्क्रीन मोड को बंद करके दोबारा कोशिश करें"</string>
+    <!-- no translation found for set_wallpaper_dialog_set_button (5760149969510325088) -->
+    <skip />
     <string name="cancel" msgid="4970902691067201584">"रद्द करें"</string>
     <string name="hide_ui_preview_text" msgid="6766076482511252295">"यूज़र इंटरफ़ेस की झलक छिपाएं"</string>
     <string name="hint_hide_ui_preview" msgid="4527603797714586070">"झलक में यूआई को छिपाया गया. इसे दिखाने के लिए दो बार टैप करें"</string>
