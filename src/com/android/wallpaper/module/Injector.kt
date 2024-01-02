@@ -99,7 +99,7 @@ interface Injector {
 
     fun getSystemFeatureChecker(): SystemFeatureChecker
 
-    fun getUserEventLogger(context: Context): UserEventLogger
+    fun getUserEventLogger(): UserEventLogger
 
     fun getWallpaperPersister(context: Context): WallpaperPersister
 

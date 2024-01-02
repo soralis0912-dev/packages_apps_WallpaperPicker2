@@ -70,7 +70,7 @@ class WallpaperModelInfoContent(
 
     private fun onExploreClicked() {
         val injector = InjectorProvider.getInjector()
-        injector.getUserEventLogger(context.applicationContext).logWallpaperExploreButtonClicked()
+        injector.getUserEventLogger().logWallpaperExploreButtonClicked()
         context.startActivity(exploreIntent)
     }
 

@@ -87,7 +87,7 @@ public class CustomizationPickerActivity extends FragmentActivity implements App
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         Injector injector = InjectorProvider.getInjector();
         mDelegate = new WallpaperPickerDelegate(this, this, injector);
-        mUserEventLogger = injector.getUserEventLogger(this);
+        mUserEventLogger = injector.getUserEventLogger();
         mNetworkStatusNotifier = injector.getNetworkStatusNotifier(this);
         mNetworkStatus = mNetworkStatusNotifier.getNetworkStatus();
         mDisplayUtils = injector.getDisplayUtils(this);

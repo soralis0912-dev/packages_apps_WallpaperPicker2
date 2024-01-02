@@ -210,7 +210,7 @@ open class TestInjector @Inject constructor(private val userEventLogger: UserEve
         return systemFeatureChecker ?: TestSystemFeatureChecker().also { systemFeatureChecker = it }
     }
 
-    override fun getUserEventLogger(context: Context): UserEventLogger {
+    override fun getUserEventLogger(): UserEventLogger {
         return userEventLogger
     }
 

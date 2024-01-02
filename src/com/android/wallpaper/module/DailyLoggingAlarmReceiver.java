@@ -31,7 +31,7 @@ public class DailyLoggingAlarmReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         Context appContext = context.getApplicationContext();
         Injector injector = InjectorProvider.getInjector();
-        UserEventLogger logger = injector.getUserEventLogger(appContext);
+        UserEventLogger logger = injector.getUserEventLogger();
         WallpaperPreferences preferences = injector.getPreferences(appContext);
 
         logger.logSnapshot();
