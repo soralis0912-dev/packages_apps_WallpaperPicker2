@@ -20,7 +20,6 @@ import android.content.Context;
 import android.content.Intent;
 
 import com.android.wallpaper.module.logging.UserEventLogger;
-import com.android.wallpaper.util.DiskBasedLogger;
 
 /**
  * Performs daily logging operations when alarm is received.
@@ -37,8 +36,5 @@ public class DailyLoggingAlarmReceiver extends BroadcastReceiver {
         logger.logSnapshot();
 
         preferences.setLastDailyLogTimestamp(System.currentTimeMillis());
-
-        // Clear disk-based logs older than 7 days if they exist.
-        DiskBasedLogger.clearOldLogs(appContext);
     }
 }
