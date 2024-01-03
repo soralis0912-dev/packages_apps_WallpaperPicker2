@@ -158,7 +158,12 @@ constructor(
                                 )
                             }
                         is LiveWallpaperModel -> {
-                            // Set live wallpaper
+                            interactor.setLiveWallpaper(
+                                setWallpaperEntryPoint =
+                                    StyleEnums.SET_WALLPAPER_ENTRY_POINT_WALLPAPER_PREVIEW,
+                                destination = WallpaperDestination.BOTH,
+                                wallpaperModel = viewModel,
+                            )
                         }
                     }
                 },
