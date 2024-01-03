@@ -46,7 +46,6 @@ interface WallpaperClient {
      *   original, full-size bitmap.
      * @param cropHints The crop hints that indicate how the wallpaper should be cropped and render
      *   on the designated screen and orientation.
-     * @param onDone A callback to invoke when setting is done.
      */
     suspend fun setStaticWallpaper(
         @SetWallpaperEntryPoint setWallpaperEntryPoint: Int,
@@ -55,7 +54,6 @@ interface WallpaperClient {
         inputStream: InputStream?,
         bitmap: Bitmap,
         cropHints: Map<ScreenOrientation, Rect>,
-        onDone: () -> Unit,
     )
 
     /**

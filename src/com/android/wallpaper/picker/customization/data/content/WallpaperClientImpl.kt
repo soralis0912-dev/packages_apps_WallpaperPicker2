@@ -119,7 +119,6 @@ class WallpaperClientImpl(
         inputStream: InputStream?,
         bitmap: Bitmap,
         cropHints: Map<ScreenOrientation, Rect>,
-        onDone: () -> Unit
     ) {
         // TODO (b/309138446): Use the new multi-crop API from WallpaperManager
         val wallpaperManagerId =
