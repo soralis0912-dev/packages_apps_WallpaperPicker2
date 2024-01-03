@@ -18,12 +18,16 @@
 package com.android.wallpaper.picker.customization.data.repository
 
 import android.graphics.Bitmap
+import android.graphics.Rect
 import android.util.LruCache
+import com.android.wallpaper.model.wallpaper.ScreenOrientation
+import com.android.wallpaper.model.wallpaper.WallpaperModel.StaticWallpaperModel
 import com.android.wallpaper.module.WallpaperPreferences
 import com.android.wallpaper.module.logging.UserEventLogger.SetWallpaperEntryPoint
 import com.android.wallpaper.picker.customization.data.content.WallpaperClient
 import com.android.wallpaper.picker.customization.shared.model.WallpaperDestination
 import com.android.wallpaper.picker.customization.shared.model.WallpaperModel
+import java.io.InputStream
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -111,6 +115,28 @@ class WallpaperRepository(
                 }
                 thumbnail
             }
+    }
+
+    suspend fun setStaticWallpaper(
+        @SetWallpaperEntryPoint setWallpaperEntryPoint: Int,
+        destination: WallpaperDestination,
+        wallpaperModel: StaticWallpaperModel,
+        inputStream: InputStream?,
+        bitmap: Bitmap,
+        cropHints: Map<ScreenOrientation, Rect>,
+        onDone: () -> Unit,
+    ) {
+        withContext(backgroundDispatcher) {
+            client.setStaticWallpaper(
+                setWallpaperEntryPoint,
+                destination,
+                wallpaperModel,
+                inputStream,
+                bitmap,
+                cropHints,
+                onDone,
+            )
+        }
     }
 
     /** Sets the wallpaper to the one with the given ID. */

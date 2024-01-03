@@ -56,6 +56,7 @@ import com.android.wallpaper.picker.individual.IndividualPickerFragment
 import com.android.wallpaper.picker.undo.data.repository.UndoRepository
 import com.android.wallpaper.picker.undo.domain.interactor.UndoInteractor
 import com.android.wallpaper.util.DisplayUtils
+import dagger.Lazy
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineDispatcher
@@ -67,7 +68,6 @@ open class WallpaperPicker2Injector
 internal constructor(
     @MainDispatcher private val mainScope: CoroutineScope,
     @BackgroundDispatcher private val bgDispatcher: CoroutineDispatcher,
-    private val userEventLogger: UserEventLogger,
 ) : Injector {
     private var alarmManagerWrapper: AlarmManagerWrapper? = null
     private var bitmapCropper: BitmapCropper? = null
@@ -97,6 +97,7 @@ internal constructor(
     private var wallpaperColorsRepository: WallpaperColorsRepository? = null
     private var previewActivityIntentFactory: InlinePreviewIntentFactory? = null
     private var viewOnlyPreviewActivityIntentFactory: InlinePreviewIntentFactory? = null
+    @Inject lateinit var userEventLogger: Lazy<UserEventLogger>
 
     override fun getApplicationCoroutineScope(): CoroutineScope {
         return mainScope
@@ -241,8 +242,8 @@ internal constructor(
             ?: DefaultSystemFeatureChecker().also { systemFeatureChecker = it }
     }
 
-    override fun getUserEventLogger(context: Context): UserEventLogger {
-        return userEventLogger
+    override fun getUserEventLogger(): UserEventLogger {
+        return userEventLogger.get()
     }
 
     @Synchronized

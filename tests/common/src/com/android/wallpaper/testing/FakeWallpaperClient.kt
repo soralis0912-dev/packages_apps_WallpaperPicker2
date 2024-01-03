@@ -25,6 +25,7 @@ import com.android.wallpaper.module.logging.UserEventLogger.SetWallpaperEntryPoi
 import com.android.wallpaper.picker.customization.data.content.WallpaperClient
 import com.android.wallpaper.picker.customization.shared.model.WallpaperDestination
 import com.android.wallpaper.picker.customization.shared.model.WallpaperModel
+import java.io.InputStream
 import kotlin.math.min
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -85,6 +86,7 @@ class FakeWallpaperClient : WallpaperClient {
         setWallpaperEntryPoint: Int,
         destination: WallpaperDestination,
         wallpaperModel: StaticWallpaperModel,
+        inputStream: InputStream?,
         bitmap: Bitmap,
         cropHints: Map<ScreenOrientation, Rect>,
         onDone: () -> Unit

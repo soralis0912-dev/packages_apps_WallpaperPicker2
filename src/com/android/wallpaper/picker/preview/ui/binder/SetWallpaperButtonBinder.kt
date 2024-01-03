@@ -36,12 +36,14 @@ object SetWallpaperButtonBinder {
     ) {
         lifecycleOwner.lifecycleScope.launch {
             lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.isSetWallpaperButtonVisible.collect { isVisible ->
-                    button.isVisible = isVisible
-                    if (isVisible) {
-                        button.setOnClickListener { navigate.invoke() }
-                    } else {
-                        button.setOnClickListener(null)
+                launch {
+                    viewModel.isSetWallpaperButtonVisible.collect { isVisible ->
+                        button.isVisible = isVisible
+                        if (isVisible) {
+                            button.setOnClickListener { navigate.invoke() }
+                        } else {
+                            button.setOnClickListener(null)
+                        }
                     }
                 }
             }

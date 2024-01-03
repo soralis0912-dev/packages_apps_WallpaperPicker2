@@ -24,6 +24,7 @@ import com.android.wallpaper.model.wallpaper.WallpaperModel.StaticWallpaperModel
 import com.android.wallpaper.module.logging.UserEventLogger.SetWallpaperEntryPoint
 import com.android.wallpaper.picker.customization.shared.model.WallpaperDestination
 import com.android.wallpaper.picker.customization.shared.model.WallpaperModel
+import java.io.InputStream
 import kotlinx.coroutines.flow.Flow
 
 /** Defines interface for classes that can interact with the Wallpaper API. */
@@ -51,6 +52,7 @@ interface WallpaperClient {
         @SetWallpaperEntryPoint setWallpaperEntryPoint: Int,
         destination: WallpaperDestination,
         wallpaperModel: StaticWallpaperModel,
+        inputStream: InputStream?,
         bitmap: Bitmap,
         cropHints: Map<ScreenOrientation, Rect>,
         onDone: () -> Unit,

@@ -42,7 +42,7 @@ public abstract class BasePreviewActivity extends BaseActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Injector injector = InjectorProvider.getInjector();
-        UserEventLogger mUserEventLogger = injector.getUserEventLogger(this);
+        UserEventLogger mUserEventLogger = injector.getUserEventLogger();
         getWindow().setColorMode(ActivityInfo.COLOR_MODE_WIDE_COLOR_GAMUT);
         setTheme(R.style.WallpaperTheme);
         getWindow().setFormat(PixelFormat.TRANSLUCENT);

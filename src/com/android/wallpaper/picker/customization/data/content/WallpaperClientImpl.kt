@@ -40,6 +40,7 @@ import com.android.wallpaper.module.logging.UserEventLogger.SetWallpaperEntryPoi
 import com.android.wallpaper.picker.customization.shared.model.WallpaperDestination
 import com.android.wallpaper.picker.customization.shared.model.WallpaperModel
 import java.io.IOException
+import java.io.InputStream
 import java.util.EnumMap
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -115,18 +116,28 @@ class WallpaperClientImpl(
         @SetWallpaperEntryPoint setWallpaperEntryPoint: Int,
         destination: WallpaperDestination,
         wallpaperModel: StaticWallpaperModel,
+        inputStream: InputStream?,
         bitmap: Bitmap,
         cropHints: Map<ScreenOrientation, Rect>,
         onDone: () -> Unit
     ) {
         // TODO (b/309138446): Use the new multi-crop API from WallpaperManager
         val wallpaperManagerId =
-            wallpaperManager.setBitmap(
-                bitmap,
-                cropHints[ScreenOrientation.PORTRAIT],
-                true,
-                destination.toFlags()
-            )
+            if (inputStream != null) {
+                wallpaperManager.setStream(
+                    inputStream,
+                    cropHints[ScreenOrientation.PORTRAIT],
+                    true,
+                )
+            } else {
+                wallpaperManager.setBitmap(
+                    bitmap,
+                    cropHints[ScreenOrientation.PORTRAIT],
+                    true,
+                    destination.toFlags(),
+                )
+            }
+
         // Save wallpaper metadata in the preference for two purposes
         // 1. Quickly reconstruct the currently-selected wallpaper when opening the app
         // 2. Snapshot logging
