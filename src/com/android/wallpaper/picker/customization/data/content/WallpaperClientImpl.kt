@@ -31,6 +31,7 @@ import android.net.Uri
 import android.os.Looper
 import android.util.Log
 import com.android.wallpaper.asset.BitmapUtils
+import com.android.wallpaper.model.CreativeCategory
 import com.android.wallpaper.model.LiveWallpaperPrefMetadata
 import com.android.wallpaper.model.StaticWallpaperPrefMetadata
 import com.android.wallpaper.model.WallpaperInfo
@@ -178,6 +179,10 @@ class WallpaperClientImpl(
         destination: WallpaperDestination,
         wallpaperModel: LiveWallpaperModel,
     ) {
+        if (wallpaperModel.creativeWallpaperData != null) {
+            saveCreativeWallpaperAtExternal(wallpaperModel, destination)
+        }
+
         val componentName = wallpaperModel.commonWallpaperData.id.componentName
         try {
             // Probe if the function setWallpaperComponentWithFlags exists
@@ -229,6 +234,47 @@ class WallpaperClientImpl(
         }
         // Save the live wallpaper to recent wallpapers
         wallpaperPreferences.addLiveWallpaperToRecentWallpapers(destination, wallpaperModel)
+    }
+
+    /** Call the external app to save the creative wallpaper. */
+    private fun saveCreativeWallpaperAtExternal(
+        wallpaperModel: LiveWallpaperModel,
+        destination: WallpaperDestination,
+    ) {
+        wallpaperModel.getSaveWallpaperUriAndAuthority(destination)?.let { (uri, authority) ->
+            try {
+                context.contentResolver.acquireContentProviderClient(authority).use { client ->
+                    client?.query(
+                        /* url= */ uri,
+                        /* projection= */ null,
+                        /* selection= */ null,
+                        /* selectionArgs= */ null,
+                        /* sortOrder= */ null,
+                    )
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed updating creative live wallpaper at external.")
+            }
+        }
+    }
+
+    /** Get the URI to call the external app to save the creative wallpaper. */
+    private fun LiveWallpaperModel.getSaveWallpaperUriAndAuthority(
+        destination: WallpaperDestination
+    ): Pair<Uri, String>? {
+        val uriString =
+            liveWallpaperData.systemWallpaperInfo.serviceInfo.metaData.getString(
+                CreativeCategory.KEY_WALLPAPER_SAVE_CREATIVE_CATEGORY_WALLPAPER
+            )
+                ?: return null
+        val uri =
+            Uri.parse(uriString)
+                ?.buildUpon()
+                ?.appendQueryParameter("destination", destination.toString())
+                ?.build()
+                ?: return null
+        val authority = uri.authority ?: return null
+        return Pair(uri, authority)
     }
 
     override suspend fun setRecentWallpaper(
