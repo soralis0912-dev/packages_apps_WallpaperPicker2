@@ -25,6 +25,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.Toolbar
 import androidx.activity.result.contract.ActivityResultContract
+import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
@@ -71,8 +72,11 @@ class FullPreviewFragment : Hilt_FullPreviewFragment() {
         val view = inflater.inflate(R.layout.fragment_full_preview, container, false)
         setUpToolbar(view)
 
-        val wallpaperSurface: SurfaceView = view.requireViewById(R.id.wallpaper_surface)
-        ViewCompat.setTransitionName(wallpaperSurface, "full_preview_shared_element")
+        val previewCard: CardView = view.requireViewById(R.id.preview_card)
+        ViewCompat.setTransitionName(
+            previewCard,
+            SmallPreviewFragment.FULL_PREVIEW_SHARED_ELEMENT_ID
+        )
 
         val creativeWallpaperEditActivityResult =
             registerForActivityResult(
