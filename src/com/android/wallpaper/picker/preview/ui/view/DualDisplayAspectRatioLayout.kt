@@ -38,12 +38,12 @@ class DualDisplayAspectRatioLayout(
     init {
         val inflater =
             getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
-        val foldedPreview = inflater.inflate(R.layout.wallpaper_preview_small, null)
+        val foldedPreview = inflater.inflate(R.layout.wallpaper_preview_card2, null)
 
         foldedPreview.id = FoldableDisplay.FOLDED.getViewId()
         addView(foldedPreview)
 
-        val unfoldedPreview = inflater.inflate(R.layout.wallpaper_preview_small, null)
+        val unfoldedPreview = inflater.inflate(R.layout.wallpaper_preview_card2, null)
         unfoldedPreview.id = FoldableDisplay.UNFOLDED.getViewId()
         addView(unfoldedPreview)
     }

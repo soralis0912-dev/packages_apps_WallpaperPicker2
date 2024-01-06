@@ -20,7 +20,8 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.Rect
 import com.android.wallpaper.model.LiveWallpaperInfo
-import com.android.wallpaper.model.StaticWallpaperMetadata
+import com.android.wallpaper.model.LiveWallpaperPrefMetadata
+import com.android.wallpaper.model.StaticWallpaperPrefMetadata
 import com.android.wallpaper.model.WallpaperInfo
 import com.android.wallpaper.model.wallpaper.ScreenOrientation
 import com.android.wallpaper.model.wallpaper.WallpaperModel
@@ -78,8 +79,10 @@ open class TestWallpaperPreferences @Inject constructor() : WallpaperPreferences
     private var mNumDaysDailyRotationNotAttempted = 0
     private var mHomeWallpaperEffects: String? = null
     private var mLockWallpaperEffects: String? = null
-    private var mHomeStaticWallpaperMetadata: StaticWallpaperMetadata? = null
-    private var mLockStaticWallpaperMetadata: StaticWallpaperMetadata? = null
+    private var mHomeStaticWallpaperPrefMetadata: StaticWallpaperPrefMetadata? = null
+    private var mLockStaticWallpaperPrefMetadata: StaticWallpaperPrefMetadata? = null
+    private var mHomeLiveWallpaperPrefMetadata: LiveWallpaperPrefMetadata? = null
+    private var mLockLiveWallpaperPrefMetadata: LiveWallpaperPrefMetadata? = null
     private val mWallStoredColor: HashMap<String, String> = HashMap()
 
     private val wallpaperCropHints: MutableMap<ScreenOrientation, Rect?>
@@ -136,8 +139,12 @@ open class TestWallpaperPreferences @Inject constructor() : WallpaperPreferences
         homeWallpaperManagerId = 0
     }
 
-    override fun setHomeStaticImageWallpaperMetadata(metadata: StaticWallpaperMetadata) {
-        mHomeStaticWallpaperMetadata = metadata
+    override fun setHomeStaticImageWallpaperMetadata(metadata: StaticWallpaperPrefMetadata) {
+        mHomeStaticWallpaperPrefMetadata = metadata
+    }
+
+    override fun setHomeLiveWallpaperMetadata(metadata: LiveWallpaperPrefMetadata) {
+        mHomeLiveWallpaperPrefMetadata = metadata
     }
 
     override fun getHomeWallpaperHashCode(): Long {
@@ -220,8 +227,12 @@ open class TestWallpaperPreferences @Inject constructor() : WallpaperPreferences
         lockWallpaperManagerId = 0
     }
 
-    override fun setLockStaticImageWallpaperMetadata(metadata: StaticWallpaperMetadata) {
-        mLockStaticWallpaperMetadata = metadata
+    override fun setLockStaticImageWallpaperMetadata(metadata: StaticWallpaperPrefMetadata) {
+        mLockStaticWallpaperPrefMetadata = metadata
+    }
+
+    override fun setLockLiveWallpaperMetadata(metadata: LiveWallpaperPrefMetadata) {
+        mLockLiveWallpaperPrefMetadata = metadata
     }
 
     override fun getLockWallpaperHashCode(): Long {
@@ -469,6 +480,11 @@ open class TestWallpaperPreferences @Inject constructor() : WallpaperPreferences
         wallpaperModel: WallpaperModel.StaticWallpaperModel,
         bitmap: Bitmap,
         cropHints: Map<ScreenOrientation, Rect?>
+    ) {}
+
+    override suspend fun addLiveWallpaperToRecentWallpapers(
+        destination: WallpaperDestination,
+        wallpaperModel: WallpaperModel.LiveWallpaperModel
     ) {}
 
     override fun getWallpaperCropHints(): Map<ScreenOrientation, Rect?> {

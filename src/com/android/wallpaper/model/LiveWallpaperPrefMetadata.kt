@@ -15,16 +15,11 @@
  */
 package com.android.wallpaper.model
 
-import android.graphics.Rect
-import com.android.wallpaper.model.wallpaper.ScreenOrientation
-
-/** Metadata for the static image wallpaper to be saved to the system preferences. */
-data class StaticWallpaperMetadata(
+/** Metadata for the live wallpaper to be saved to the system preferences. */
+data class LiveWallpaperPrefMetadata(
     val attributions: List<String?>?,
-    val actionUrl: String?,
+    val serviceName: String,
+    val effectName: String?,
     val collectionId: String?,
-    val hashCode: Long?,
     val managerId: Int,
-    val remoteId: String,
-    val cropHints: Map<ScreenOrientation, Rect>?,
 )

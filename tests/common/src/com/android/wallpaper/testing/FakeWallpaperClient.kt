@@ -89,7 +89,6 @@ class FakeWallpaperClient : WallpaperClient {
         inputStream: InputStream?,
         bitmap: Bitmap,
         cropHints: Map<ScreenOrientation, Rect>,
-        onDone: () -> Unit
     ) {
         TODO("Not yet implemented")
     }

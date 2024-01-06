@@ -45,7 +45,7 @@ import com.android.wallpaper.asset.Asset.BitmapReceiver;
 import com.android.wallpaper.asset.BitmapUtils;
 import com.android.wallpaper.asset.StreamableAsset;
 import com.android.wallpaper.asset.StreamableAsset.StreamReceiver;
-import com.android.wallpaper.model.StaticWallpaperMetadata;
+import com.android.wallpaper.model.StaticWallpaperPrefMetadata;
 import com.android.wallpaper.model.WallpaperInfo;
 import com.android.wallpaper.module.BitmapCropper.Callback;
 import com.android.wallpaper.util.BitmapTransformer;
@@ -278,7 +278,7 @@ public class DefaultWallpaperPersister implements WallpaperPersister {
 
     @Override
     public boolean saveStaticWallpaperToPreferences(@Destination int destination,
-            @NonNull StaticWallpaperMetadata metadata) {
+            @NonNull StaticWallpaperPrefMetadata metadata) {
         if (destination == DEST_HOME_SCREEN || destination == DEST_BOTH) {
             mWallpaperPreferences.clearHomeWallpaperMetadata();
             mWallpaperPreferences.setHomeStaticImageWallpaperMetadata(metadata);
@@ -739,7 +739,7 @@ public class DefaultWallpaperPersister implements WallpaperPersister {
                 int wallpaperId, long bitmapHash, WallpaperColors colors) {
             saveStaticWallpaperToPreferences(
                     destination,
-                    new StaticWallpaperMetadata(
+                    new StaticWallpaperPrefMetadata(
                             mWallpaper.getAttributions(mAppContext),
                             mWallpaper.getActionUrl(mAppContext),
                             mWallpaper.getCollectionId(mAppContext),

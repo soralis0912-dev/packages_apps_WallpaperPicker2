@@ -102,7 +102,6 @@ constructor(
                         inputStream = scaleImageViewModel.stream,
                         bitmap = scaleImageViewModel.rawWallpaperBitmap,
                         cropHints = scaleImageViewModel.cropHints ?: emptyMap(),
-                        onDone = {},
                     )
                 }
             }

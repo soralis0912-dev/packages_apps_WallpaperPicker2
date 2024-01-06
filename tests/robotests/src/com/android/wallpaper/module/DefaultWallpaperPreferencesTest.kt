@@ -17,7 +17,7 @@ package com.android.wallpaper.module
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
-import com.android.wallpaper.model.StaticWallpaperMetadata
+import com.android.wallpaper.model.StaticWallpaperPrefMetadata
 import com.android.wallpaper.module.WallpaperPreferenceKeys.NoBackupKeys
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
@@ -33,7 +33,7 @@ class DefaultWallpaperPreferencesTest {
     @Test
     fun setHomeStaticImageWallpaperMetadata_metadataShouldBeSavedToPreferences() {
         wallpaperPreferences.setHomeStaticImageWallpaperMetadata(
-            StaticWallpaperMetadata(
+            StaticWallpaperPrefMetadata(
                 attributions = listOf("attr1", "attr2"),
                 actionUrl = "http://www.google.com/",
                 collectionId = "cultural_events",
@@ -76,7 +76,7 @@ class DefaultWallpaperPreferencesTest {
     @Test
     fun setLockStaticImageWallpaperMetadata_metadataShouldBeSavedToPreferences() {
         wallpaperPreferences.setLockStaticImageWallpaperMetadata(
-            StaticWallpaperMetadata(
+            StaticWallpaperPrefMetadata(
                 attributions = listOf("attr1", "attr2"),
                 actionUrl = "http://www.google.com/",
                 collectionId = "cultural_events",

@@ -20,7 +20,7 @@
     android:layout_height="wrap_content">
     <include
         android:id="@+id/preview"
-        layout="@layout/wallpaper_preview_small"
+        layout="@layout/wallpaper_preview_card2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"/>

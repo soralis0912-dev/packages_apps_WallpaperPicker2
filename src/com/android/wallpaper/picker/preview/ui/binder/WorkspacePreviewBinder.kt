@@ -18,7 +18,6 @@ package com.android.wallpaper.picker.preview.ui.binder
 import android.os.Bundle
 import android.view.SurfaceHolder
 import android.view.SurfaceView
-import android.view.View
 import androidx.core.os.bundleOf
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
@@ -34,7 +33,6 @@ object WorkspacePreviewBinder {
         surface: SurfaceView,
         config: WorkspacePreviewConfigViewModel,
     ) {
-        surface.visibility = View.VISIBLE
         surface.setZOrderMediaOverlay(true)
         surface.holder.addCallback(
             object : SurfaceViewUtil.SurfaceCallback {
@@ -58,7 +56,6 @@ object WorkspacePreviewBinder {
         viewModel: WallpaperPreviewViewModel,
         lifecycleOwner: LifecycleOwner
     ) {
-        surface.visibility = View.VISIBLE
         surface.setZOrderMediaOverlay(true)
         surface.holder.addCallback(
             object : SurfaceViewUtil.SurfaceCallback {
