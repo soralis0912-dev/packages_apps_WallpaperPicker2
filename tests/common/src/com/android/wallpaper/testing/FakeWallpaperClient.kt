@@ -20,6 +20,7 @@ package com.android.wallpaper.testing
 import android.graphics.Bitmap
 import android.graphics.Rect
 import com.android.wallpaper.model.wallpaper.ScreenOrientation
+import com.android.wallpaper.model.wallpaper.WallpaperModel.LiveWallpaperModel
 import com.android.wallpaper.model.wallpaper.WallpaperModel.StaticWallpaperModel
 import com.android.wallpaper.module.logging.UserEventLogger.SetWallpaperEntryPoint
 import com.android.wallpaper.picker.customization.data.content.WallpaperClient
@@ -89,6 +90,14 @@ class FakeWallpaperClient : WallpaperClient {
         inputStream: InputStream?,
         bitmap: Bitmap,
         cropHints: Map<ScreenOrientation, Rect>,
+    ) {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun setLiveWallpaper(
+        setWallpaperEntryPoint: Int,
+        destination: WallpaperDestination,
+        wallpaperModel: LiveWallpaperModel,
     ) {
         TODO("Not yet implemented")
     }

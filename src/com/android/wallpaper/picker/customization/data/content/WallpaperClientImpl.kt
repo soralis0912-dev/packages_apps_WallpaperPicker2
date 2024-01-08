@@ -18,6 +18,7 @@
 package com.android.wallpaper.picker.customization.data.content
 
 import android.app.WallpaperManager
+import android.content.ComponentName
 import android.content.ContentResolver
 import android.content.ContentValues
 import android.content.Context
@@ -30,9 +31,12 @@ import android.net.Uri
 import android.os.Looper
 import android.util.Log
 import com.android.wallpaper.asset.BitmapUtils
+import com.android.wallpaper.model.CreativeCategory
+import com.android.wallpaper.model.LiveWallpaperPrefMetadata
 import com.android.wallpaper.model.StaticWallpaperPrefMetadata
 import com.android.wallpaper.model.WallpaperInfo
 import com.android.wallpaper.model.wallpaper.ScreenOrientation
+import com.android.wallpaper.model.wallpaper.WallpaperModel.LiveWallpaperModel
 import com.android.wallpaper.model.wallpaper.WallpaperModel.StaticWallpaperModel
 import com.android.wallpaper.module.InjectorProvider
 import com.android.wallpaper.module.WallpaperPreferences
@@ -168,6 +172,109 @@ class WallpaperClientImpl(
             // TODO (b/309139122): Introduce crop hints to recent wallpapers
             emptyMap(),
         )
+    }
+
+    override suspend fun setLiveWallpaper(
+        setWallpaperEntryPoint: Int,
+        destination: WallpaperDestination,
+        wallpaperModel: LiveWallpaperModel,
+    ) {
+        if (wallpaperModel.creativeWallpaperData != null) {
+            saveCreativeWallpaperAtExternal(wallpaperModel, destination)
+        }
+
+        val componentName = wallpaperModel.commonWallpaperData.id.componentName
+        try {
+            // Probe if the function setWallpaperComponentWithFlags exists
+            wallpaperManager.javaClass.getMethod(
+                "setWallpaperComponentWithFlags",
+                ComponentName::class.java,
+                Int::class.javaPrimitiveType
+            )
+            wallpaperManager.setWallpaperComponentWithFlags(componentName, destination.toFlags())
+        } catch (e: NoSuchMethodException) {
+            wallpaperManager.setWallpaperComponent(componentName)
+        }
+
+        // Save wallpaper metadata in the preference for two purposes
+        // 1. Quickly reconstruct the currently-selected wallpaper when opening the app
+        // 2. Snapshot logging
+        val metadata =
+            LiveWallpaperPrefMetadata(
+                wallpaperModel.commonWallpaperData.attributions,
+                wallpaperModel.liveWallpaperData.systemWallpaperInfo.serviceName,
+                wallpaperModel.liveWallpaperData.effectNames,
+                wallpaperModel.commonWallpaperData.id.collectionId,
+                // Be careful that WallpaperManager.getWallpaperId can only accept either
+                // WallpaperManager.FLAG_SYSTEM or WallpaperManager.FLAG_LOCK.
+                // If destination is BOTH, either flag should return the same Wallpaper Manager ID.
+                wallpaperManager.getWallpaperId(
+                    if (
+                        destination == WallpaperDestination.BOTH ||
+                            destination == WallpaperDestination.HOME
+                    )
+                        WallpaperManager.FLAG_SYSTEM
+                    else WallpaperManager.FLAG_LOCK
+                ),
+            )
+        if (destination == WallpaperDestination.HOME || destination == WallpaperDestination.BOTH) {
+            wallpaperPreferences.clearHomeWallpaperMetadata()
+            wallpaperPreferences.setHomeLiveWallpaperMetadata(metadata)
+            // Disable rotation wallpaper when setting to home screen. Daily rotation rotates both
+            // home and lock screen wallpaper when lock screen is not set; otherwise daily rotation
+            // only rotates home screen while lock screen wallpaper stays as what it's set to.
+            wallpaperPreferences.setWallpaperPresentationMode(
+                WallpaperPreferences.PRESENTATION_MODE_STATIC
+            )
+            wallpaperPreferences.clearDailyRotations()
+        }
+        if (destination == WallpaperDestination.LOCK || destination == WallpaperDestination.BOTH) {
+            wallpaperPreferences.clearLockWallpaperMetadata()
+            wallpaperPreferences.setLockLiveWallpaperMetadata(metadata)
+        }
+        // Save the live wallpaper to recent wallpapers
+        wallpaperPreferences.addLiveWallpaperToRecentWallpapers(destination, wallpaperModel)
+    }
+
+    /** Call the external app to save the creative wallpaper. */
+    private fun saveCreativeWallpaperAtExternal(
+        wallpaperModel: LiveWallpaperModel,
+        destination: WallpaperDestination,
+    ) {
+        wallpaperModel.getSaveWallpaperUriAndAuthority(destination)?.let { (uri, authority) ->
+            try {
+                context.contentResolver.acquireContentProviderClient(authority).use { client ->
+                    client?.query(
+                        /* url= */ uri,
+                        /* projection= */ null,
+                        /* selection= */ null,
+                        /* selectionArgs= */ null,
+                        /* sortOrder= */ null,
+                    )
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed updating creative live wallpaper at external.")
+            }
+        }
+    }
+
+    /** Get the URI to call the external app to save the creative wallpaper. */
+    private fun LiveWallpaperModel.getSaveWallpaperUriAndAuthority(
+        destination: WallpaperDestination
+    ): Pair<Uri, String>? {
+        val uriString =
+            liveWallpaperData.systemWallpaperInfo.serviceInfo.metaData.getString(
+                CreativeCategory.KEY_WALLPAPER_SAVE_CREATIVE_CATEGORY_WALLPAPER
+            )
+                ?: return null
+        val uri =
+            Uri.parse(uriString)
+                ?.buildUpon()
+                ?.appendQueryParameter("destination", destination.toString())
+                ?.build()
+                ?: return null
+        val authority = uri.authority ?: return null
+        return Pair(uri, authority)
     }
 
     override suspend fun setRecentWallpaper(

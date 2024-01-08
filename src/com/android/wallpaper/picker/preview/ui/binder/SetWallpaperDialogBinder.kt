@@ -65,25 +65,28 @@ object SetWallpaperDialogBinder {
                 lifecycleOwner,
                 mainScope,
             )
-        val confirmSetWallpaperButton = dialogContent.requireViewById<Button>(R.id.button_set)
+        val confirmButton = dialogContent.requireViewById<Button>(R.id.button_set)
+        val cancelButton = dialogContent.requireViewById<Button>(R.id.button_cancel)
         lifecycleOwner.lifecycleScope.launch {
             lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
-                    wallpaperPreviewViewModel.onConfirmSetWallpaper.collect { onConfirmSetWallpaper
-                        ->
-                        // TODO(b/303457019): For the set button, listen to a data flow of onClick
-                        // listener
-                        confirmSetWallpaperButton.setOnClickListener {
-                            onConfirmSetWallpaper?.invoke()
-                            onFinishActivity.invoke()
+                    wallpaperPreviewViewModel.setWallpaperDialog.collect { dialog ->
+                        if (dialog == null) {
+                            onDismissDialog.invoke()
+                        } else {
+                            confirmButton.setOnClickListener {
+                                launch {
+                                    dialog.onConfirmButtonClicked.invoke()
+                                    onFinishActivity.invoke()
+                                }
+                            }
+                            cancelButton.setOnClickListener {
+                                dialog.onCancelButtonClicked.invoke()
+                            }
                         }
                     }
                 }
             }
-        }
-
-        dialogContent.requireViewById<Button>(R.id.button_cancel).setOnClickListener {
-            onDismissDialog.invoke()
         }
     }
 
