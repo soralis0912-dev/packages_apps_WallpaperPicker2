@@ -65,7 +65,7 @@ import kotlinx.coroutines.CoroutineScope
 @Singleton
 open class WallpaperPicker2Injector
 @Inject
-internal constructor(
+constructor(
     @MainDispatcher private val mainScope: CoroutineScope,
     @BackgroundDispatcher private val bgDispatcher: CoroutineDispatcher,
 ) : Injector {
