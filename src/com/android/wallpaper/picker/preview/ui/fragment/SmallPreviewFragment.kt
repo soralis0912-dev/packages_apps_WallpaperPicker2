@@ -81,7 +81,7 @@ class SmallPreviewFragment : Hilt_SmallPreviewFragment() {
         SetWallpaperButtonBinder.bind(
             button = view.requireViewById(R.id.button_set_wallpaper),
             viewModel = wallpaperPreviewViewModel,
-            lifecycleOwner = viewLifecycleOwner
+            lifecycleOwner = viewLifecycleOwner,
         ) {
             findNavController().navigate(R.id.action_smallPreviewFragment_to_setWallpaperDialog)
         }

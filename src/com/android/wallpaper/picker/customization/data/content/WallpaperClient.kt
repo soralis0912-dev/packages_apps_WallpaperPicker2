@@ -20,6 +20,7 @@ package com.android.wallpaper.picker.customization.data.content
 import android.graphics.Bitmap
 import android.graphics.Rect
 import com.android.wallpaper.model.wallpaper.ScreenOrientation
+import com.android.wallpaper.model.wallpaper.WallpaperModel.LiveWallpaperModel
 import com.android.wallpaper.model.wallpaper.WallpaperModel.StaticWallpaperModel
 import com.android.wallpaper.module.logging.UserEventLogger.SetWallpaperEntryPoint
 import com.android.wallpaper.picker.customization.shared.model.WallpaperDestination
@@ -54,6 +55,19 @@ interface WallpaperClient {
         inputStream: InputStream?,
         bitmap: Bitmap,
         cropHints: Map<ScreenOrientation, Rect>,
+    )
+
+    /**
+     * Asynchronously sets a live wallpaper.
+     *
+     * @param setWallpaperEntryPoint The entry point where we set the wallpaper from.
+     * @param destination The screen to set the wallpaper on.
+     * @param wallpaperModel The wallpaper model of the wallpaper.
+     */
+    suspend fun setLiveWallpaper(
+        @SetWallpaperEntryPoint setWallpaperEntryPoint: Int,
+        destination: WallpaperDestination,
+        wallpaperModel: LiveWallpaperModel,
     )
 
     /**

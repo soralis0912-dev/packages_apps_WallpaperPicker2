@@ -19,6 +19,7 @@ package com.android.wallpaper.picker.preview.ui.fragment
 import android.app.Activity
 import android.app.AlertDialog
 import android.app.Dialog
+import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.widget.Toast
@@ -74,5 +75,10 @@ class SetWallpaperDialogFragment : Hilt_SetWallpaperDialogFragment() {
         )
 
         return dialog
+    }
+
+    override fun onDismiss(dialog: DialogInterface) {
+        super.onDismiss(dialog)
+        wallpaperPreviewViewModel.dismissSetWallpaperDialog()
     }
 }

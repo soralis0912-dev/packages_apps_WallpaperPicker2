@@ -21,6 +21,7 @@ import android.graphics.Bitmap
 import android.graphics.Rect
 import android.util.LruCache
 import com.android.wallpaper.model.wallpaper.ScreenOrientation
+import com.android.wallpaper.model.wallpaper.WallpaperModel.LiveWallpaperModel
 import com.android.wallpaper.model.wallpaper.WallpaperModel.StaticWallpaperModel
 import com.android.wallpaper.module.WallpaperPreferences
 import com.android.wallpaper.module.logging.UserEventLogger.SetWallpaperEntryPoint
@@ -133,6 +134,20 @@ class WallpaperRepository(
                 inputStream,
                 bitmap,
                 cropHints,
+            )
+        }
+    }
+
+    suspend fun setLiveWallpaper(
+        @SetWallpaperEntryPoint setWallpaperEntryPoint: Int,
+        destination: WallpaperDestination,
+        wallpaperModel: LiveWallpaperModel,
+    ) {
+        withContext(backgroundDispatcher) {
+            client.setLiveWallpaper(
+                setWallpaperEntryPoint,
+                destination,
+                wallpaperModel,
             )
         }
     }

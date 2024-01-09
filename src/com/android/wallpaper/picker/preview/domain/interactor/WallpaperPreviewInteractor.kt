@@ -56,4 +56,16 @@ constructor(
             cropHints,
         )
     }
+
+    suspend fun setLiveWallpaper(
+        @UserEventLogger.SetWallpaperEntryPoint setWallpaperEntryPoint: Int,
+        destination: WallpaperDestination,
+        wallpaperModel: WallpaperModel.LiveWallpaperModel,
+    ) {
+        wallpaperRepository.setLiveWallpaper(
+            setWallpaperEntryPoint,
+            destination,
+            wallpaperModel,
+        )
+    }
 }

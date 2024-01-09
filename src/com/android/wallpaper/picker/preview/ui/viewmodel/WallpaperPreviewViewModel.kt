@@ -15,11 +15,15 @@
  */
 package com.android.wallpaper.picker.preview.ui.viewmodel
 
+import android.stats.style.StyleEnums
 import androidx.lifecycle.ViewModel
 import com.android.wallpaper.model.wallpaper.FoldableDisplay
 import com.android.wallpaper.model.wallpaper.ScreenOrientation
 import com.android.wallpaper.model.wallpaper.WallpaperModel
+import com.android.wallpaper.model.wallpaper.WallpaperModel.LiveWallpaperModel
+import com.android.wallpaper.model.wallpaper.WallpaperModel.StaticWallpaperModel
 import com.android.wallpaper.module.CustomizationSections.Screen
+import com.android.wallpaper.picker.customization.shared.model.WallpaperDestination
 import com.android.wallpaper.picker.di.modules.PreviewUtilsModule.HomeScreenPreviewUtils
 import com.android.wallpaper.picker.di.modules.PreviewUtilsModule.LockScreenPreviewUtils
 import com.android.wallpaper.picker.preview.domain.interactor.WallpaperPreviewInteractor
@@ -42,7 +46,7 @@ import kotlinx.coroutines.flow.map
 class WallpaperPreviewViewModel
 @Inject
 constructor(
-    interactor: WallpaperPreviewInteractor,
+    private val interactor: WallpaperPreviewInteractor,
     val staticWallpaperPreviewViewModel: StaticWallpaperPreviewViewModel,
     val previewActionsViewModel: PreviewActionsViewModel,
     private val displayUtils: DisplayUtils,
@@ -82,8 +86,7 @@ constructor(
                 wallpaper = wallpaper,
                 config = config,
                 allowUserCropping =
-                    wallpaper is WallpaperModel.StaticWallpaperModel &&
-                        !wallpaper.isDownloadableWallpaper(),
+                    wallpaper is StaticWallpaperModel && !wallpaper.isDownloadableWallpaper(),
                 whichPreview = whichPreview,
             )
         }
@@ -101,10 +104,7 @@ constructor(
         combine(wallpaper, fullWallpaperPreviewConfigViewModel.filterNotNull()) {
             wallpaper,
             previewViewModel ->
-            if (
-                wallpaper is WallpaperModel.StaticWallpaperModel &&
-                    !wallpaper.isDownloadableWallpaper()
-            ) {
+            if (wallpaper is StaticWallpaperModel && !wallpaper.isDownloadableWallpaper()) {
                 {
                     staticWallpaperPreviewViewModel.fullPreviewCrop?.let {
                         staticWallpaperPreviewViewModel.updateCropHints(
@@ -117,21 +117,63 @@ constructor(
             }
         }
 
-    // If the wallpaper is a downloadable wallpaper, do not show the button
-    val isSetWallpaperButtonVisible: Flow<Boolean> =
-        wallpaper.filterNotNull().map { !it.isDownloadableWallpaper() }
-
-    val onConfirmSetWallpaper: Flow<(() -> Unit)?> =
+    val onSetWallpaperButtonClicked: Flow<(() -> Unit)?> =
         combine(
-            wallpaper.filterNotNull().map { it.isDownloadableWallpaper() },
-            staticWallpaperPreviewViewModel.onSetWallpaperClicked,
-        ) { isDownloadableWallpaper, onSetWallpaperClicked ->
-            if (isDownloadableWallpaper) {
+            wallpaper,
+            staticWallpaperPreviewViewModel.fullResWallpaperViewModel,
+        ) { wallpaper, fullResWallpaperViewModel ->
+            if (
+                wallpaper == null ||
+                    wallpaper.isDownloadableWallpaper() ||
+                    (wallpaper is StaticWallpaperModel && fullResWallpaperViewModel == null)
+            ) {
                 null
             } else {
-                onSetWallpaperClicked
+                { showSetWallpaperDialog(wallpaper, fullResWallpaperViewModel) }
             }
         }
+    val isSetWallpaperButtonVisible: Flow<Boolean> = onSetWallpaperButtonClicked.map { it != null }
+
+    private val _setWallpaperDialog = MutableStateFlow<WallpaperConfirmDialogViewModel?>(null)
+    val setWallpaperDialog = _setWallpaperDialog.asStateFlow()
+
+    private fun showSetWallpaperDialog(
+        viewModel: WallpaperModel,
+        scaleImageViewModel: FullResWallpaperViewModel?,
+    ) {
+        _setWallpaperDialog.value =
+            WallpaperConfirmDialogViewModel(
+                onConfirmButtonClicked = {
+                    when (viewModel) {
+                        is StaticWallpaperModel ->
+                            scaleImageViewModel?.let {
+                                interactor.setStaticWallpaper(
+                                    setWallpaperEntryPoint =
+                                        StyleEnums.SET_WALLPAPER_ENTRY_POINT_WALLPAPER_PREVIEW,
+                                    destination = WallpaperDestination.BOTH,
+                                    wallpaperModel = viewModel,
+                                    inputStream = it.stream,
+                                    bitmap = it.rawWallpaperBitmap,
+                                    cropHints = it.cropHints ?: emptyMap(),
+                                )
+                            }
+                        is LiveWallpaperModel -> {
+                            interactor.setLiveWallpaper(
+                                setWallpaperEntryPoint =
+                                    StyleEnums.SET_WALLPAPER_ENTRY_POINT_WALLPAPER_PREVIEW,
+                                destination = WallpaperDestination.BOTH,
+                                wallpaperModel = viewModel,
+                            )
+                        }
+                    }
+                },
+                onCancelButtonClicked = { _setWallpaperDialog.value = null },
+            )
+    }
+
+    fun dismissSetWallpaperDialog() {
+        _setWallpaperDialog.value = null
+    }
 
     fun getWorkspacePreviewConfig(
         screen: Screen,
@@ -210,8 +252,7 @@ constructor(
 
     companion object {
         private fun WallpaperModel.isDownloadableWallpaper(): Boolean {
-            return this is WallpaperModel.StaticWallpaperModel &&
-                this.downloadableWallpaperData != null
+            return this is StaticWallpaperModel && this.downloadableWallpaperData != null
         }
     }
 }
