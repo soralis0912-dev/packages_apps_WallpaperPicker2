@@ -18,6 +18,7 @@ package com.android.wallpaper.module
 import android.app.WallpaperColors
 import android.app.WallpaperManager.SetWallpaperFlags
 import android.graphics.Bitmap
+import android.graphics.Point
 import android.graphics.Rect
 import android.text.TextUtils
 import androidx.annotation.IntDef
@@ -407,10 +408,10 @@ interface WallpaperPreferences {
     )
 
     /** Stores wallpaper crop hints for each dimensions. */
-    fun storeWallpaperCropHints(cropHints: Map<ScreenOrientation, Rect?>)
+    fun storeWallpaperCropHints(cropHints: Map<Point, Rect?>)
 
     /** Gets wallpaper crop hints for each dimensions. */
-    fun getWallpaperCropHints(): Map<ScreenOrientation, Rect?>
+    fun getWallpaperCropHints(): Map<Point, Rect?>
 
     /** The possible wallpaper presentation modes, i.e., either "static" or "rotating". */
     @IntDef(PRESENTATION_MODE_STATIC, PRESENTATION_MODE_ROTATING) annotation class PresentationMode

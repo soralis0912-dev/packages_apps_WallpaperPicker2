@@ -28,6 +28,7 @@ import android.database.ContentObserver
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.graphics.Point
 import android.graphics.Rect
 import android.net.Uri
 import android.os.Looper
@@ -37,8 +38,6 @@ import com.android.wallpaper.model.CreativeCategory
 import com.android.wallpaper.model.LiveWallpaperPrefMetadata
 import com.android.wallpaper.model.StaticWallpaperPrefMetadata
 import com.android.wallpaper.model.WallpaperInfo
-import com.android.wallpaper.model.wallpaper.ScreenOrientation
-import com.android.wallpaper.model.wallpaper.getDisplaySize
 import com.android.wallpaper.module.InjectorProvider
 import com.android.wallpaper.module.WallpaperPreferences
 import com.android.wallpaper.module.logging.UserEventLogger.SetWallpaperEntryPoint
@@ -125,7 +124,7 @@ class WallpaperClientImpl(
         wallpaperModel: StaticWallpaperModel,
         inputStream: InputStream?,
         bitmap: Bitmap,
-        cropHints: Map<ScreenOrientation, Rect>,
+        cropHints: Map<Point, Rect>,
     ) {
         if (destination == WallpaperDestination.HOME || destination == WallpaperDestination.BOTH) {
             // Disable rotation wallpaper when setting to home screen. Daily rotation rotates both
@@ -168,20 +167,20 @@ class WallpaperClientImpl(
     private fun WallpaperManager.setStaticWallpaperToSystem(
         inputStream: InputStream?,
         bitmap: Bitmap,
-        cropHints: Map<ScreenOrientation, Rect>,
+        cropHints: Map<Point, Rect>,
         destination: WallpaperDestination,
     ): Int {
         return if (inputStream != null) {
             setStreamWithCrops(
                 inputStream,
-                cropHints.mapKeys { getDisplaySize(it.key) },
+                cropHints,
                 /* allowBackup= */ true,
                 destination.toFlags(),
             )
         } else {
             setBitmapWithCrops(
                 bitmap,
-                cropHints.mapKeys { getDisplaySize(it.key) },
+                cropHints,
                 /* allowBackup= */ true,
                 destination.toFlags(),
             )

@@ -111,7 +111,7 @@ object FullWallpaperPreviewBinder {
                                         lowResImageView,
                                         fullResImageView,
                                         viewModel.staticWallpaperPreviewViewModel,
-                                        config.screenOrientation,
+                                        config.displaySize,
                                         lifecycleOwner,
                                     )
                                 }

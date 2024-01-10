@@ -17,13 +17,13 @@ package com.android.wallpaper.picker.preview.ui.binder
 
 import android.app.WallpaperColors
 import android.content.Context
+import android.graphics.Point
 import android.view.LayoutInflater
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.android.wallpaper.R
-import com.android.wallpaper.model.wallpaper.ScreenOrientation
 import com.android.wallpaper.module.CustomizationSections.Screen
 import com.android.wallpaper.picker.customization.shared.model.WallpaperColorsModel
 import com.android.wallpaper.picker.data.WallpaperModel
@@ -51,7 +51,7 @@ object SmallWallpaperPreviewBinder {
         surface: SurfaceView,
         viewModel: WallpaperPreviewViewModel,
         screen: Screen,
-        screenOrientation: ScreenOrientation,
+        displaySize: Point,
         applicationContext: Context,
         @MainDispatcher mainScope: CoroutineScope,
         viewLifecycleOwner: LifecycleOwner,
@@ -93,7 +93,7 @@ object SmallWallpaperPreviewBinder {
                                         staticPreviewView.requireViewById(R.id.low_res_image),
                                         staticPreviewView.requireViewById(R.id.full_res_image),
                                         viewModel.staticWallpaperPreviewViewModel,
-                                        screenOrientation,
+                                        displaySize,
                                         viewLifecycleOwner,
                                     )
                                 }
