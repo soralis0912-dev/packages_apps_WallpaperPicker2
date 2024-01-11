@@ -75,7 +75,12 @@ object SetWallpaperDialogBinder {
                             onDismissDialog.invoke()
                         } else {
                             confirmButton.setOnClickListener {
-                                launch {
+                                // We on purposely use mainScope (application scope) to launch the
+                                // task since the activity can be forced to restart due to the theme
+                                // color update from the system wallpaper change.
+                                // Application scope can survive the activity restart and continue
+                                // subscribing the job.
+                                mainScope.launch {
                                     dialog.onConfirmButtonClicked.invoke()
                                     onFinishActivity.invoke()
                                 }

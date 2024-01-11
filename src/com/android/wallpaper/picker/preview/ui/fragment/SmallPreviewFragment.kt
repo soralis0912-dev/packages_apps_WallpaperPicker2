@@ -16,6 +16,7 @@
 package com.android.wallpaper.picker.preview.ui.fragment
 
 import android.app.AlertDialog
+import android.app.ProgressDialog
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -36,6 +37,7 @@ import com.android.wallpaper.picker.preview.ui.binder.DualPreviewSelectorBinder
 import com.android.wallpaper.picker.preview.ui.binder.PreviewActionsBinder
 import com.android.wallpaper.picker.preview.ui.binder.PreviewSelectorBinder
 import com.android.wallpaper.picker.preview.ui.binder.SetWallpaperButtonBinder
+import com.android.wallpaper.picker.preview.ui.binder.SetWallpaperProgressDialogBinder
 import com.android.wallpaper.picker.preview.ui.fragment.smallpreview.DualPreviewViewPager
 import com.android.wallpaper.picker.preview.ui.fragment.smallpreview.views.TabsPagerContainer
 import com.android.wallpaper.picker.preview.ui.view.PreviewActionGroup
@@ -60,6 +62,7 @@ class SmallPreviewFragment : Hilt_SmallPreviewFragment() {
     @Inject lateinit var logger: UserEventLogger
 
     private val wallpaperPreviewViewModel by activityViewModels<WallpaperPreviewViewModel>()
+    private lateinit var setWallpaperProgressDialog: ProgressDialog
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -85,6 +88,17 @@ class SmallPreviewFragment : Hilt_SmallPreviewFragment() {
         ) {
             findNavController().navigate(R.id.action_smallPreviewFragment_to_setWallpaperDialog)
         }
+        setWallpaperProgressDialog =
+            ProgressDialog(context, R.style.LightDialogTheme).apply {
+                setTitle(null)
+                setMessage(context.getString(R.string.set_wallpaper_progress_message))
+                isIndeterminate = true
+            }
+        SetWallpaperProgressDialogBinder.bind(
+            dialog = setWallpaperProgressDialog,
+            viewModel = wallpaperPreviewViewModel,
+            lifecycleOwner = viewLifecycleOwner,
+        )
 
         return view
     }

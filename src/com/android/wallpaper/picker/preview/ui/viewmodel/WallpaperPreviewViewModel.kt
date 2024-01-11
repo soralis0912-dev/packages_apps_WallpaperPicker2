@@ -117,6 +117,10 @@ constructor(
             }
         }
 
+    private val _isSetWallpaperProgressBarVisible = MutableStateFlow(false)
+    val isSetWallpaperProgressBarVisible: Flow<Boolean> =
+        _isSetWallpaperProgressBarVisible.asStateFlow()
+
     val onSetWallpaperButtonClicked: Flow<(() -> Unit)?> =
         combine(
             wallpaper,
@@ -144,6 +148,8 @@ constructor(
         _setWallpaperDialog.value =
             WallpaperConfirmDialogViewModel(
                 onConfirmButtonClicked = {
+                    _isSetWallpaperProgressBarVisible.value = true
+                    _setWallpaperDialog.value = null
                     when (viewModel) {
                         is StaticWallpaperModel ->
                             scaleImageViewModel?.let {
