@@ -124,46 +124,21 @@ class WallpaperClientImpl(
         bitmap: Bitmap,
         cropHints: Map<ScreenOrientation, Rect>,
     ) {
-        // TODO (b/309138446): Use the new multi-crop API from WallpaperManager
-        val wallpaperManagerId =
-            if (inputStream != null) {
-                wallpaperManager.setStream(
-                    inputStream,
-                    cropHints[ScreenOrientation.PORTRAIT],
-                    true,
-                )
-            } else {
-                wallpaperManager.setBitmap(
-                    bitmap,
-                    cropHints[ScreenOrientation.PORTRAIT],
-                    true,
-                    destination.toFlags(),
-                )
-            }
-
-        // Save wallpaper metadata in the preference for two purposes
-        // 1. Quickly reconstruct the currently-selected wallpaper when opening the app
-        // 2. Snapshot logging
-        val bitmapHash = BitmapUtils.generateHashCode(bitmap)
-        val metadata =
-            StaticWallpaperPrefMetadata(
-                wallpaperModel.commonWallpaperData.attributions,
-                wallpaperModel.commonWallpaperData.exploreActionUrl,
-                wallpaperModel.commonWallpaperData.id.collectionId,
-                bitmapHash,
-                wallpaperManagerId,
-                wallpaperModel.commonWallpaperData.id.uniqueId,
-                // TODO (b/309139122): Introduce crop hints to StaticWallpaperMetadata
-                cropHints = null,
-            )
         if (destination == WallpaperDestination.HOME || destination == WallpaperDestination.BOTH) {
-            wallpaperPreferences.clearHomeWallpaperMetadata()
-            wallpaperPreferences.setHomeStaticImageWallpaperMetadata(metadata)
+            // Disable rotation wallpaper when setting to home screen. Daily rotation rotates both
+            // home and lock screen wallpaper when lock screen is not set; otherwise daily rotation
+            // only rotates home screen while lock screen wallpaper stays as what it's set to.
+            stopWallpaperRotation()
         }
-        if (destination == WallpaperDestination.LOCK || destination == WallpaperDestination.BOTH) {
-            wallpaperPreferences.clearLockWallpaperMetadata()
-            wallpaperPreferences.setLockStaticImageWallpaperMetadata(metadata)
-        }
+
+        val managerId =
+            wallpaperManager.setStaticWallpaperToSystem(inputStream, bitmap, cropHints, destination)
+
+        wallpaperPreferences.setStaticWallpaperMetadata(
+            metadata = wallpaperModel.getMetadata(bitmap, managerId),
+            destination = destination,
+        )
+
         // Save the static wallpaper to recent wallpapers
         wallpaperPreferences.addStaticWallpaperToRecentWallpapers(
             destination,
@@ -174,65 +149,108 @@ class WallpaperClientImpl(
         )
     }
 
+    private fun stopWallpaperRotation() {
+        wallpaperPreferences.setWallpaperPresentationMode(
+            WallpaperPreferences.PRESENTATION_MODE_STATIC
+        )
+        wallpaperPreferences.clearDailyRotations()
+    }
+
+    /**
+     * Use [WallpaperManager] to set a static wallpaper to the system.
+     *
+     * @return Wallpaper manager ID
+     */
+    private fun WallpaperManager.setStaticWallpaperToSystem(
+        inputStream: InputStream?,
+        bitmap: Bitmap,
+        cropHints: Map<ScreenOrientation, Rect>,
+        destination: WallpaperDestination,
+    ): Int {
+        // TODO (b/309138446): Use the new multi-crop API from WallpaperManager
+        return if (inputStream != null) {
+            setStream(
+                inputStream,
+                cropHints[ScreenOrientation.PORTRAIT],
+                true,
+            )
+        } else {
+            setBitmap(
+                bitmap,
+                cropHints[ScreenOrientation.PORTRAIT],
+                true,
+                destination.toFlags(),
+            )
+        }
+    }
+
+    private fun StaticWallpaperModel.getMetadata(
+        bitmap: Bitmap,
+        managerId: Int
+    ): StaticWallpaperPrefMetadata {
+        val bitmapHash = BitmapUtils.generateHashCode(bitmap)
+        return StaticWallpaperPrefMetadata(
+            commonWallpaperData.attributions,
+            commonWallpaperData.exploreActionUrl,
+            commonWallpaperData.id.collectionId,
+            bitmapHash,
+            managerId,
+            commonWallpaperData.id.uniqueId,
+            // TODO (b/309139122): Introduce crop hints to StaticWallpaperMetadata
+            cropHints = null,
+        )
+    }
+
+    /**
+     * Save wallpaper metadata in the preference for two purposes:
+     * 1. Quickly reconstruct the currently-selected wallpaper when opening the app
+     * 2. Snapshot logging
+     */
+    private fun WallpaperPreferences.setStaticWallpaperMetadata(
+        metadata: StaticWallpaperPrefMetadata,
+        destination: WallpaperDestination
+    ) {
+        when (destination) {
+            WallpaperDestination.HOME -> {
+                clearHomeWallpaperMetadata()
+                setHomeStaticImageWallpaperMetadata(metadata)
+            }
+            WallpaperDestination.LOCK -> {
+                clearLockWallpaperMetadata()
+                setLockStaticImageWallpaperMetadata(metadata)
+            }
+            WallpaperDestination.BOTH -> {
+                clearHomeWallpaperMetadata()
+                setHomeStaticImageWallpaperMetadata(metadata)
+                clearLockWallpaperMetadata()
+                setLockStaticImageWallpaperMetadata(metadata)
+            }
+        }
+    }
+
     override suspend fun setLiveWallpaper(
         setWallpaperEntryPoint: Int,
         destination: WallpaperDestination,
         wallpaperModel: LiveWallpaperModel,
     ) {
+        if (destination == WallpaperDestination.HOME || destination == WallpaperDestination.BOTH) {
+            // Disable rotation wallpaper when setting to home screen. Daily rotation rotates both
+            // home and lock screen wallpaper when lock screen is not set; otherwise daily rotation
+            // only rotates home screen while lock screen wallpaper stays as what it's set to.
+            stopWallpaperRotation()
+        }
+
         if (wallpaperModel.creativeWallpaperData != null) {
             saveCreativeWallpaperAtExternal(wallpaperModel, destination)
         }
 
-        val componentName = wallpaperModel.commonWallpaperData.id.componentName
-        try {
-            // Probe if the function setWallpaperComponentWithFlags exists
-            wallpaperManager.javaClass.getMethod(
-                "setWallpaperComponentWithFlags",
-                ComponentName::class.java,
-                Int::class.javaPrimitiveType
-            )
-            wallpaperManager.setWallpaperComponentWithFlags(componentName, destination.toFlags())
-        } catch (e: NoSuchMethodException) {
-            wallpaperManager.setWallpaperComponent(componentName)
-        }
+        val managerId = wallpaperManager.setLiveWallpaperToSystem(wallpaperModel, destination)
 
-        // Save wallpaper metadata in the preference for two purposes
-        // 1. Quickly reconstruct the currently-selected wallpaper when opening the app
-        // 2. Snapshot logging
-        val metadata =
-            LiveWallpaperPrefMetadata(
-                wallpaperModel.commonWallpaperData.attributions,
-                wallpaperModel.liveWallpaperData.systemWallpaperInfo.serviceName,
-                wallpaperModel.liveWallpaperData.effectNames,
-                wallpaperModel.commonWallpaperData.id.collectionId,
-                // Be careful that WallpaperManager.getWallpaperId can only accept either
-                // WallpaperManager.FLAG_SYSTEM or WallpaperManager.FLAG_LOCK.
-                // If destination is BOTH, either flag should return the same Wallpaper Manager ID.
-                wallpaperManager.getWallpaperId(
-                    if (
-                        destination == WallpaperDestination.BOTH ||
-                            destination == WallpaperDestination.HOME
-                    )
-                        WallpaperManager.FLAG_SYSTEM
-                    else WallpaperManager.FLAG_LOCK
-                ),
-            )
-        if (destination == WallpaperDestination.HOME || destination == WallpaperDestination.BOTH) {
-            wallpaperPreferences.clearHomeWallpaperMetadata()
-            wallpaperPreferences.setHomeLiveWallpaperMetadata(metadata)
-            // Disable rotation wallpaper when setting to home screen. Daily rotation rotates both
-            // home and lock screen wallpaper when lock screen is not set; otherwise daily rotation
-            // only rotates home screen while lock screen wallpaper stays as what it's set to.
-            wallpaperPreferences.setWallpaperPresentationMode(
-                WallpaperPreferences.PRESENTATION_MODE_STATIC
-            )
-            wallpaperPreferences.clearDailyRotations()
-        }
-        if (destination == WallpaperDestination.LOCK || destination == WallpaperDestination.BOTH) {
-            wallpaperPreferences.clearLockWallpaperMetadata()
-            wallpaperPreferences.setLockLiveWallpaperMetadata(metadata)
-        }
-        // Save the live wallpaper to recent wallpapers
+        wallpaperPreferences.setLiveWallpaperMetadata(
+            metadata = wallpaperModel.getMetadata(managerId),
+            destination = destination,
+        )
+
         wallpaperPreferences.addLiveWallpaperToRecentWallpapers(destination, wallpaperModel)
     }
 
@@ -254,6 +272,77 @@ class WallpaperClientImpl(
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Failed updating creative live wallpaper at external.")
+            }
+        }
+    }
+
+    /**
+     * Use [WallpaperManager] to set a live wallpaper to the system.
+     *
+     * @return Wallpaper manager ID
+     */
+    private fun WallpaperManager.setLiveWallpaperToSystem(
+        wallpaperModel: LiveWallpaperModel,
+        destination: WallpaperDestination
+    ): Int {
+        val componentName = wallpaperModel.commonWallpaperData.id.componentName
+        try {
+            // Probe if the function setWallpaperComponentWithFlags exists
+            javaClass.getMethod(
+                "setWallpaperComponentWithFlags",
+                ComponentName::class.java,
+                Int::class.javaPrimitiveType
+            )
+            setWallpaperComponentWithFlags(componentName, destination.toFlags())
+        } catch (e: NoSuchMethodException) {
+            setWallpaperComponent(componentName)
+        }
+
+        // Be careful that WallpaperManager.getWallpaperId can only accept either
+        // WallpaperManager.FLAG_SYSTEM or WallpaperManager.FLAG_LOCK.
+        // If destination is BOTH, either flag should return the same wallpaper manager ID.
+        return getWallpaperId(
+            if (
+                destination == WallpaperDestination.BOTH || destination == WallpaperDestination.HOME
+            )
+                WallpaperManager.FLAG_SYSTEM
+            else WallpaperManager.FLAG_LOCK
+        )
+    }
+
+    private fun LiveWallpaperModel.getMetadata(managerId: Int): LiveWallpaperPrefMetadata {
+        return LiveWallpaperPrefMetadata(
+            commonWallpaperData.attributions,
+            liveWallpaperData.systemWallpaperInfo.serviceName,
+            liveWallpaperData.effectNames,
+            commonWallpaperData.id.collectionId,
+            managerId,
+        )
+    }
+
+    /**
+     * Save wallpaper metadata in the preference for two purposes:
+     * 1. Quickly reconstruct the currently-selected wallpaper when opening the app
+     * 2. Snapshot logging
+     */
+    private fun WallpaperPreferences.setLiveWallpaperMetadata(
+        metadata: LiveWallpaperPrefMetadata,
+        destination: WallpaperDestination
+    ) {
+        when (destination) {
+            WallpaperDestination.HOME -> {
+                clearHomeWallpaperMetadata()
+                setHomeLiveWallpaperMetadata(metadata)
+            }
+            WallpaperDestination.LOCK -> {
+                clearLockWallpaperMetadata()
+                setLockLiveWallpaperMetadata(metadata)
+            }
+            WallpaperDestination.BOTH -> {
+                clearHomeWallpaperMetadata()
+                setHomeLiveWallpaperMetadata(metadata)
+                clearLockWallpaperMetadata()
+                setLockLiveWallpaperMetadata(metadata)
             }
         }
     }
