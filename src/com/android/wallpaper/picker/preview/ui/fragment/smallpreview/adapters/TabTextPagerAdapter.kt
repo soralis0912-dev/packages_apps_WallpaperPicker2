@@ -20,6 +20,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.viewpager.widget.PagerAdapter
+import androidx.viewpager.widget.ViewPager
 import com.android.wallpaper.R
 
 /** This class provides the tab views for the tabs in small preview page */
@@ -42,6 +43,10 @@ class TabTextPagerAdapter : PagerAdapter() {
 
         val textView = itemView.requireViewById<TextView>(R.id.preview_tab_text)
         textView.text = container.resources.getString(textPages[position])
+
+        itemView.setOnClickListener { view ->
+            (container as ViewPager).setCurrentItem(position, true)
+        }
 
         container.addView(itemView)
         return itemView
