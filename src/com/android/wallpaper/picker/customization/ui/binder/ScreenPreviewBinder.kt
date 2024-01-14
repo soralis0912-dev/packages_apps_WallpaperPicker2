@@ -362,7 +362,7 @@ object ScreenPreviewBinder {
                     lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                         var initialWallpaperUpdate = true
                         viewModel.shouldReloadWallpaper().collect { shouldReload ->
-                            viewModel.getWallpaperInfo(forceReload = false)
+                            viewModel.getWallpaperInfo(forceReload = shouldReload)
                             // Do not update screen preview on initial update,since the initial
                             // update results from starting or resuming the activity.
                             if (initialWallpaperUpdate) {

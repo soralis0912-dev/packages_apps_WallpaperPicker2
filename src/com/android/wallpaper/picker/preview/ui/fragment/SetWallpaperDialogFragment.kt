@@ -28,6 +28,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.android.wallpaper.R
 import com.android.wallpaper.picker.di.modules.MainDispatcher
+import com.android.wallpaper.picker.preview.ui.WallpaperPreviewActivity
 import com.android.wallpaper.picker.preview.ui.binder.SetWallpaperDialogBinder
 import com.android.wallpaper.picker.preview.ui.viewmodel.WallpaperPreviewViewModel
 import com.android.wallpaper.util.DisplayUtils
@@ -53,6 +54,13 @@ class SetWallpaperDialogFragment : Hilt_SetWallpaperDialogFragment() {
             AlertDialog.Builder(requireContext(), R.style.SetWallpaperPreviewDialogTheme)
                 .setView(layout)
                 .create()
+
+        /**
+         * We need to keep the reference shortly, because the activity will be forced to restart due
+         * to the theme color update from the system wallpaper change. The activityReference is used
+         * to kill [WallpaperPreviewActivity].
+         */
+        val activityReference = activity
         SetWallpaperDialogBinder.bind(
             layout,
             wallpaperPreviewViewModel,
@@ -61,15 +69,14 @@ class SetWallpaperDialogFragment : Hilt_SetWallpaperDialogFragment() {
             lifecycleOwner = this,
             mainScope,
             onFinishActivity = {
-                val activity = activity ?: return@bind
                 Toast.makeText(
-                        activity,
+                        context,
                         R.string.wallpaper_set_successfully_message,
                         Toast.LENGTH_SHORT
                     )
                     .show()
-                activity.setResult(Activity.RESULT_OK)
-                activity.finish()
+                activityReference?.setResult(Activity.RESULT_OK)
+                activityReference?.finish()
             },
             onDismissDialog = { findNavController().popBackStack() },
         )
