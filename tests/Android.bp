@@ -41,7 +41,6 @@ android_test {
         ":WallpaperPicker2Tests_srcs",
         "module/src/com/android/wallpaper/TestModule.kt",
     ],
-    exclude_srcs: [":WallpaperPicker2_src_prod"],
     static_libs: [
         "WallpaperPicker2TestLib",
         "WallpaperPicker2TestRunner",
