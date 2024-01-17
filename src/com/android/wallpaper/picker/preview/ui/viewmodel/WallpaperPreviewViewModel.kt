@@ -63,6 +63,13 @@ constructor(
     val smallerDisplaySize = displayUtils.getRealSize(displayUtils.getSmallerDisplay())
     val wallpaperDisplaySize = displayUtils.getRealSize(displayUtils.getWallpaperDisplay())
 
+    // TODO (b/303318205): cache value in wallpaper preferences
+    private val _showTooltip: MutableStateFlow<Boolean> = MutableStateFlow(true)
+    val showTooltip: StateFlow<Boolean> = _showTooltip.asStateFlow()
+    fun setShowTooltip(showTooltip: Boolean) {
+        _showTooltip.value = showTooltip
+    }
+
     val wallpaper: StateFlow<WallpaperModel?> = interactor.wallpaperModel
     private val _whichPreview = MutableStateFlow<WhichPreview?>(null)
     private val whichPreview: Flow<WhichPreview> = _whichPreview.asStateFlow().filterNotNull()
