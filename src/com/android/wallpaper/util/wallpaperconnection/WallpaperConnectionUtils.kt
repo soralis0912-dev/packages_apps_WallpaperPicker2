@@ -35,7 +35,7 @@ object WallpaperConnectionUtils {
 
     // engineMap and surfaceControlMap are used for disconnecting wallpaper services.
     private val engineMap =
-        mutableMapOf<String, Deferred<Pair<ServiceConnection, IWallpaperEngine>>>()
+        mutableMapOf<String, Deferred<Pair<ServiceConnection, WallpaperEngineConnection>>>()
     // Note that when one wallpaper engine's render is mirrored to a new surface view, we call
     // engine.mirrorSurfaceControl() and will have a new surface control instance.
     private val surfaceControlMap = mutableMapOf<String, MutableList<SurfaceControl>>()
@@ -50,6 +50,7 @@ object WallpaperConnectionUtils {
         whichPreview: WhichPreview,
         destinationFlag: Int,
         surfaceView: SurfaceView,
+        listener: WallpaperEngineConnection.WallpaperEngineConnectionListener? = null,
     ) {
         val wallpaperInfo = wallpaperModel.liveWallpaperData.systemWallpaperInfo
         val engineKey = wallpaperInfo.getKey()
@@ -72,14 +73,17 @@ object WallpaperConnectionUtils {
                                 destinationFlag,
                                 whichPreview,
                                 surfaceView,
+                                listener,
                             )
                         }
                 }
             }
         }
 
-        engineMap[engineKey]?.await()?.let { (_, engine) ->
-            mirrorAndReparent(engineKey, engine, surfaceView, displayMetrics)
+        engineMap[engineKey]?.await()?.let { (_, engineConnection) ->
+            engineConnection.engine?.let {
+                mirrorAndReparent(engineKey, it, surfaceView, displayMetrics)
+            }
         }
     }
 
@@ -96,8 +100,9 @@ object WallpaperConnectionUtils {
         val engineKey = wallpaperModel.liveWallpaperData.systemWallpaperInfo.getKey()
         if (engineMap.containsKey(engineKey)) {
             mutex.withLock {
-                engineMap.remove(engineKey)?.await()?.let { (serviceConnection, engine) ->
-                    engine.destroy()
+                engineMap.remove(engineKey)?.await()?.let { (serviceConnection, engineConnection) ->
+                    engineConnection.engine?.destroy()
+                    engineConnection.removeListener()
                     context.unbindService(serviceConnection)
                 }
             }
@@ -120,14 +125,15 @@ object WallpaperConnectionUtils {
         destinationFlag: Int,
         whichPreview: WhichPreview,
         surfaceView: SurfaceView,
-    ): Pair<ServiceConnection, IWallpaperEngine> {
+        listener: WallpaperEngineConnection.WallpaperEngineConnectionListener?,
+    ): Pair<ServiceConnection, WallpaperEngineConnection> {
         // Bind service and get service connection and wallpaper service
         val (serviceConnection, wallpaperService) = bindWallpaperService(context, wallpaperIntent)
+        val engineConnection = WallpaperEngineConnection(displayMetrics, whichPreview)
+        listener?.let { engineConnection.setListener(it) }
         // Attach wallpaper connection to service and get wallpaper engine
-        val engine =
-            WallpaperEngineConnection(displayMetrics, whichPreview)
-                .getEngine(wallpaperService, destinationFlag, surfaceView)
-        return Pair(serviceConnection, engine)
+        engineConnection.getEngine(wallpaperService, destinationFlag, surfaceView)
+        return Pair(serviceConnection, engineConnection)
     }
 
     private fun WallpaperInfo.getKey(): String {
