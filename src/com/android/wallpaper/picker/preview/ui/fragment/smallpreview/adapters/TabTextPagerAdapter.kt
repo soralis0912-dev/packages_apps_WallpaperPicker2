@@ -41,8 +41,14 @@ class TabTextPagerAdapter : PagerAdapter() {
         val itemView =
             LayoutInflater.from(container.context).inflate(R.layout.item_text, container, false)
 
+        val tabText = container.resources.getString(textPages[position])
+
         val textView = itemView.requireViewById<TextView>(R.id.preview_tab_text)
-        textView.text = container.resources.getString(textPages[position])
+        textView.text = tabText
+
+        val textViewDisabled =
+            itemView.requireViewById<TextView>(R.id.preview_tab_text_overlay_disabled)
+        textViewDisabled.text = tabText
 
         itemView.setOnClickListener { view ->
             (container as ViewPager).setCurrentItem(position, true)
