@@ -66,12 +66,8 @@ constructor(
     var isViewAsHome = false
     var isNewTask = false
 
-    // TODO (b/303318205): cache value in wallpaper preferences
-    private val _showTooltip: MutableStateFlow<Boolean> = MutableStateFlow(true)
-    val showTooltip: StateFlow<Boolean> = _showTooltip.asStateFlow()
-    fun setShowTooltip(showTooltip: Boolean) {
-        _showTooltip.value = showTooltip
-    }
+    val showTooltip: StateFlow<Boolean> = interactor.showTooltip
+    fun dismissTooltip() = interactor.dismissTooltip()
 
     val wallpaper: StateFlow<WallpaperModel?> = interactor.wallpaperModel
     private val _whichPreview = MutableStateFlow<WhichPreview?>(null)

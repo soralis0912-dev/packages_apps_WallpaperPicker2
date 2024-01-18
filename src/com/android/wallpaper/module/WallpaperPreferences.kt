@@ -412,6 +412,12 @@ interface WallpaperPreferences {
     /** Gets wallpaper crop hints for each dimensions. */
     fun getWallpaperCropHints(): Map<Point, Rect?>
 
+    /** Sets whether the preview tooltip should be shown. */
+    fun setShowPreviewTooltip(shouldShowTooltip: Boolean)
+
+    /** Gets whether the preview tooltip should be shown. */
+    fun getShowPreviewTooltip(): Boolean
+
     /** The possible wallpaper presentation modes, i.e., either "static" or "rotating". */
     @IntDef(PRESENTATION_MODE_STATIC, PRESENTATION_MODE_ROTATING) annotation class PresentationMode
 
