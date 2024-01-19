@@ -17,12 +17,14 @@ package com.android.wallpaper.picker.preview.ui.viewmodel
 
 import android.stats.style.StyleEnums
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.android.wallpaper.model.wallpaper.FoldableDisplay
 import com.android.wallpaper.model.wallpaper.ScreenOrientation
 import com.android.wallpaper.model.wallpaper.WallpaperModel
 import com.android.wallpaper.model.wallpaper.WallpaperModel.LiveWallpaperModel
 import com.android.wallpaper.model.wallpaper.WallpaperModel.StaticWallpaperModel
 import com.android.wallpaper.module.CustomizationSections.Screen
+import com.android.wallpaper.picker.customization.shared.model.WallpaperColorsModel
 import com.android.wallpaper.picker.customization.shared.model.WallpaperDestination
 import com.android.wallpaper.picker.di.modules.PreviewUtilsModule.HomeScreenPreviewUtils
 import com.android.wallpaper.picker.di.modules.PreviewUtilsModule.LockScreenPreviewUtils
@@ -33,13 +35,17 @@ import com.android.wallpaper.util.PreviewUtils
 import com.android.wallpaper.util.WallpaperConnection.WhichPreview
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.launch
 
 /** Top level [ViewModel] for [WallpaperPreviewActivity] and its fragments */
 @HiltViewModel
@@ -63,6 +69,24 @@ constructor(
     fun setWhichPreview(whichPreview: WhichPreview) {
         _whichPreview.value = whichPreview
     }
+
+    private val _wallpaperConnectionColors: MutableStateFlow<WallpaperColorsModel> =
+        MutableStateFlow(WallpaperColorsModel.Loading as WallpaperColorsModel).apply {
+            viewModelScope.launch {
+                delay(1000)
+                if (value == WallpaperColorsModel.Loading) {
+                    emit(WallpaperColorsModel.Loaded(null))
+                }
+            }
+        }
+    private val liveWallpaperColors: Flow<WallpaperColorsModel> =
+        wallpaper
+            .filter { it is LiveWallpaperModel }
+            .combine(_wallpaperConnectionColors) { _, wallpaperConnectionColors ->
+                wallpaperConnectionColors
+            }
+    val wallpaperColorsModel: Flow<WallpaperColorsModel> =
+        merge(liveWallpaperColors, staticWallpaperPreviewViewModel.wallpaperColors)
 
     // This is only used for the full screen wallpaper preview.
     private val fullWallpaperPreviewConfigViewModel:
@@ -179,6 +203,10 @@ constructor(
 
     fun dismissSetWallpaperDialog() {
         _setWallpaperDialog.value = null
+    }
+
+    fun setWallpaperConnectionColors(wallpaperColors: WallpaperColorsModel) {
+        _wallpaperConnectionColors.value = wallpaperColors
     }
 
     fun getWorkspacePreviewConfig(

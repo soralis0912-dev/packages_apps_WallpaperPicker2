@@ -7,6 +7,7 @@ android_app {
     defaults: ["WallpaperPicker2_defaults"],
     platform_apis: true,
     static_libs: [
+        "WallpaperPicker2ApplicationLib",
         "WallpaperPicker2TestLib",
     ],
 }
