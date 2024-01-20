@@ -132,5 +132,5 @@
     <string name="reset_confirmation_dialog_message" msgid="888669268626289603">"Vaše izmjene se neće sačuvati"</string>
     <string name="more_wallpapers" msgid="8116268433411881705">"Više pozadinskih slika"</string>
     <string name="recents_wallpaper_label" msgid="8653165542635660222">"%1$s, %2$d"</string>
-    <string name="default_wallpaper_title" msgid="2541071182656978180">"Pozadina"</string>
+    <string name="default_wallpaper_title" msgid="2541071182656978180">"Pozadinska slika"</string>
 </resources>
