@@ -16,7 +16,7 @@
 
 package com.android.wallpaper.picker.preview.domain.interactor
 
-import com.android.wallpaper.model.wallpaper.WallpaperModel
+import com.android.wallpaper.picker.data.WallpaperModel
 import com.android.wallpaper.picker.preview.data.repository.WallpaperPreviewRepository
 import com.android.wallpaper.picker.preview.shared.model.LiveWallpaperDownloadResultModel
 import dagger.hilt.android.scopes.ActivityRetainedScoped

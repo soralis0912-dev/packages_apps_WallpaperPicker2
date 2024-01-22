@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package com.android.wallpaper.model.wallpaper
+package com.android.wallpaper.picker.data
 
-import android.app.WallpaperInfo
+import com.android.wallpaper.asset.Asset
 
-/** Represents set of attributes that are needed for a wallpaper that is downloadable. */
-data class DownloadableWallpaperData(
-    val groupName: String,
-    val systemWallpaperInfo: WallpaperInfo,
-    val isTitleVisible: Boolean,
-    val isApplied: Boolean,
-    val effectNames: String?,
+/** Represents set of attributes that are common for all wallpapers. */
+data class CommonWallpaperData(
+    val id: WallpaperId,
+    val title: String?,
+    val attributions: List<String?>?,
+    val exploreActionUrl: String?,
+    val thumbAsset: Asset,
+    val placeholderColorInfo: ColorInfo,
+    var destination: Destination,
 )

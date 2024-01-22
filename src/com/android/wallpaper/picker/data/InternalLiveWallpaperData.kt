@@ -14,15 +14,10 @@
  * limitations under the License.
  */
 
-package com.android.wallpaper.model.wallpaper
+package com.android.wallpaper.picker.data
 
-import android.app.WallpaperInfo
-
-/** Represents set of attributes that are specific to live wallpapers. */
-data class LiveWallpaperData(
-    val groupName: String,
-    val systemWallpaperInfo: WallpaperInfo,
-    val isTitleVisible: Boolean,
-    val isApplied: Boolean,
-    val effectNames: String?
-)
+/**
+ * Represents set of attributes that are specific to pre-loaded google only downloadable live
+ * wallpapers.
+ */
+data class InternalLiveWallpaperData(val assetsId: String)

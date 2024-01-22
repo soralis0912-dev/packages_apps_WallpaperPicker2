@@ -16,7 +16,7 @@
 
 package com.android.wallpaper.picker.preview.shared.model
 
-import com.android.wallpaper.model.wallpaper.WallpaperModel
+import com.android.wallpaper.picker.data.WallpaperModel
 
 data class LiveWallpaperDownloadResultModel(
     val code: LiveWallpaperDownloadResultCode,

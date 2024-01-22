@@ -16,7 +16,7 @@
 
 package com.android.wallpaper.picker.preview.data.repository
 
-import com.android.wallpaper.model.wallpaper.WallpaperModel
+import com.android.wallpaper.picker.data.WallpaperModel
 import com.android.wallpaper.picker.di.modules.BackgroundDispatcher
 import com.android.wallpaper.picker.preview.data.util.LiveWallpaperDownloader
 import com.android.wallpaper.picker.preview.shared.model.LiveWallpaperDownloadResultCode.SUCCESS

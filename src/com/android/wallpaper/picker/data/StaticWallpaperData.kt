@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package com.android.wallpaper.model.wallpaper
+package com.android.wallpaper.picker.data
 
-import android.net.Uri
+import android.graphics.Rect
+import com.android.wallpaper.asset.Asset
+import com.android.wallpaper.model.wallpaper.ScreenOrientation
 
-/**
- * Represents data that is specific only for image wallpapers (i.e. wallpapers that are fetched from
- * local storage through the MyPhotos block in WallpaperPicker)
- */
-data class ImageWallpaperData(val uri: Uri)
+/** Represents set of attributes that are needed for a static wallpaper. */
+data class StaticWallpaperData(
+    val asset: Asset,
+    val cropHints: Map<ScreenOrientation, Rect>? = null,
+)

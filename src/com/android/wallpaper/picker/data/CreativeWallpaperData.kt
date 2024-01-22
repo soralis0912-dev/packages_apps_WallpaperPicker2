@@ -14,10 +14,19 @@
  * limitations under the License.
  */
 
-package com.android.wallpaper.model.wallpaper
+package com.android.wallpaper.picker.data
 
-/**
- * Represents set of attributes that are specific to pre-loaded google only downloadable live
- * wallpapers.
- */
-data class InternalLiveWallpaperData(val assetsId: String)
+import android.net.Uri
+
+/** Represents data that is specific to only CreativeWallpapers. */
+data class CreativeWallpaperData(
+    val configPreviewUri: Uri,
+    val cleanPreviewUri: Uri,
+    val deleteUri: Uri,
+    val thumbnailUri: Uri,
+    val shareUri: Uri,
+    val author: String,
+    val description: String,
+    val contentDescription: String,
+    val isCurrent: Boolean,
+)
