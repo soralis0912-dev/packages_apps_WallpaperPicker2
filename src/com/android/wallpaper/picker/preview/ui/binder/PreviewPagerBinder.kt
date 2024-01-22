@@ -52,7 +52,7 @@ object PreviewPagerBinder {
                             as LayoutInflater
                     val parentView = viewHolder.itemView as ViewGroup
                     inflater.inflate(R.layout.tooltip_small_preview, parentView)
-                    val tooltip = parentView.requireViewById<ViewGroup>(R.id.small_preview_tooltip)
+                    val tooltip = parentView.requireViewById<View>(R.id.tooltip)
                     PreviewTooltipBinder.bind(
                         view = tooltip,
                         viewModel = wallpaperPreviewViewModel,

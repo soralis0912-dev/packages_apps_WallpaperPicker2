@@ -49,7 +49,7 @@ object DualPreviewPagerBinder {
                     applicationContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE)
                         as LayoutInflater
                 inflater.inflate(R.layout.tooltip_small_preview, view as ViewGroup)
-                val tooltip = view.requireViewById<ViewGroup>(R.id.small_preview_tooltip)
+                val tooltip = view.requireViewById<View>(R.id.tooltip)
                 PreviewTooltipBinder.bind(
                     view = tooltip,
                     viewModel = wallpaperPreviewViewModel,

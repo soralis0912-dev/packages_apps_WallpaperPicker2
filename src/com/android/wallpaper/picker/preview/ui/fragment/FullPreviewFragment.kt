@@ -37,6 +37,7 @@ import com.android.wallpaper.picker.AppbarFragment
 import com.android.wallpaper.picker.di.modules.MainDispatcher
 import com.android.wallpaper.picker.preview.ui.binder.CropWallpaperButtonBinder
 import com.android.wallpaper.picker.preview.ui.binder.FullWallpaperPreviewBinder
+import com.android.wallpaper.picker.preview.ui.binder.PreviewTooltipBinder
 import com.android.wallpaper.picker.preview.ui.binder.WorkspacePreviewBinder
 import com.android.wallpaper.picker.preview.ui.fragment.SmallPreviewFragment.Companion.ARG_EDIT_INTENT
 import com.android.wallpaper.picker.preview.ui.viewmodel.WallpaperPreviewViewModel
@@ -126,6 +127,17 @@ class FullPreviewFragment : Hilt_FullPreviewFragment() {
             viewModel = wallpaperPreviewViewModel,
             lifecycleOwner = viewLifecycleOwner,
         )
+
+        if (wallpaperPreviewViewModel.showTooltip.value) {
+            inflater.inflate(R.layout.tooltip_full_preview, view as ViewGroup)
+            val tooltip = view.requireViewById<View>(R.id.tooltip)
+            PreviewTooltipBinder.bind(
+                view = tooltip,
+                viewModel = wallpaperPreviewViewModel,
+                lifecycleOwner = viewLifecycleOwner
+            )
+            tooltip.setOnClickListener { wallpaperPreviewViewModel.setShowTooltip(false) }
+        }
 
         return view
     }

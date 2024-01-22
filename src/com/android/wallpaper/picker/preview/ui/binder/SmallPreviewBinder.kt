@@ -48,9 +48,6 @@ object SmallPreviewBinder {
         view.setOnClickListener {
             viewModel.onSmallPreviewClicked(screen, orientation, foldableDisplay)
             navigate?.invoke(previewCard)
-            if (viewModel.showTooltip.value) {
-                viewModel.setShowTooltip(false)
-            }
         }
 
         val config = viewModel.getWorkspacePreviewConfig(screen, foldableDisplay)
