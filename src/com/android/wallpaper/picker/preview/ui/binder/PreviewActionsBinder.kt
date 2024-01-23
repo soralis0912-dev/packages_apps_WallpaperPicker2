@@ -231,6 +231,28 @@ object PreviewActionsBinder {
                     }
                 }
 
+                launch {
+                    actionsViewModel.effectFloatingSheetViewModel.collect { viewModel ->
+                        if (viewModel == null) {
+                            floatingSheet.collapse()
+                        } else {
+                            floatingSheet.setEffectContent(
+                                viewModel.effectType,
+                                viewModel.myPhotosClickListener,
+                                viewModel.collapseFloatingSheetListener,
+                                viewModel.effectSwitchListener,
+                                viewModel.effectDownloadClickListener,
+                                viewModel.status,
+                                viewModel.resultCode,
+                                viewModel.errorMessage,
+                                viewModel.title,
+                                viewModel.effectTextRes,
+                            )
+                            floatingSheet.expand()
+                        }
+                    }
+                }
+
                 /** [SHARE] */
                 launch {
                     actionsViewModel.isShareVisible.collect { actionGroup.setIsVisible(SHARE, it) }

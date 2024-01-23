@@ -25,12 +25,14 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import com.android.wallpaper.R
 import com.android.wallpaper.model.WallpaperInfo
 import com.android.wallpaper.picker.AppbarFragment
 import com.android.wallpaper.picker.BasePreviewActivity
 import com.android.wallpaper.picker.data.WallpaperModel
+import com.android.wallpaper.picker.preview.data.repository.EffectsRepository
 import com.android.wallpaper.picker.preview.data.repository.WallpaperPreviewRepository
 import com.android.wallpaper.picker.preview.data.util.LiveWallpaperDownloader
 import com.android.wallpaper.picker.preview.ui.fragment.SmallPreviewFragment
@@ -45,6 +47,7 @@ import com.android.wallpaper.util.wallpaperconnection.WallpaperConnectionUtils
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 /** This activity holds the flow for the preview screen. */
@@ -55,6 +58,7 @@ class WallpaperPreviewActivity :
     @Inject lateinit var displayUtils: DisplayUtils
     @Inject lateinit var wallpaperModelFactory: WallpaperModelFactory
     @Inject lateinit var wallpaperPreviewRepository: WallpaperPreviewRepository
+    @Inject lateinit var effectsRepository: EffectsRepository
     @Inject lateinit var liveWallpaperDownloader: LiveWallpaperDownloader
 
     private val wallpaperPreviewViewModel: WallpaperPreviewViewModel by viewModels()
@@ -91,6 +95,10 @@ class WallpaperPreviewActivity :
                 wallpaper,
                 registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) {}
             )
+        }
+
+        if ((wallpaper as? WallpaperModel.StaticWallpaperModel)?.imageWallpaperData != null) {
+            lifecycleScope.launch { effectsRepository.initializeEffect() }
         }
 
         val liveWallpaperModel = (wallpaper as? WallpaperModel.LiveWallpaperModel)
@@ -140,6 +148,7 @@ class WallpaperPreviewActivity :
         (wallpaperPreviewViewModel.wallpaper.value as? WallpaperModel.LiveWallpaperModel)?.let {
             runBlocking { WallpaperConnectionUtils.disconnect(applicationContext, it) }
         }
+        effectsRepository.destroy()
         super.onDestroy()
     }
 
