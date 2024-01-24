@@ -468,7 +468,8 @@ public class CategorySelectorFragment extends AppbarFragment {
         Snackbar snackbar = Snackbar.make(getView(), R.string.settings_snackbar_description,
                 Snackbar.LENGTH_LONG);
         Snackbar.SnackbarLayout layout = (Snackbar.SnackbarLayout) snackbar.getView();
-        TextView textView = (TextView) layout.findViewById(R.id.snackbar_text);
+        TextView textView = (TextView) layout.findViewById(
+                com.google.android.material.R.id.snackbar_text);
         layout.setBackgroundResource(R.drawable.snackbar_background);
         TypedArray typedArray = getContext().obtainStyledAttributes(
                 new int[]{android.R.attr.textColorPrimary,
