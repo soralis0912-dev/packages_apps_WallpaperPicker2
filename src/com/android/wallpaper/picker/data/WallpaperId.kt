@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package com.android.wallpaper.model.wallpaper
+package com.android.wallpaper.picker.data
 
-import android.graphics.Rect
-import com.android.wallpaper.asset.Asset
+import android.content.ComponentName
 
-/** Represents set of attributes that are needed for a static wallpaper. */
-data class StaticWallpaperData(
-    val asset: Asset,
-    val cropHints: Map<ScreenOrientation, Rect>? = null,
+/** Represents a group of attributes that together uniquely identifies a wallpaper. */
+data class WallpaperId(
+    val componentName: ComponentName,
+    val uniqueId: String,
+    val collectionId: String,
 )

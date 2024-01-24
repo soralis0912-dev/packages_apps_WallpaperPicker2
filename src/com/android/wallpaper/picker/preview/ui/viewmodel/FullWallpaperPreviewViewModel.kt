@@ -15,7 +15,7 @@
  */
 package com.android.wallpaper.picker.preview.ui.viewmodel
 
-import com.android.wallpaper.model.wallpaper.WallpaperModel
+import com.android.wallpaper.picker.data.WallpaperModel
 import com.android.wallpaper.util.WallpaperConnection.WhichPreview
 
 data class FullWallpaperPreviewViewModel(

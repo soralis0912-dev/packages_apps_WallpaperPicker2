@@ -14,17 +14,10 @@
  * limitations under the License.
  */
 
-package com.android.wallpaper.model.wallpaper
+package com.android.wallpaper.picker.data
 
-import com.android.wallpaper.asset.Asset
-
-/** Represents set of attributes that are common for all wallpapers. */
-data class CommonWallpaperData(
-    val id: WallpaperId,
-    val title: String?,
-    val attributions: List<String?>?,
-    val exploreActionUrl: String?,
-    val thumbAsset: Asset,
-    val placeholderColorInfo: ColorInfo,
-    var destination: Destination,
-)
+/**
+ * Represents set of attributes that are needed for a wallpaper downloaded from the background
+ * server.
+ */
+data class NetworkWallpaperData(val baseImageUrl: String)

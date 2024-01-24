@@ -14,19 +14,12 @@
  * limitations under the License.
  */
 
-package com.android.wallpaper.model.wallpaper
+package com.android.wallpaper.picker.data
 
 import android.net.Uri
 
-/** Represents data that is specific to only CreativeWallpapers. */
-data class CreativeWallpaperData(
-    val configPreviewUri: Uri,
-    val cleanPreviewUri: Uri,
-    val deleteUri: Uri,
-    val thumbnailUri: Uri,
-    val shareUri: Uri,
-    val author: String,
-    val description: String,
-    val contentDescription: String,
-    val isCurrent: Boolean,
-)
+/**
+ * Represents data that is specific only for image wallpapers (i.e. wallpapers that are fetched from
+ * local storage through the MyPhotos block in WallpaperPicker)
+ */
+data class ImageWallpaperData(val uri: Uri)

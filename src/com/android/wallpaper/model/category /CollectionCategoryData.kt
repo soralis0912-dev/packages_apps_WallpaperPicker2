@@ -17,7 +17,7 @@
 package com.android.wallpaper.model.category
 
 import com.android.wallpaper.asset.Asset
-import com.android.wallpaper.model.wallpaper.WallpaperModel
+import com.android.wallpaper.picker.data.WallpaperModel
 
 /** Represents set of attributes that depict a collection of wallpapers. */
 data class CollectionCategoryData(

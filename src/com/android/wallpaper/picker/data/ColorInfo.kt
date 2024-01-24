@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package com.android.wallpaper.model.wallpaper
+package com.android.wallpaper.picker.data
 
-import android.content.ComponentName
+import android.app.WallpaperColors
+import android.graphics.Color
 
-/** Represents a group of attributes that together uniquely identifies a wallpaper. */
-data class WallpaperId(
-    val componentName: ComponentName,
-    val uniqueId: String,
-    val collectionId: String,
+/** Represents set of attributes for representing color information of a wallpaper. */
+data class ColorInfo(
+    val wallpaperColors: WallpaperColors?,
+    val placeholderColor: Int = Color.TRANSPARENT
 )
