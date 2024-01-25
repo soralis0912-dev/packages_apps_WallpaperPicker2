@@ -20,6 +20,7 @@ import android.content.Context
 import android.graphics.Point
 import android.view.View
 import androidx.lifecycle.LifecycleOwner
+import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.android.wallpaper.R
 import com.android.wallpaper.model.wallpaper.PreviewPagerPage
@@ -49,7 +50,11 @@ object PreviewPagerBinder {
                     view = viewHolder.itemView.requireViewById(R.id.preview),
                     viewModel = wallpaperPreviewViewModel,
                     screen = PreviewPagerPage.entries[position].screen,
-                    orientation = getScreenOrientation(previewDisplaySize),
+                    orientation =
+                        getScreenOrientation(
+                            previewDisplaySize,
+                            wallpaperPreviewViewModel.wallpaperDisplaySize
+                        ),
                     foldableDisplay = null,
                     mainScope = mainScope,
                     viewLifecycleOwner = viewLifecycleOwner,
@@ -60,6 +65,13 @@ object PreviewPagerBinder {
             clipChildren = false
             clipToPadding = false
             setPageTransformer(PreviewCardPageTransformer(previewDisplaySize))
+        }
+
+        // the over scroll animation needs to be disabled for the RecyclerView that is contained in
+        // the ViewPager2 rather than the ViewPager2 itself
+        val child: View = previewsViewPager.getChildAt(0)
+        if (child is RecyclerView) {
+            child.overScrollMode = View.OVER_SCROLL_NEVER
         }
     }
 }

@@ -1,4 +1,4 @@
-package com.android.wallpaper.model.wallpaper
+package com.android.wallpaper.picker.data
 
 import android.app.WallpaperManager.FLAG_LOCK
 import android.app.WallpaperManager.FLAG_SYSTEM

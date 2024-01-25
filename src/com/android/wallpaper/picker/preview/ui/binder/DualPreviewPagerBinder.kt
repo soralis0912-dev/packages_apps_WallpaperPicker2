@@ -63,7 +63,12 @@ object DualPreviewPagerBinder {
                         mainScope = mainScope,
                         viewLifecycleOwner = viewLifecycleOwner,
                         screen = PreviewPagerPage.entries[position].screen,
-                        orientation = getScreenOrientation(it, display),
+                        orientation =
+                            getScreenOrientation(
+                                it,
+                                wallpaperPreviewViewModel.wallpaperDisplaySize,
+                                display
+                            ),
                         foldableDisplay = display,
                         navigate = navigate,
                     )

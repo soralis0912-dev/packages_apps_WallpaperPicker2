@@ -90,6 +90,8 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
                 // another gesture
                 if (isClick(touchDownX, touchDownY, ev)) {
                     if (tab2Rect.contains(touchDownX, touchDownY)) {
+                        // the only time we need to actually scroll to a tab is when the tab which
+                        // was clicked is not the currently centered tab
                         tab2.callOnClick()
                     }
 

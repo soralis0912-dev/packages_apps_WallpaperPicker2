@@ -32,8 +32,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.android.wallpaper.model.wallpaper.ScreenOrientation
 import com.android.wallpaper.picker.preview.ui.util.FullResImageViewUtil
-import com.android.wallpaper.picker.preview.ui.util.FullResImageViewUtil.getCropRect
 import com.android.wallpaper.picker.preview.ui.viewmodel.StaticWallpaperPreviewViewModel
+import com.android.wallpaper.util.WallpaperCropUtils
 import com.android.wallpaper.util.WallpaperSurfaceCallback.LOW_RES_BITMAP_BLUR_RADIUS
 import com.davemorrissey.labs.subscaleview.ImageSource
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
@@ -70,7 +70,15 @@ object StaticWallpaperPreviewBinder {
                         // Both small and full previews change fullPreviewCrop but it should track
                         // only full preview crop, initial value should align with existing crop
                         // otherwise it's a new preview selection and use current visible crop
-                        viewModel.fullPreviewCrop = cropHint ?: fullResImageView.getCropRect()
+                        viewModel.fullPreviewCrop =
+                            cropHint
+                                ?: WallpaperCropUtils.calculateVisibleRect(
+                                    it.rawWallpaperSize,
+                                    Point(
+                                        fullResImageView.measuredWidth,
+                                        fullResImageView.measuredHeight
+                                    )
+                                )
                         crossFadeInFullResImageView(lowResImageView, fullResImageView)
                     }
                 }

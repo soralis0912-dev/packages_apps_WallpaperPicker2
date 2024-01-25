@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-package com.android.wallpaper.model.wallpaper
+package com.android.wallpaper.picker.data
 
-import com.android.wallpaper.asset.Asset
+import android.app.WallpaperInfo
 
-/** Represents set of attributes that are common for all wallpapers. */
-data class CommonWallpaperData(
-    val id: WallpaperId,
-    val title: String?,
-    val attributions: List<String?>?,
-    val exploreActionUrl: String?,
-    val thumbAsset: Asset,
-    val placeholderColorInfo: ColorInfo,
-    var destination: Destination,
+/** Represents set of attributes that are specific to live wallpapers. */
+data class LiveWallpaperData(
+    val groupName: String,
+    val systemWallpaperInfo: WallpaperInfo,
+    val isTitleVisible: Boolean,
+    val isApplied: Boolean,
+    val effectNames: String?
 )

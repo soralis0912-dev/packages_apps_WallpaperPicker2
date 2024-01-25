@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package com.android.wallpaper.model.wallpaper
+package com.android.wallpaper.categorypicker.viewmodel
 
-import android.net.Uri
+import com.android.wallpaper.asset.Asset
 
-/**
- * Represents data that is specific only for image wallpapers (i.e. wallpapers that are fetched from
- * local storage through the MyPhotos block in WallpaperPicker)
- */
-data class ImageWallpaperData(val uri: Uri)
+/** This class represents the view model for a single category tile. */
+class TileViewModel(
+    private val thumbAsset: Asset,
+    private val overlayAsset: Asset,
+    private val text: String,
+    val onClicked: (() -> Unit)? = null
+)

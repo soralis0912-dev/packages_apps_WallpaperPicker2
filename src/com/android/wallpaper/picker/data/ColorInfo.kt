@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-package com.android.wallpaper.model.wallpaper
+package com.android.wallpaper.picker.data
 
-/**
- * Represents set of attributes that are needed for a wallpaper downloaded from the background
- * server.
- */
-data class NetworkWallpaperData(val baseImageUrl: String)
+import android.app.WallpaperColors
+import android.graphics.Color
+
+/** Represents set of attributes for representing color information of a wallpaper. */
+data class ColorInfo(
+    val wallpaperColors: WallpaperColors?,
+    val placeholderColor: Int = Color.TRANSPARENT
+)

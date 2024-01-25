@@ -25,14 +25,14 @@ import com.android.wallpaper.model.CurrentWallpaperInfo
 import com.android.wallpaper.model.ImageWallpaperInfo
 import com.android.wallpaper.model.LiveWallpaperInfo
 import com.android.wallpaper.model.WallpaperInfo
-import com.android.wallpaper.model.wallpaper.ColorInfo
-import com.android.wallpaper.model.wallpaper.CommonWallpaperData
-import com.android.wallpaper.model.wallpaper.CreativeWallpaperData
-import com.android.wallpaper.model.wallpaper.Destination
-import com.android.wallpaper.model.wallpaper.ImageWallpaperData
-import com.android.wallpaper.model.wallpaper.LiveWallpaperData
-import com.android.wallpaper.model.wallpaper.WallpaperId
-import com.android.wallpaper.model.wallpaper.WallpaperModel
+import com.android.wallpaper.picker.data.ColorInfo
+import com.android.wallpaper.picker.data.CommonWallpaperData
+import com.android.wallpaper.picker.data.CreativeWallpaperData
+import com.android.wallpaper.picker.data.Destination
+import com.android.wallpaper.picker.data.ImageWallpaperData
+import com.android.wallpaper.picker.data.LiveWallpaperData
+import com.android.wallpaper.picker.data.WallpaperId
+import com.android.wallpaper.picker.data.WallpaperModel
 
 /** This class creates an instance of [WallpaperModel] from a given [WallpaperInfo] object. */
 interface WallpaperModelFactory {

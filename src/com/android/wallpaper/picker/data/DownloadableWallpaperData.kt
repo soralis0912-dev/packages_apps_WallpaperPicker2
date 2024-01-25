@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 
-package com.android.wallpaper.model.wallpaper
+package com.android.wallpaper.picker.data
 
-import android.net.Uri
+import android.app.WallpaperInfo
 
-/** Represents data that is specific to only CreativeWallpapers. */
-data class CreativeWallpaperData(
-    val configPreviewUri: Uri,
-    val cleanPreviewUri: Uri,
-    val deleteUri: Uri,
-    val thumbnailUri: Uri,
-    val shareUri: Uri,
-    val author: String,
-    val description: String,
-    val contentDescription: String,
-    val isCurrent: Boolean,
+/** Represents set of attributes that are needed for a wallpaper that is downloadable. */
+data class DownloadableWallpaperData(
+    val groupName: String,
+    val systemWallpaperInfo: WallpaperInfo,
+    val isTitleVisible: Boolean,
+    val isApplied: Boolean,
+    val effectNames: String?,
 )

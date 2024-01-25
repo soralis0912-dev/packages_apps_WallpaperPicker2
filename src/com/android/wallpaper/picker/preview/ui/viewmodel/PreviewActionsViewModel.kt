@@ -21,11 +21,11 @@ import android.content.ComponentName
 import android.content.Intent
 import android.net.Uri
 import android.service.wallpaper.WallpaperSettingsActivity
-import com.android.wallpaper.model.wallpaper.CreativeWallpaperData
-import com.android.wallpaper.model.wallpaper.DownloadableWallpaperData
-import com.android.wallpaper.model.wallpaper.LiveWallpaperData
-import com.android.wallpaper.model.wallpaper.WallpaperModel
-import com.android.wallpaper.model.wallpaper.WallpaperModel.LiveWallpaperModel
+import com.android.wallpaper.picker.data.CreativeWallpaperData
+import com.android.wallpaper.picker.data.DownloadableWallpaperData
+import com.android.wallpaper.picker.data.LiveWallpaperData
+import com.android.wallpaper.picker.data.WallpaperModel
+import com.android.wallpaper.picker.data.WallpaperModel.LiveWallpaperModel
 import com.android.wallpaper.picker.preview.domain.interactor.PreviewActionsInteractor
 import com.android.wallpaper.picker.preview.ui.util.LiveWallpaperDeleteUtil
 import com.android.wallpaper.picker.preview.ui.viewmodel.Action.CUSTOMIZE

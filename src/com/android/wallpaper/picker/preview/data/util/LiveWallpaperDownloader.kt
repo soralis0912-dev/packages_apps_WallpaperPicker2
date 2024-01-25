@@ -19,7 +19,7 @@ package com.android.wallpaper.picker.preview.data.util
 import android.app.Activity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
-import com.android.wallpaper.model.wallpaper.WallpaperModel
+import com.android.wallpaper.picker.data.WallpaperModel
 import com.android.wallpaper.picker.preview.shared.model.LiveWallpaperDownloadResultModel
 
 /**

@@ -20,12 +20,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.wallpaper.model.wallpaper.FoldableDisplay
 import com.android.wallpaper.model.wallpaper.ScreenOrientation
-import com.android.wallpaper.model.wallpaper.WallpaperModel
-import com.android.wallpaper.model.wallpaper.WallpaperModel.LiveWallpaperModel
-import com.android.wallpaper.model.wallpaper.WallpaperModel.StaticWallpaperModel
 import com.android.wallpaper.module.CustomizationSections.Screen
 import com.android.wallpaper.picker.customization.shared.model.WallpaperColorsModel
 import com.android.wallpaper.picker.customization.shared.model.WallpaperDestination
+import com.android.wallpaper.picker.data.WallpaperModel
+import com.android.wallpaper.picker.data.WallpaperModel.LiveWallpaperModel
+import com.android.wallpaper.picker.data.WallpaperModel.StaticWallpaperModel
 import com.android.wallpaper.picker.di.modules.PreviewUtilsModule.HomeScreenPreviewUtils
 import com.android.wallpaper.picker.di.modules.PreviewUtilsModule.LockScreenPreviewUtils
 import com.android.wallpaper.picker.preview.domain.interactor.WallpaperPreviewInteractor

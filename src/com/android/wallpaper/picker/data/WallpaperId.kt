@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.wallpaper.model.wallpaper
+package com.android.wallpaper.picker.data
 
 import android.content.ComponentName
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,12 @@
  * limitations under the License.
  */
 
-package com.android.wallpaper.picker.preview.shared.model
+package com.android.wallpaper.picker.data
 
-import com.android.wallpaper.picker.data.WallpaperModel
+import android.net.Uri
 
-data class LiveWallpaperDownloadResultModel(
-    val code: LiveWallpaperDownloadResultCode,
-    val wallpaperModel: WallpaperModel.LiveWallpaperModel?
-)
-
-enum class LiveWallpaperDownloadResultCode {
-    SUCCESS,
-    FAIL,
-}
+/**
+ * Represents data that is specific only for image wallpapers (i.e. wallpapers that are fetched from
+ * local storage through the MyPhotos block in WallpaperPicker)
+ */
+data class ImageWallpaperData(val uri: Uri)
