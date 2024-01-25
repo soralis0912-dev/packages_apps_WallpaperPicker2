@@ -18,7 +18,9 @@ package com.android.wallpaper.picker.preview.ui.binder
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Point
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
@@ -45,6 +47,20 @@ object PreviewPagerBinder {
     ) {
         previewsViewPager.apply {
             adapter = SinglePreviewPagerAdapter { viewHolder, position ->
+                if (wallpaperPreviewViewModel.showTooltip.value) {
+                    val inflater =
+                        applicationContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE)
+                            as LayoutInflater
+                    val parentView = viewHolder.itemView as ViewGroup
+                    inflater.inflate(R.layout.tooltip_small_preview, parentView)
+                    val tooltip = parentView.requireViewById<ViewGroup>(R.id.small_preview_tooltip)
+                    PreviewTooltipBinder.bind(
+                        view = tooltip,
+                        viewModel = wallpaperPreviewViewModel,
+                        lifecycleOwner = viewLifecycleOwner,
+                    )
+                }
+
                 SmallPreviewBinder.bind(
                     applicationContext = applicationContext,
                     view = viewHolder.itemView.requireViewById(R.id.preview),
