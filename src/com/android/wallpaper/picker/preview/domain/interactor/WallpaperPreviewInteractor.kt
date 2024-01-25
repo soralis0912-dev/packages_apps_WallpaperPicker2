@@ -16,6 +16,7 @@
 
 package com.android.wallpaper.picker.preview.domain.interactor
 
+import android.app.WallpaperColors
 import android.graphics.Bitmap
 import android.graphics.Rect
 import com.android.wallpaper.model.wallpaper.ScreenOrientation
@@ -34,7 +35,7 @@ import kotlinx.coroutines.flow.StateFlow
 class WallpaperPreviewInteractor
 @Inject
 constructor(
-    wallpaperPreviewRepository: WallpaperPreviewRepository,
+    private val wallpaperPreviewRepository: WallpaperPreviewRepository,
     private val wallpaperRepository: WallpaperRepository,
 ) {
     val wallpaperModel: StateFlow<WallpaperModel?> = wallpaperPreviewRepository.wallpaperModel
@@ -68,4 +69,9 @@ constructor(
             wallpaperModel,
         )
     }
+
+    suspend fun getWallpaperColors(
+        bitmap: Bitmap,
+        cropHints: Map<ScreenOrientation, Rect>?
+    ): WallpaperColors? = wallpaperRepository.getWallpaperColors(bitmap, cropHints)
 }

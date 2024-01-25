@@ -17,6 +17,7 @@
 
 package com.android.wallpaper.picker.customization.data.content
 
+import android.app.WallpaperColors
 import android.app.WallpaperManager
 import android.app.WallpaperManager.FLAG_LOCK
 import android.app.WallpaperManager.FLAG_SYSTEM
@@ -537,6 +538,16 @@ class WallpaperClientImpl(
                 }
         }
         return recentsContentProviderAvailable == true
+    }
+
+    override suspend fun getWallpaperColors(
+        bitmap: Bitmap,
+        cropHints: Map<ScreenOrientation, Rect>?
+    ): WallpaperColors? {
+        return wallpaperManager.getWallpaperColors(
+            bitmap,
+            cropHints?.mapKeys { getDisplaySize(it.key) }
+        )
     }
 
     fun WallpaperDestination.asString(): String {
