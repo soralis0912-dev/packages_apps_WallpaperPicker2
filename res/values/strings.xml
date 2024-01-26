@@ -514,4 +514,20 @@
     -->
     <string name="default_wallpaper_title">Wallpaper</string>
 
+    <!--
+     Tooltip label that appears over the small wallpaper preview, where a user can tap to enter the
+     full screen preview to adjust the wallpaper crop
+
+    [CHAR LIMIT=128].
+    -->
+    <string name="small_preview_tooltip">Tap to edit your photo</string>
+
+    <!--
+     Tooltip label that appears over the full wallpaper preview, where a user can adjust the
+     wallpaper crop
+
+    [CHAR LIMIT=128].
+    -->
+    <string name="full_preview_tooltip">Adjust the position, scale, and angle of your photos</string>
+
 </resources>

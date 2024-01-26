@@ -17,6 +17,7 @@
 
 package com.android.wallpaper.testing
 
+import android.app.WallpaperColors
 import android.graphics.Bitmap
 import android.graphics.Rect
 import com.android.wallpaper.model.wallpaper.ScreenOrientation
@@ -134,6 +135,13 @@ class FakeWallpaperClient : WallpaperClient {
 
     override fun areRecentsAvailable(): Boolean {
         return true
+    }
+
+    override suspend fun getWallpaperColors(
+        bitmap: Bitmap,
+        cropHints: Map<ScreenOrientation, Rect>?
+    ): WallpaperColors? {
+        return null
     }
 
     companion object {
