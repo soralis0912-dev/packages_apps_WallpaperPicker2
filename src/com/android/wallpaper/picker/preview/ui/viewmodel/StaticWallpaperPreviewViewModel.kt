@@ -96,30 +96,14 @@ constructor(
             .flowOn(bgDispatcher)
     val subsamplingScaleImageViewModel: Flow<FullResWallpaperViewModel> =
         fullResWallpaperViewModel.filterNotNull()
-    // TODO (b/315856338): cache wallpaper colors in preferences
-    private val storedWallpaperColors: Flow<WallpaperColors?> =
-        staticWallpaperModel
-            .map { wallpaperPreferences.getWallpaperColors(it.commonWallpaperData.id.uniqueId) }
-            .distinctUntilChanged()
     val wallpaperColors: Flow<WallpaperColorsModel> =
-        combine(storedWallpaperColors, subsamplingScaleImageViewModel) {
-            storedColors,
-            wallpaperViewModel ->
-            WallpaperColorsModel.Loaded(
-                if (wallpaperViewModel.cropHints == null) {
-                    storedColors
-                        ?: interactor.getWallpaperColors(
-                            wallpaperViewModel.rawWallpaperBitmap,
-                            null
-                        )
-                } else {
-                    interactor.getWallpaperColors(
-                        wallpaperViewModel.rawWallpaperBitmap,
-                        wallpaperViewModel.cropHints
-                    )
-                }
-            )
-        }
+        staticWallpaperModel
+            .map {
+                WallpaperColorsModel.Loaded(
+                    wallpaperPreferences.getWallpaperColors(it.commonWallpaperData.id.uniqueId)
+                )
+            }
+            .distinctUntilChanged()
 
     fun updateCropHints(cropHints: Map<ScreenOrientation, Rect>) {
         this.cropHints.value = this.cropHints.value?.plus(cropHints) ?: cropHints
@@ -137,7 +121,7 @@ constructor(
     private suspend fun Asset.decodeBitmap(dimensions: Point): Bitmap? =
         suspendCancellableCoroutine { k: CancellableContinuation<Bitmap?> ->
             val callback = Asset.BitmapReceiver { k.resumeWith(Result.success(it)) }
-            decodeBitmap(dimensions.x, dimensions.y, /* hardwareBitmapAllowed= */ false, callback)
+            decodeBitmap(dimensions.x, dimensions.y, false, callback)
         }
 
     private suspend fun Asset.getStream(): InputStream? =
