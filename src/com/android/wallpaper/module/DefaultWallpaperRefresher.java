@@ -23,24 +23,27 @@ import android.app.WallpaperManager;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
+import android.view.Display;
+
+import androidx.collection.ArrayMap;
 
 import com.android.wallpaper.R;
 import com.android.wallpaper.asset.BitmapUtils;
 import com.android.wallpaper.model.LiveWallpaperMetadata;
 import com.android.wallpaper.model.WallpaperMetadata;
-import com.android.wallpaper.model.wallpaper.ScreenOrientation;
+import com.android.wallpaper.util.DisplayUtils;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -58,6 +61,9 @@ public class DefaultWallpaperRefresher implements WallpaperRefresher {
     private final WallpaperManager mWallpaperManager;
     private final WallpaperStatusChecker mWallpaperStatusChecker;
 
+    private final DisplayUtils mDisplayUtils;
+
+
     /**
      * @param context The application's context.
      */
@@ -67,6 +73,7 @@ public class DefaultWallpaperRefresher implements WallpaperRefresher {
         Injector injector = InjectorProvider.getInjector();
         mWallpaperPreferences = injector.getPreferences(mAppContext);
         mWallpaperStatusChecker = injector.getWallpaperStatusChecker(context);
+        mDisplayUtils = injector.getDisplayUtils(mAppContext);
 
         // Retrieve WallpaperManager using Context#getSystemService instead of
         // WallpaperManager#getInstance so it can be mocked out in test.
@@ -360,10 +367,20 @@ public class DefaultWallpaperRefresher implements WallpaperRefresher {
                     && attributions.get(2) == null;
         }
 
-        private Map<ScreenOrientation, Rect> getCurrentWallpaperCropHints(
+        private Map<Point, Rect> getCurrentWallpaperCropHints(
                 @WallpaperManager.SetWallpaperFlags int which) {
-            // TODO(b/303317694): Get cropHints from interactor.
-            return new HashMap<ScreenOrientation, Rect>();
+            List<Display> displays = mDisplayUtils.getInternalDisplays();
+            List<Point> displaySizes = new ArrayList<>();
+            displays.forEach(display -> displaySizes.add(mDisplayUtils.getRealSize(display)));
+            List<Rect> cropHints = mWallpaperManager.getBitmapCrops(displaySizes,
+                    which, /* originalBitmap= */true);
+            Map<Point, Rect> crophintsMap = new ArrayMap<>();
+            if (cropHints != null) {
+                for (int i = 0; i < cropHints.size(); i++) {
+                    crophintsMap.put(displaySizes.get(i), cropHints.get(i));
+                }
+            }
+            return crophintsMap;
         }
     }
 }
