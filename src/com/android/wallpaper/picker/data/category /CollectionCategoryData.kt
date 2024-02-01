@@ -23,7 +23,6 @@ import com.android.wallpaper.picker.data.WallpaperModel
 data class CollectionCategoryData(
     val wallpaperModels: List<WallpaperModel>,
     val thumbAsset: Asset,
-    val collectionName: String,
-    val rotationEnabled: Boolean,
+    val featuredThumbnailIndex: Int,
     val isSingleWallpaperCategory: Boolean
 )
