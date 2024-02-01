@@ -31,7 +31,6 @@ import com.android.wallpaper.model.LiveWallpaperInfo
 import com.android.wallpaper.model.LiveWallpaperPrefMetadata
 import com.android.wallpaper.model.StaticWallpaperPrefMetadata
 import com.android.wallpaper.model.WallpaperInfo
-import com.android.wallpaper.model.wallpaper.ScreenOrientation
 import com.android.wallpaper.module.WallpaperPreferenceKeys.NoBackupKeys
 import com.android.wallpaper.module.WallpaperPreferences.Companion.generateRecentsKey
 import com.android.wallpaper.module.WallpaperPreferences.PendingDailyWallpaperUpdateStatus
@@ -901,7 +900,7 @@ open class DefaultWallpaperPreferences(private val context: Context) : Wallpaper
         destination: WallpaperDestination,
         wallpaperModel: StaticWallpaperModel,
         bitmap: Bitmap,
-        cropHints: Map<ScreenOrientation, Rect?>,
+        cropHints: Map<Point, Rect?>,
     ) {}
 
     override suspend fun addLiveWallpaperToRecentWallpapers(

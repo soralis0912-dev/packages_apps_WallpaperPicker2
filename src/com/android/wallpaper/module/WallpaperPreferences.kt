@@ -26,7 +26,6 @@ import com.android.wallpaper.model.LiveWallpaperInfo
 import com.android.wallpaper.model.LiveWallpaperPrefMetadata
 import com.android.wallpaper.model.StaticWallpaperPrefMetadata
 import com.android.wallpaper.model.WallpaperInfo
-import com.android.wallpaper.model.wallpaper.ScreenOrientation
 import com.android.wallpaper.picker.customization.shared.model.WallpaperDestination
 import com.android.wallpaper.picker.data.WallpaperModel.LiveWallpaperModel
 import com.android.wallpaper.picker.data.WallpaperModel.StaticWallpaperModel
@@ -393,7 +392,7 @@ interface WallpaperPreferences {
         destination: WallpaperDestination,
         wallpaperModel: StaticWallpaperModel,
         bitmap: Bitmap,
-        cropHints: Map<ScreenOrientation, Rect?>,
+        cropHints: Map<Point, Rect?>,
     )
 
     /**
