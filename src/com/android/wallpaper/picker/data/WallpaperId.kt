@@ -23,4 +23,8 @@ data class WallpaperId(
     val componentName: ComponentName,
     val uniqueId: String,
     val collectionId: String,
-)
+) {
+    /** Gets a unique ID associated with a wallpaper model object. */
+    val wallpaperId: String
+        get() = "$componentName-$uniqueId-$collectionId"
+}
