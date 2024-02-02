@@ -138,7 +138,7 @@ class DisplayUtils(private val context: Context) {
         return displayInfo.logicalHeight * displayInfo.logicalWidth
     }
 
-    private fun getInternalDisplays(): List<Display> {
+    fun getInternalDisplays(): List<Display> {
         val allDisplays: Array<out Display> =
             displayManager.getDisplays(DisplayManager.DISPLAY_CATEGORY_ALL_INCLUDING_DISABLED)
         if (allDisplays.isEmpty()) {

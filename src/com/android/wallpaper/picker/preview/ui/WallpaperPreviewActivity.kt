@@ -66,14 +66,19 @@ class WallpaperPreviewActivity :
         // Fits screen to navbar and statusbar
         WindowCompat.setDecorFitsSystemWindows(window, ActivityUtils.isSUWMode(this))
         val isAssetIdPresent = intent.getBooleanExtra(IS_ASSET_ID_PRESENT, false)
-        val whichPreview =
-            if (isAssetIdPresent) WallpaperConnection.WhichPreview.EDIT_NON_CURRENT
-            else WallpaperConnection.WhichPreview.EDIT_CURRENT
-        wallpaperPreviewViewModel.setWhichPreview(whichPreview)
         val wallpaper =
             checkNotNull(intent.getParcelableExtra(EXTRA_WALLPAPER_INFO, WallpaperInfo::class.java))
                 .convertToWallpaperModel()
         wallpaperPreviewRepository.setWallpaperModel(wallpaper)
+        val whichPreview =
+            if (isAssetIdPresent) WallpaperConnection.WhichPreview.EDIT_NON_CURRENT
+            else WallpaperConnection.WhichPreview.EDIT_CURRENT
+        wallpaperPreviewViewModel.setWhichPreview(whichPreview)
+        if (wallpaper is WallpaperModel.StaticWallpaperModel) {
+            wallpaper.staticWallpaperData.cropHints?.let {
+                wallpaperPreviewViewModel.setCropHints(it)
+            }
+        }
         if (
             (wallpaper as? WallpaperModel.StaticWallpaperModel)?.downloadableWallpaperData != null
         ) {

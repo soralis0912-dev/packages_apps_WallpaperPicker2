@@ -45,7 +45,11 @@ class DefaultWallpaperModelFactory @Inject constructor() : WallpaperModelFactory
         } else {
             WallpaperModel.StaticWallpaperModel(
                 commonWallpaperData = wallpaperInfo.getCommonWallpaperData(context),
-                staticWallpaperData = StaticWallpaperData(asset = wallpaperInfo.getAsset(context)),
+                staticWallpaperData =
+                    StaticWallpaperData(
+                        asset = wallpaperInfo.getAsset(context),
+                        cropHints = wallpaperInfo.wallpaperCropHints
+                    ),
                 imageWallpaperData =
                     (wallpaperInfo as? ImageWallpaperInfo)?.getImageWallpaperData(),
                 networkWallpaperData = null,

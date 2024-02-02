@@ -15,6 +15,8 @@
  */
 package com.android.wallpaper.picker.preview.ui.viewmodel
 
+import android.graphics.Point
+import android.graphics.Rect
 import android.stats.style.StyleEnums
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -74,6 +76,14 @@ constructor(
     private val whichPreview: Flow<WhichPreview> = _whichPreview.asStateFlow().filterNotNull()
     fun setWhichPreview(whichPreview: WhichPreview) {
         _whichPreview.value = whichPreview
+    }
+
+    fun setCropHints(cropHints: Map<Point, Rect>) {
+        wallpaper.value?.let {
+            if (it is StaticWallpaperModel && !it.isDownloadableWallpaper()) {
+                staticWallpaperPreviewViewModel.updateCropHints(cropHints)
+            }
+        }
     }
 
     private val _wallpaperConnectionColors: MutableStateFlow<WallpaperColorsModel> =

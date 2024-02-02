@@ -16,12 +16,12 @@
 
 package com.android.wallpaper.picker.data
 
+import android.graphics.Point
 import android.graphics.Rect
 import com.android.wallpaper.asset.Asset
-import com.android.wallpaper.model.wallpaper.ScreenOrientation
 
 /** Represents set of attributes that are needed for a static wallpaper. */
 data class StaticWallpaperData(
     val asset: Asset,
-    val cropHints: Map<ScreenOrientation, Rect>? = null,
+    val cropHints: Map<Point, Rect>? = null,
 )
