@@ -24,7 +24,6 @@ import android.graphics.Point
 import android.graphics.Rect
 import com.android.wallpaper.asset.Asset
 import com.android.wallpaper.asset.StreamableAsset
-import com.android.wallpaper.model.wallpaper.ScreenOrientation
 import com.android.wallpaper.module.WallpaperPreferences
 import com.android.wallpaper.picker.customization.shared.model.WallpaperColorsModel
 import com.android.wallpaper.picker.data.WallpaperModel.StaticWallpaperModel
@@ -60,7 +59,7 @@ constructor(
     /** The state of static wallpaper crop in full preview, before user confirmation. */
     var fullPreviewCrop: Rect? = null
 
-    private val cropHints: MutableStateFlow<Map<ScreenOrientation, Rect>?> = MutableStateFlow(null)
+    private val cropHints: MutableStateFlow<Map<Point, Rect>?> = MutableStateFlow(null)
 
     val staticWallpaperModel: Flow<StaticWallpaperModel> =
         interactor.wallpaperModel.map { it as? StaticWallpaperModel }.filterNotNull()
@@ -105,7 +104,7 @@ constructor(
             }
             .distinctUntilChanged()
 
-    fun updateCropHints(cropHints: Map<ScreenOrientation, Rect>) {
+    fun updateCropHints(cropHints: Map<Point, Rect>) {
         this.cropHints.value = this.cropHints.value?.plus(cropHints) ?: cropHints
     }
 

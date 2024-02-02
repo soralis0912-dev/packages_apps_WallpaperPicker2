@@ -30,7 +30,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.android.wallpaper.model.wallpaper.ScreenOrientation
 import com.android.wallpaper.picker.preview.ui.util.FullResImageViewUtil
 import com.android.wallpaper.picker.preview.ui.viewmodel.StaticWallpaperPreviewViewModel
 import com.android.wallpaper.util.WallpaperCropUtils
@@ -48,7 +47,7 @@ object StaticWallpaperPreviewBinder {
         lowResImageView: ImageView,
         fullResImageView: SubsamplingScaleImageView,
         viewModel: StaticWallpaperPreviewViewModel,
-        screenOrientation: ScreenOrientation,
+        displaySize: Point,
         viewLifecycleOwner: LifecycleOwner,
     ) {
         lowResImageView.initLowResImageView()
@@ -60,7 +59,7 @@ object StaticWallpaperPreviewBinder {
 
                 launch {
                     viewModel.subsamplingScaleImageViewModel.collect {
-                        val cropHint = it.cropHints?.get(screenOrientation)
+                        val cropHint = it.cropHints?.get(displaySize)
                         fullResImageView.setFullResImage(
                             it.rawWallpaperBitmap,
                             it.rawWallpaperSize,

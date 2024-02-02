@@ -18,8 +18,8 @@
 package com.android.wallpaper.picker.customization.data.content
 
 import android.graphics.Bitmap
+import android.graphics.Point
 import android.graphics.Rect
-import com.android.wallpaper.model.wallpaper.ScreenOrientation
 import com.android.wallpaper.module.logging.UserEventLogger.SetWallpaperEntryPoint
 import com.android.wallpaper.picker.customization.shared.model.WallpaperDestination
 import com.android.wallpaper.picker.customization.shared.model.WallpaperModel
@@ -54,7 +54,7 @@ interface WallpaperClient {
         wallpaperModel: StaticWallpaperModel,
         inputStream: InputStream?,
         bitmap: Bitmap,
-        cropHints: Map<ScreenOrientation, Rect>,
+        cropHints: Map<Point, Rect>,
     )
 
     /**

@@ -23,6 +23,7 @@ import android.content.SharedPreferences
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.graphics.Point
 import android.graphics.Rect
 import android.util.Log
 import androidx.core.content.edit
@@ -282,10 +283,7 @@ open class DefaultWallpaperPreferences(private val context: Context) : Wallpaper
             .remove(NoBackupKeys.KEY_HOME_WALLPAPER_REMOTE_ID)
             .remove(NoBackupKeys.KEY_HOME_WALLPAPER_BASE_IMAGE_URL)
             .remove(NoBackupKeys.KEY_HOME_WALLPAPER_BACKING_FILE)
-            .remove(NoBackupKeys.KEY_CROP_HINT_PORTRAIT)
-            .remove(NoBackupKeys.KEY_CROP_HINT_LANDSCAPE)
-            .remove(NoBackupKeys.KEY_CROP_HINT_SQUARE_PORTRAIT)
-            .remove(NoBackupKeys.KEY_CROP_HINT_SQUARE_LANDSCAPE)
+            .remove(NoBackupKeys.KEY_CROP_HINTS)
             .apply()
     }
 
@@ -503,10 +501,7 @@ open class DefaultWallpaperPreferences(private val context: Context) : Wallpaper
             .remove(NoBackupKeys.KEY_LOCK_WALLPAPER_MANAGER_ID)
             .remove(NoBackupKeys.KEY_LOCK_WALLPAPER_REMOTE_ID)
             .remove(NoBackupKeys.KEY_LOCK_WALLPAPER_BACKING_FILE)
-            .remove(NoBackupKeys.KEY_CROP_HINT_PORTRAIT)
-            .remove(NoBackupKeys.KEY_CROP_HINT_LANDSCAPE)
-            .remove(NoBackupKeys.KEY_CROP_HINT_SQUARE_PORTRAIT)
-            .remove(NoBackupKeys.KEY_CROP_HINT_SQUARE_LANDSCAPE)
+            .remove(NoBackupKeys.KEY_CROP_HINTS)
             .apply()
     }
 
@@ -914,27 +909,29 @@ open class DefaultWallpaperPreferences(private val context: Context) : Wallpaper
         wallpaperModel: LiveWallpaperModel
     ) {}
 
-    override fun storeWallpaperCropHints(cropHints: Map<ScreenOrientation, Rect?>) {
+    override fun storeWallpaperCropHints(cropHints: Map<Point, Rect?>) {
         noBackupPrefs.edit {
-            cropHints.forEach { (orientation, rect) ->
-                putString(getScreenOrientationPrefKey(orientation), rect?.flattenToString())
+            putStringSet(
+                NoBackupKeys.KEY_CROP_HINTS,
+                cropHints
+                    .map { (point, rect) ->
+                        "${point.flattenToString()}=${rect?.flattenToString()}"
+                    }
+                    .toSet()
+            )
+        }
+    }
+
+    override fun getWallpaperCropHints(): Map<Point, Rect?> {
+        val stringSet = noBackupPrefs.getStringSet(NoBackupKeys.KEY_CROP_HINTS, null)
+        val map =
+            stringSet?.associate {
+                val (key, value) = it.split("=")
+                val displaySize = Point.unflattenFromString(key)!!
+                val cropRect = Rect.unflattenFromString(value)
+                displaySize to cropRect
             }
-        }
-    }
-
-    override fun getWallpaperCropHints(): Map<ScreenOrientation, Rect?> {
-        return ScreenOrientation.entries.associateWith {
-            Rect.unflattenFromString(noBackupPrefs.getString(getScreenOrientationPrefKey(it), null))
-        }
-    }
-
-    private fun getScreenOrientationPrefKey(orientation: ScreenOrientation): String {
-        return when (orientation) {
-            ScreenOrientation.PORTRAIT -> NoBackupKeys.KEY_CROP_HINT_PORTRAIT
-            ScreenOrientation.LANDSCAPE -> NoBackupKeys.KEY_CROP_HINT_LANDSCAPE
-            ScreenOrientation.SQUARE_LANDSCAPE -> NoBackupKeys.KEY_CROP_HINT_SQUARE_LANDSCAPE
-            ScreenOrientation.SQUARE_PORTRAIT -> NoBackupKeys.KEY_CROP_HINT_SQUARE_PORTRAIT
-        }
+        return map ?: emptyMap()
     }
 
     private fun setFirstLaunchDateSinceSetup(firstLaunchDate: Int) {

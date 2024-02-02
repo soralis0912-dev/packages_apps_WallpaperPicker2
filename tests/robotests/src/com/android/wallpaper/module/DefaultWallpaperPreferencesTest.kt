@@ -16,6 +16,8 @@
 package com.android.wallpaper.module
 
 import android.content.Context
+import android.graphics.Point
+import android.graphics.Rect
 import androidx.test.core.app.ApplicationProvider
 import com.android.wallpaper.model.LiveWallpaperPrefMetadata
 import com.android.wallpaper.model.StaticWallpaperPrefMetadata
@@ -191,5 +193,27 @@ class DefaultWallpaperPreferencesTest {
         assertThat(noBackupPref.getString(NoBackupKeys.KEY_LOCK_WALLPAPER_EFFECTS, null))
             .isEqualTo(null)
         assertThat(noBackupPref.getInt(NoBackupKeys.KEY_LOCK_WALLPAPER_MANAGER_ID, 0)).isEqualTo(2)
+    }
+
+    @Test
+    fun getWallpaperCropHints_noPreferencesStored() {
+        assertThat(wallpaperPreferences.getWallpaperCropHints()).isEmpty()
+    }
+
+    @Test
+    fun storeWallpaperCropHints_shouldBeSavedToNoBackupPrefs() {
+        val cropHintsMap =
+            mapOf(
+                Point(100, 200) to Rect(1, 2, 3, 4),
+                Point(300, 400) to Rect(5, 6, 7, 8),
+            )
+        wallpaperPreferences.storeWallpaperCropHints(cropHintsMap)
+        val noBackupPref =
+            (ApplicationProvider.getApplicationContext() as Context).getSharedPreferences(
+                DefaultWallpaperPreferences.NO_BACKUP_PREFS_NAME,
+                Context.MODE_PRIVATE
+            )
+        assertThat(noBackupPref.getStringSet(NoBackupKeys.KEY_CROP_HINTS, null)?.size).isEqualTo(2)
+        assertThat(wallpaperPreferences.getWallpaperCropHints()).isEqualTo(cropHintsMap)
     }
 }
