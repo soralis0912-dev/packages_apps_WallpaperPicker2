@@ -212,7 +212,12 @@ constructor(
 
     /** [EFFECTS] */
     private val _effectFloatingSheetViewModel: Flow<EffectFloatingSheetViewModel?> =
-        combine(interactor.effectsStatus, interactor.effect.filterNotNull()) { status, effect ->
+        combine(
+            interactor.wallpaperModel,
+            interactor.effectsStatus,
+            interactor.effect.filterNotNull()
+        ) { wallpaper, status, effect ->
+            (wallpaper as? WallpaperModel.StaticWallpaperModel)?.imageWallpaperData?.uri
             when (status) {
                 EffectsRepository.EffectStatus.EFFECT_DISABLE -> {
                     null
@@ -232,6 +237,8 @@ constructor(
             when (status) {
                 EffectsRepository.EffectStatus.EFFECT_APPLY_IN_PROGRESS ->
                     WallpaperEffectsView2.Status.PROCESSING
+                EffectsRepository.EffectStatus.EFFECT_APPLIED ->
+                    WallpaperEffectsView2.Status.SUCCESS
                 else -> WallpaperEffectsView2.Status.IDLE
             }
         return EffectFloatingSheetViewModel(

@@ -96,6 +96,11 @@ object SmallWallpaperPreviewBinder {
                                         displaySize,
                                         viewLifecycleOwner,
                                     )
+                                    // This is to possibly shut down all live wallpaper services
+                                    // if they exist; otherwise static wallpaper can not show up.
+                                    WallpaperConnectionUtils.disconnectAllServices(
+                                        applicationContext
+                                    )
                                 }
                             }
                         }

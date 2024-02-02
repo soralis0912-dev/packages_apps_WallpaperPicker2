@@ -98,7 +98,14 @@ class WallpaperPreviewActivity :
         }
 
         if ((wallpaper as? WallpaperModel.StaticWallpaperModel)?.imageWallpaperData != null) {
-            lifecycleScope.launch { effectsRepository.initializeEffect() }
+            lifecycleScope.launch {
+                effectsRepository.initializeEffect(
+                    staticWallpaperModel = wallpaper,
+                    onWallpaperModelUpdated = { wallpaper ->
+                        wallpaperPreviewRepository.setWallpaperModel(wallpaper)
+                    },
+                )
+            }
         }
 
         val liveWallpaperModel = (wallpaper as? WallpaperModel.LiveWallpaperModel)
