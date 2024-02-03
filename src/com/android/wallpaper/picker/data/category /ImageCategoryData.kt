@@ -16,8 +16,10 @@
 
 package com.android.wallpaper.picker.data.category
 
+import android.graphics.drawable.Drawable
+
 /**
  * Represents set of attributes for depicting the block used for accessing personal photos on
  * device.
  */
-data class ImageCategoryData(val overlayIconResId: Int)
+data class ImageCategoryData(val overlayIconDrawable: Drawable?)

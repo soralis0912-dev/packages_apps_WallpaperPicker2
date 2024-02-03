@@ -23,7 +23,6 @@ import androidx.lifecycle.LifecycleOwner
 import com.android.wallpaper.R
 import com.android.wallpaper.model.wallpaper.FoldableDisplay
 import com.android.wallpaper.model.wallpaper.PreviewPagerPage
-import com.android.wallpaper.model.wallpaper.getScreenOrientation
 import com.android.wallpaper.picker.preview.ui.fragment.smallpreview.DualPreviewViewPager
 import com.android.wallpaper.picker.preview.ui.fragment.smallpreview.adapters.DualPreviewPagerAdapter
 import com.android.wallpaper.picker.preview.ui.view.DualDisplayAspectRatioLayout
@@ -78,12 +77,7 @@ object DualPreviewPagerBinder {
                         mainScope = mainScope,
                         viewLifecycleOwner = viewLifecycleOwner,
                         screen = PreviewPagerPage.entries[position].screen,
-                        orientation =
-                            getScreenOrientation(
-                                it,
-                                wallpaperPreviewViewModel.wallpaperDisplaySize,
-                                display
-                            ),
+                        displaySize = it,
                         foldableDisplay = display,
                         navigate = navigate,
                     )

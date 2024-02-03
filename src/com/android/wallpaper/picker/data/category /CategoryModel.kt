@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package com.android.wallpaper.picker.data
+package com.android.wallpaper.picker.data.category
 
-import android.graphics.Point
-import android.graphics.Rect
-import com.android.wallpaper.asset.Asset
-
-/** Represents set of attributes that are needed for a static wallpaper. */
-data class StaticWallpaperData(
-    val asset: Asset,
-    val cropHints: Map<Point, Rect>? = null,
+/**
+ * Represents the model class that would be used for instantiating any type of category in the
+ * picker. Only commonCategory is mandatory while others are optional.
+ */
+class CategoryModel(
+    val commonCategoryData: CommonCategoryData,
+    val thirdPartyCategoryData: ThirdPartyCategoryData? = null,
+    val imageCategoryData: ImageCategoryData? = null,
+    val collectionCategoryData: CollectionCategoryData? = null
 )

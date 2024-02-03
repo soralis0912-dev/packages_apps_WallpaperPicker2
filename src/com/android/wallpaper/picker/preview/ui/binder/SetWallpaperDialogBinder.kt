@@ -27,7 +27,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.android.wallpaper.R
 import com.android.wallpaper.model.wallpaper.FoldableDisplay
-import com.android.wallpaper.model.wallpaper.getScreenOrientation
 import com.android.wallpaper.module.CustomizationSections.Screen
 import com.android.wallpaper.picker.preview.ui.view.DualDisplayAspectRatioLayout
 import com.android.wallpaper.picker.preview.ui.view.DualDisplayAspectRatioLayout.Companion.getViewId
@@ -124,12 +123,7 @@ object SetWallpaperDialogBinder {
                         mainScope = mainScope,
                         viewLifecycleOwner = lifecycleOwner,
                         screen = screenId.key,
-                        orientation =
-                            getScreenOrientation(
-                                it,
-                                wallpaperPreviewViewModel.wallpaperDisplaySize,
-                                display
-                            ),
+                        displaySize = it,
                         foldableDisplay = display,
                         navigate = null,
                     )
@@ -155,11 +149,7 @@ object SetWallpaperDialogBinder {
                         .requireViewById(R.id.preview),
                 viewModel = wallpaperPreviewViewModel,
                 screen = screenId.key,
-                orientation =
-                    getScreenOrientation(
-                        displaySize,
-                        wallpaperPreviewViewModel.wallpaperDisplaySize
-                    ),
+                displaySize = displaySize,
                 foldableDisplay = null,
                 mainScope = mainScope,
                 viewLifecycleOwner = lifecycleOwner,

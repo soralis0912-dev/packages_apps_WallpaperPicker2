@@ -26,7 +26,6 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.android.wallpaper.R
 import com.android.wallpaper.model.wallpaper.PreviewPagerPage
-import com.android.wallpaper.model.wallpaper.getScreenOrientation
 import com.android.wallpaper.picker.preview.ui.fragment.smallpreview.adapters.SinglePreviewPagerAdapter
 import com.android.wallpaper.picker.preview.ui.fragment.smallpreview.pagetransformers.PreviewCardPageTransformer
 import com.android.wallpaper.picker.preview.ui.viewmodel.WallpaperPreviewViewModel
@@ -66,11 +65,7 @@ object PreviewPagerBinder {
                     view = viewHolder.itemView.requireViewById(R.id.preview),
                     viewModel = wallpaperPreviewViewModel,
                     screen = PreviewPagerPage.entries[position].screen,
-                    orientation =
-                        getScreenOrientation(
-                            previewDisplaySize,
-                            wallpaperPreviewViewModel.wallpaperDisplaySize
-                        ),
+                    displaySize = previewDisplaySize,
                     foldableDisplay = null,
                     mainScope = mainScope,
                     viewLifecycleOwner = viewLifecycleOwner,

@@ -15,11 +15,12 @@
  */
 package com.android.wallpaper.picker.preview.ui.viewmodel
 
+import android.graphics.Point
+import android.graphics.Rect
 import android.stats.style.StyleEnums
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.wallpaper.model.wallpaper.FoldableDisplay
-import com.android.wallpaper.model.wallpaper.ScreenOrientation
 import com.android.wallpaper.module.CustomizationSections.Screen
 import com.android.wallpaper.picker.customization.shared.model.WallpaperColorsModel
 import com.android.wallpaper.picker.customization.shared.model.WallpaperDestination
@@ -75,6 +76,14 @@ constructor(
     private val whichPreview: Flow<WhichPreview> = _whichPreview.asStateFlow().filterNotNull()
     fun setWhichPreview(whichPreview: WhichPreview) {
         _whichPreview.value = whichPreview
+    }
+
+    fun setCropHints(cropHints: Map<Point, Rect>) {
+        wallpaper.value?.let {
+            if (it is StaticWallpaperModel && !it.isDownloadableWallpaper()) {
+                staticWallpaperPreviewViewModel.updateCropHints(cropHints)
+            }
+        }
     }
 
     private val _wallpaperConnectionColors: MutableStateFlow<WallpaperColorsModel> =
@@ -139,7 +148,7 @@ constructor(
                 {
                     staticWallpaperPreviewViewModel.fullPreviewCrop?.let {
                         staticWallpaperPreviewViewModel.updateCropHints(
-                            mapOf(previewViewModel.screenOrientation to it)
+                            mapOf(previewViewModel.displaySize to it)
                         )
                     }
                 }
@@ -249,11 +258,10 @@ constructor(
 
     fun onSmallPreviewClicked(
         screen: Screen,
-        orientation: ScreenOrientation,
         foldableDisplay: FoldableDisplay?,
     ) {
         fullWallpaperPreviewConfigViewModel.value =
-            getWallpaperPreviewConfig(screen, orientation, foldableDisplay)
+            getWallpaperPreviewConfig(screen, foldableDisplay)
         _fullWorkspacePreviewConfigViewModel.value =
             getWorkspacePreviewConfig(screen, foldableDisplay)
     }
@@ -263,13 +271,11 @@ constructor(
             WallpaperPreviewConfigViewModel(
                 Screen.HOME_SCREEN,
                 wallpaperDisplaySize,
-                ScreenOrientation.PORTRAIT
             )
     }
 
     private fun getWallpaperPreviewConfig(
         screen: Screen,
-        orientation: ScreenOrientation,
         foldableDisplay: FoldableDisplay?,
     ): WallpaperPreviewConfigViewModel {
         val displaySize =
@@ -287,7 +293,6 @@ constructor(
         return WallpaperPreviewConfigViewModel(
             screen = screen,
             displaySize = displaySize,
-            screenOrientation = orientation,
         )
     }
 

@@ -16,13 +16,13 @@
 package com.android.wallpaper.picker.preview.ui.binder
 
 import android.content.Context
+import android.graphics.Point
 import android.view.SurfaceView
 import android.view.View
 import androidx.cardview.widget.CardView
 import androidx.lifecycle.LifecycleOwner
 import com.android.wallpaper.R
 import com.android.wallpaper.model.wallpaper.FoldableDisplay
-import com.android.wallpaper.model.wallpaper.ScreenOrientation
 import com.android.wallpaper.module.CustomizationSections.Screen
 import com.android.wallpaper.picker.di.modules.MainDispatcher
 import com.android.wallpaper.picker.preview.ui.viewmodel.WallpaperPreviewViewModel
@@ -35,7 +35,7 @@ object SmallPreviewBinder {
         view: View,
         viewModel: WallpaperPreviewViewModel,
         screen: Screen,
-        orientation: ScreenOrientation,
+        displaySize: Point,
         foldableDisplay: FoldableDisplay?,
         @MainDispatcher mainScope: CoroutineScope,
         viewLifecycleOwner: LifecycleOwner,
@@ -46,7 +46,7 @@ object SmallPreviewBinder {
         val workspaceSurface: SurfaceView = view.requireViewById(R.id.workspace_surface)
 
         view.setOnClickListener {
-            viewModel.onSmallPreviewClicked(screen, orientation, foldableDisplay)
+            viewModel.onSmallPreviewClicked(screen, foldableDisplay)
             navigate?.invoke(previewCard)
         }
 
@@ -62,7 +62,7 @@ object SmallPreviewBinder {
             surface = wallpaperSurface,
             viewModel = viewModel,
             screen = screen,
-            screenOrientation = orientation,
+            displaySize = displaySize,
             applicationContext = applicationContext,
             mainScope = mainScope,
             viewLifecycleOwner = viewLifecycleOwner,

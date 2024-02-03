@@ -18,6 +18,7 @@ package com.android.wallpaper.testing
 import android.app.WallpaperColors
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.graphics.Point
 import android.graphics.Rect
 import com.android.wallpaper.model.LiveWallpaperInfo
 import com.android.wallpaper.model.LiveWallpaperPrefMetadata
@@ -85,7 +86,7 @@ open class TestWallpaperPreferences @Inject constructor() : WallpaperPreferences
     private var mLockLiveWallpaperPrefMetadata: LiveWallpaperPrefMetadata? = null
     private val mWallStoredColor: HashMap<String, String> = HashMap()
 
-    private val wallpaperCropHints: MutableMap<ScreenOrientation, Rect?>
+    private val wallpaperCropHints: MutableMap<Point, Rect?>
 
     init {
         wallpaperPresentationMode = WallpaperPreferences.PRESENTATION_MODE_STATIC
@@ -487,11 +488,11 @@ open class TestWallpaperPreferences @Inject constructor() : WallpaperPreferences
         wallpaperModel: WallpaperModel.LiveWallpaperModel
     ) {}
 
-    override fun getWallpaperCropHints(): Map<ScreenOrientation, Rect?> {
+    override fun getWallpaperCropHints(): Map<Point, Rect?> {
         return ImmutableMap.copyOf(wallpaperCropHints)
     }
 
-    override fun storeWallpaperCropHints(cropHints: Map<ScreenOrientation, Rect?>) {
+    override fun storeWallpaperCropHints(cropHints: Map<Point, Rect?>) {
         wallpaperCropHints.putAll(cropHints)
     }
 
