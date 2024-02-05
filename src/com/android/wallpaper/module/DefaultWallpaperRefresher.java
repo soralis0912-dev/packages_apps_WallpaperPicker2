@@ -35,6 +35,7 @@ import androidx.collection.ArrayMap;
 
 import com.android.wallpaper.R;
 import com.android.wallpaper.asset.BitmapUtils;
+import com.android.wallpaper.config.BaseFlags;
 import com.android.wallpaper.model.LiveWallpaperMetadata;
 import com.android.wallpaper.model.WallpaperMetadata;
 import com.android.wallpaper.util.DisplayUtils;
@@ -119,13 +120,20 @@ public class DefaultWallpaperRefresher implements WallpaperRefresher {
             boolean isLockScreenWallpaperCurrentlySet =
                     mWallpaperStatusChecker.isLockWallpaperSet();
 
+            BaseFlags flags = InjectorProvider.getInjector().getFlags();
+            boolean isMultiCropEnabled =
+                    flags.isMultiCropPreviewUiEnabled() && flags.isMultiCropEnabled();
             if (mWallpaperManager.getWallpaperInfo() == null) {
+                Map<Point, Rect> crophints =  new ArrayMap<>();
+                if (isMultiCropEnabled) {
+                    crophints = getCurrentWallpaperCropHints(FLAG_SYSTEM);
+                }
                 wallpaperMetadatas.add(new WallpaperMetadata(
                         mWallpaperPreferences.getHomeWallpaperAttributions(),
                         mWallpaperPreferences.getHomeWallpaperActionUrl(),
                         mWallpaperPreferences.getHomeWallpaperCollectionId(),
                         /* wallpaperComponent= */ null,
-                        getCurrentWallpaperCropHints(FLAG_SYSTEM)));
+                        crophints));
             } else {
                 wallpaperMetadatas.add(
                         new LiveWallpaperMetadata(mWallpaperManager.getWallpaperInfo()));
@@ -145,12 +153,16 @@ public class DefaultWallpaperRefresher implements WallpaperRefresher {
             }
 
             if (mWallpaperManager.getWallpaperInfo(FLAG_LOCK) == null) {
+                Map<Point, Rect> crophints =  new ArrayMap<>();
+                if (isMultiCropEnabled) {
+                    crophints = getCurrentWallpaperCropHints(FLAG_LOCK);
+                }
                 wallpaperMetadatas.add(new WallpaperMetadata(
                         mWallpaperPreferences.getLockWallpaperAttributions(),
                         mWallpaperPreferences.getLockWallpaperActionUrl(),
                         mWallpaperPreferences.getLockWallpaperCollectionId(),
                         /* wallpaperComponent= */ null,
-                        getCurrentWallpaperCropHints(FLAG_LOCK)));
+                        crophints));
             } else {
                 wallpaperMetadatas.add(new LiveWallpaperMetadata(
                         mWallpaperManager.getWallpaperInfo(FLAG_LOCK)));
