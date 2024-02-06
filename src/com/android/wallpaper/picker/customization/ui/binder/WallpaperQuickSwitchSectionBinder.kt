@@ -156,7 +156,7 @@ object WallpaperQuickSwitchSectionBinder {
             )
     }
 
-    /** Compose-inspired cnvenience alias for getting a dimension in pixels. */
+    /** Compose-inspired convenience alias for getting a dimension in pixels. */
     private fun View.dimensionResource(
         @DimenRes res: Int,
     ): Int {
