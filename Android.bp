@@ -145,6 +145,7 @@ java_defaults {
 //
 android_app {
     name: "WallpaperPicker2",
+    package_name: "com.android.wallpaper",
 
     defaults: ["WallpaperPicker2_defaults"],
     manifest: ":WallpaperPicker2_Manifest",
