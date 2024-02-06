@@ -15,8 +15,8 @@
  */
 package com.android.wallpaper.model
 
+import android.graphics.Point
 import android.graphics.Rect
-import com.android.wallpaper.model.wallpaper.ScreenOrientation
 
 /** Metadata for the static image wallpaper to be saved to the system preferences. */
 data class StaticWallpaperPrefMetadata(
@@ -26,5 +26,5 @@ data class StaticWallpaperPrefMetadata(
     val hashCode: Long?,
     val managerId: Int,
     val remoteId: String,
-    val cropHints: Map<ScreenOrientation, Rect>?,
+    val cropHints: Map<Point, Rect>?,
 )

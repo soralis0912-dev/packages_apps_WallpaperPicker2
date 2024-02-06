@@ -24,7 +24,6 @@ import com.android.wallpaper.model.LiveWallpaperInfo
 import com.android.wallpaper.model.LiveWallpaperPrefMetadata
 import com.android.wallpaper.model.StaticWallpaperPrefMetadata
 import com.android.wallpaper.model.WallpaperInfo
-import com.android.wallpaper.model.wallpaper.ScreenOrientation
 import com.android.wallpaper.module.WallpaperPersister
 import com.android.wallpaper.module.WallpaperPreferences
 import com.android.wallpaper.module.WallpaperPreferences.PendingDailyWallpaperUpdateStatus
@@ -480,7 +479,7 @@ open class TestWallpaperPreferences @Inject constructor() : WallpaperPreferences
         destination: WallpaperDestination,
         wallpaperModel: WallpaperModel.StaticWallpaperModel,
         bitmap: Bitmap,
-        cropHints: Map<ScreenOrientation, Rect?>
+        cropHints: Map<Point, Rect?>
     ) {}
 
     override suspend fun addLiveWallpaperToRecentWallpapers(
