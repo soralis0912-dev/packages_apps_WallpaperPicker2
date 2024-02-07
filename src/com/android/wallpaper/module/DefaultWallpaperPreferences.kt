@@ -914,7 +914,7 @@ open class DefaultWallpaperPreferences(private val context: Context) : Wallpaper
                 NoBackupKeys.KEY_CROP_HINTS,
                 cropHints
                     .map { (point, rect) ->
-                        "${point.flattenToString()}=${rect?.flattenToString()}"
+                        "${point.flattenToString()}$KEY_VALUE_DIVIDER${rect?.flattenToString()}"
                     }
                     .toSet()
             )
@@ -925,7 +925,7 @@ open class DefaultWallpaperPreferences(private val context: Context) : Wallpaper
         val stringSet = noBackupPrefs.getStringSet(NoBackupKeys.KEY_CROP_HINTS, null)
         val map =
             stringSet?.associate {
-                val (key, value) = it.split("=")
+                val (key, value) = it.split(KEY_VALUE_DIVIDER)
                 val displaySize = Point.unflattenFromString(key)!!
                 val cropRect = Rect.unflattenFromString(value)
                 displaySize to cropRect
@@ -966,6 +966,7 @@ open class DefaultWallpaperPreferences(private val context: Context) : Wallpaper
     companion object {
         const val PREFS_NAME = "wallpaper"
         const val NO_BACKUP_PREFS_NAME = "wallpaper-nobackup"
+        const val KEY_VALUE_DIVIDER = "="
         private const val TAG = "DefaultWallpaperPreferences"
     }
 }
