@@ -30,8 +30,11 @@ import android.os.Parcelable;
 
 import androidx.annotation.DrawableRes;
 import androidx.annotation.IntDef;
+import androidx.annotation.Nullable;
 
 import com.android.wallpaper.asset.Asset;
+import com.android.wallpaper.config.BaseFlags;
+import com.android.wallpaper.module.InjectorProvider;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -316,7 +319,14 @@ public abstract class WallpaperInfo implements Parcelable {
     }
 
     /** Returns the crop {@link Rect} of each displaySize for this wallpaper. */
-    public Map<Point, Rect> getWallpaperCropHints() {
+    public @Nullable Map<Point, Rect> getWallpaperCropHints() {
+        BaseFlags flags = InjectorProvider.getInjector().getFlags();
+        boolean isMultiCropEnabled =
+                flags.isMultiCropPreviewUiEnabled() && flags.isMultiCropEnabled();
+        if (!isMultiCropEnabled) {
+            return null;
+        }
+
         Map<Point, Rect> cropHints = new HashMap<>();
         mCropHints.forEach(
                 (displaySize, rect) -> cropHints.put(
