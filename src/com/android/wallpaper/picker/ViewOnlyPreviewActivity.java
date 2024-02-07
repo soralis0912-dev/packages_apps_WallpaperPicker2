@@ -112,7 +112,7 @@ public class ViewOnlyPreviewActivity extends BasePreviewActivity implements Appb
             final BaseFlags flags = InjectorProvider.getInjector().getFlags();
             if (flags.isMultiCropPreviewUiEnabled() && flags.isMultiCropEnabled()) {
                 return WallpaperPreviewActivity.Companion.newIntent(appContext, wallpaper,
-                        isAssetIdPresent, /* isNewTask= */ isMultiPanel);
+                        isAssetIdPresent, mIsViewAsHome, /* isNewTask= */ isMultiPanel);
             }
 
             // Launch a full preview activity for devices supporting multipanel mode

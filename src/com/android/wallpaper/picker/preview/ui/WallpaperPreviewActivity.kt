@@ -66,6 +66,8 @@ class WallpaperPreviewActivity :
         // Fits screen to navbar and statusbar
         WindowCompat.setDecorFitsSystemWindows(window, ActivityUtils.isSUWMode(this))
         val isAssetIdPresent = intent.getBooleanExtra(IS_ASSET_ID_PRESENT, false)
+        wallpaperPreviewViewModel.isNewTask = intent.getBooleanExtra(IS_NEW_TASK, false)
+        wallpaperPreviewViewModel.isViewAsHome = intent.getBooleanExtra(EXTRA_VIEW_AS_HOME, false)
         val wallpaper =
             checkNotNull(intent.getParcelableExtra(EXTRA_WALLPAPER_INFO, WallpaperInfo::class.java))
                 .convertToWallpaperModel()
@@ -157,16 +159,17 @@ class WallpaperPreviewActivity :
             context: Context,
             wallpaperInfo: WallpaperInfo,
             isAssetIdPresent: Boolean,
+            isViewAsHome: Boolean = false,
             isNewTask: Boolean = false,
         ): Intent {
             val intent = Intent(context.applicationContext, WallpaperPreviewActivity::class.java)
             if (isNewTask) {
-                // TODO(b/291761856): When going back to main screen, use startActivity instead of
-                //                    onActivityResult, which won't work.
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
             }
             intent.putExtra(EXTRA_WALLPAPER_INFO, wallpaperInfo)
             intent.putExtra(IS_ASSET_ID_PRESENT, isAssetIdPresent)
+            intent.putExtra(EXTRA_VIEW_AS_HOME, isViewAsHome)
+            intent.putExtra(IS_NEW_TASK, isNewTask)
             return intent
         }
     }
