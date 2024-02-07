@@ -106,7 +106,7 @@ object WallpaperQuickSwitchOptionBinder {
             launch {
                 viewModel.isSelectionIndicatorVisible.distinctUntilChanged().collect { isSelected ->
                     // Update the content description to announce the selection status
-                    if (isSelected) view.isSelected = true
+                    view.isSelected = isSelected
                 }
             }
 
