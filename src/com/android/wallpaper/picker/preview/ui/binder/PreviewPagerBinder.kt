@@ -42,6 +42,7 @@ object PreviewPagerBinder {
         previewsViewPager: ViewPager2,
         wallpaperPreviewViewModel: WallpaperPreviewViewModel,
         previewDisplaySize: Point,
+        currentNavDestId: Int,
         navigate: (View) -> Unit,
     ) {
         previewsViewPager.apply {
@@ -69,6 +70,7 @@ object PreviewPagerBinder {
                     foldableDisplay = null,
                     mainScope = mainScope,
                     viewLifecycleOwner = viewLifecycleOwner,
+                    currentNavDestId = currentNavDestId,
                     navigate = navigate,
                 )
             }

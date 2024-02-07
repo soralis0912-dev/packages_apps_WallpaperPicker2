@@ -21,5 +21,19 @@
     <com.android.wallpaper.picker.preview.ui.view.DualDisplayAspectRatioLayout
         android:id="@+id/dual_preview"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <include
+            android:id="@+id/small_preview_folded_preview"
+            layout="@layout/wallpaper_preview_card2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <include
+            android:id="@+id/small_preview_unfolded_preview"
+            layout="@layout/wallpaper_preview_card2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    </com.android.wallpaper.picker.preview.ui.view.DualDisplayAspectRatioLayout>
 </FrameLayout>

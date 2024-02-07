@@ -18,7 +18,6 @@ package com.android.wallpaper.picker.preview.ui.view
 import android.content.Context
 import android.graphics.Point
 import android.util.AttributeSet
-import android.view.LayoutInflater
 import android.widget.LinearLayout
 import com.android.wallpaper.R
 import com.android.wallpaper.model.wallpaper.FoldableDisplay
@@ -34,19 +33,6 @@ class DualDisplayAspectRatioLayout(
 ) : LinearLayout(context, attrs) {
 
     private var previewDisplaySizes: Map<FoldableDisplay, Point>? = null
-
-    init {
-        val inflater =
-            getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
-        val foldedPreview = inflater.inflate(R.layout.wallpaper_preview_card2, null)
-
-        foldedPreview.id = FoldableDisplay.FOLDED.getViewId()
-        addView(foldedPreview)
-
-        val unfoldedPreview = inflater.inflate(R.layout.wallpaper_preview_card2, null)
-        unfoldedPreview.id = FoldableDisplay.UNFOLDED.getViewId()
-        addView(unfoldedPreview)
-    }
 
     /**
      * This measures the desired size of the preview views for both of foldable device's displays.

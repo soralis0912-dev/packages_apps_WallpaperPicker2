@@ -116,6 +116,7 @@ class SmallPreviewFragment : Hilt_SmallPreviewFragment() {
     }
 
     private fun bindScreenPreview(view: View) {
+        val currentNavDestId = checkNotNull(findNavController().currentDestination?.id)
         if (displayUtils.hasMultiInternalDisplays()) {
             val dualPreviewView: DualPreviewViewPager =
                 view.requireViewById(R.id.dual_preview_pager)
@@ -128,6 +129,7 @@ class SmallPreviewFragment : Hilt_SmallPreviewFragment() {
                 appContext,
                 viewLifecycleOwner,
                 mainScope,
+                currentNavDestId,
             ) { sharedElement ->
                 ViewCompat.setTransitionName(sharedElement, SMALL_PREVIEW_SHARED_ELEMENT_ID)
                 val extras =
@@ -152,6 +154,7 @@ class SmallPreviewFragment : Hilt_SmallPreviewFragment() {
                 appContext,
                 viewLifecycleOwner,
                 mainScope,
+                currentNavDestId,
             ) { sharedElement ->
                 ViewCompat.setTransitionName(sharedElement, SMALL_PREVIEW_SHARED_ELEMENT_ID)
                 val extras =

@@ -39,15 +39,23 @@ object SmallPreviewBinder {
         foldableDisplay: FoldableDisplay?,
         @MainDispatcher mainScope: CoroutineScope,
         viewLifecycleOwner: LifecycleOwner,
+        currentNavDestId: Int,
         navigate: ((View) -> Unit)? = null,
     ) {
         val previewCard: CardView = view.requireViewById(R.id.preview_card)
         val wallpaperSurface: SurfaceView = view.requireViewById(R.id.wallpaper_surface)
         val workspaceSurface: SurfaceView = view.requireViewById(R.id.workspace_surface)
 
-        view.setOnClickListener {
-            viewModel.onSmallPreviewClicked(screen, foldableDisplay)
-            navigate?.invoke(previewCard)
+        if (R.id.smallPreviewFragment == currentNavDestId) {
+            view.setOnClickListener {
+                viewModel.onSmallPreviewClicked(screen, foldableDisplay)
+                navigate?.invoke(previewCard)
+            }
+        } else if (R.id.setWallpaperDialog == currentNavDestId) {
+            previewCard.radius =
+                previewCard.resources.getDimension(
+                    R.dimen.set_wallpaper_dialog_preview_corner_radius
+                )
         }
 
         val config = viewModel.getWorkspacePreviewConfig(screen, foldableDisplay)

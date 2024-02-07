@@ -20,13 +20,14 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content">
 
-    <include layout="@layout/preview_handheld_card_view"
-        android:id="@+id/lock_preview"
+    <include layout="@layout/set_wallpaper_dialog_handheld_preview_selector"
+        android:id="@+id/lock_preview_selector"
         android:layout_width="@dimen/set_wallpaper_dialog_handheld_preview_width"
         android:layout_height="@dimen/set_wallpaper_dialog_handheld_preview_height"
+        android:clickable="true"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/home_preview"
+        app:layout_constraintEnd_toStartOf="@+id/home_preview_selector"
         app:layout_constraintBottom_toTopOf="@+id/lock_screen_title"/>
     <TextView
         android:id="@+id/lock_screen_title"
@@ -34,16 +35,17 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/set_wallpaper_lock_screen_destination"
-        app:layout_constraintTop_toBottomOf="@id/lock_preview"
-        app:layout_constraintStart_toStartOf="@+id/lock_preview"
-        app:layout_constraintEnd_toEndOf="@+id/lock_preview"/>
+        app:layout_constraintTop_toBottomOf="@id/lock_preview_selector"
+        app:layout_constraintStart_toStartOf="@+id/lock_preview_selector"
+        app:layout_constraintEnd_toEndOf="@+id/lock_preview_selector"/>
 
-    <include layout="@layout/preview_handheld_card_view"
-        android:id="@+id/home_preview"
+    <include layout="@layout/set_wallpaper_dialog_handheld_preview_selector"
+        android:id="@+id/home_preview_selector"
         android:layout_width="@dimen/set_wallpaper_dialog_handheld_preview_width"
         android:layout_height="@dimen/set_wallpaper_dialog_handheld_preview_height"
+        android:clickable="true"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/lock_preview"
+        app:layout_constraintStart_toEndOf="@+id/lock_preview_selector"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toTopOf="@+id/home_screen_title"/>
     <TextView
@@ -52,8 +54,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/set_wallpaper_home_screen_destination"
-        app:layout_constraintTop_toBottomOf="@id/home_preview"
-        app:layout_constraintStart_toStartOf="@+id/home_preview"
-        app:layout_constraintEnd_toEndOf="@+id/home_preview"/>
+        app:layout_constraintTop_toBottomOf="@id/home_preview_selector"
+        app:layout_constraintStart_toStartOf="@+id/home_preview_selector"
+        app:layout_constraintEnd_toEndOf="@+id/home_preview_selector"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
