@@ -39,6 +39,7 @@ object DualPreviewPagerBinder {
         applicationContext: Context,
         viewLifecycleOwner: LifecycleOwner,
         mainScope: CoroutineScope,
+        currentNavDestId: Int,
         navigate: (View) -> Unit,
     ) {
         // implement adapter for the dual preview pager
@@ -79,6 +80,7 @@ object DualPreviewPagerBinder {
                         screen = PreviewPagerPage.entries[position].screen,
                         displaySize = it,
                         foldableDisplay = display,
+                        currentNavDestId = currentNavDestId,
                         navigate = navigate,
                     )
                 }

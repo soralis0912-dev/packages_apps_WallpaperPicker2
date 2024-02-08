@@ -55,16 +55,27 @@ object WallpaperQuickSwitchOptionBinder {
 
         placeholder.setBackgroundColor(viewModel.placeholderColor)
 
-        val contentDescription =
-            viewModel.title ?: view.resources.getString(R.string.default_wallpaper_title)
-        val latestIndex = titleMap.getOrDefault(contentDescription, 0) + 1
-        view.contentDescription =
-            view.resources.getString(
-                R.string.recents_wallpaper_label,
-                contentDescription,
-                latestIndex
-            )
-        titleMap[contentDescription] = position + 1
+        if (viewModel.title != null) {
+            viewModel.title
+            val latestIndex = titleMap.getOrDefault(viewModel.title, 0) + 1
+
+            view.contentDescription =
+                view.resources.getString(
+                    R.string.recents_wallpaper_label,
+                    viewModel.title,
+                    latestIndex,
+                )
+            titleMap[viewModel.title] = position + 1
+        } else {
+            // if the content description is missing then the default description will be the
+            // default wallpaper title and its position
+            view.contentDescription =
+                view.resources.getString(
+                    R.string.recents_wallpaper_label,
+                    view.resources.getString(R.string.default_wallpaper_title),
+                    position + 1,
+                )
+        }
 
         lifecycleOwner.lifecycleScope.launch {
             launch {
@@ -95,7 +106,7 @@ object WallpaperQuickSwitchOptionBinder {
             launch {
                 viewModel.isSelectionIndicatorVisible.distinctUntilChanged().collect { isSelected ->
                     // Update the content description to announce the selection status
-                    if (isSelected) view.isSelected = true
+                    view.isSelected = isSelected
                 }
             }
 

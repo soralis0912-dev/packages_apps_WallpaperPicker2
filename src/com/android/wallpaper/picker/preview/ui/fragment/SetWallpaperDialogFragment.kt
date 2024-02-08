@@ -68,6 +68,7 @@ class SetWallpaperDialogFragment : Hilt_SetWallpaperDialogFragment() {
             displayUtils.getRealSize(displayUtils.getWallpaperDisplay()),
             lifecycleOwner = this,
             mainScope,
+            checkNotNull(findNavController().currentDestination?.id),
             onFinishActivity = {
                 Toast.makeText(
                         context,
@@ -79,6 +80,7 @@ class SetWallpaperDialogFragment : Hilt_SetWallpaperDialogFragment() {
                 activityReference?.finish()
             },
             onDismissDialog = { findNavController().popBackStack() },
+            navigate = null,
         )
 
         return dialog
