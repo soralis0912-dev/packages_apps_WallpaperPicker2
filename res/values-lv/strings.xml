@@ -133,4 +133,6 @@
     <string name="more_wallpapers" msgid="8116268433411881705">"Citas fona tapetes"</string>
     <string name="recents_wallpaper_label" msgid="8653165542635660222">"%1$s, %2$d"</string>
     <string name="default_wallpaper_title" msgid="2541071182656978180">"Fona tapete"</string>
+    <string name="small_preview_tooltip" msgid="1920430079013352071">"Pieskarieties, lai rediģētu savu fotoattēlu."</string>
+    <string name="full_preview_tooltip" msgid="4648994028015322759">"Pielāgojiet savu fotoattēlu pozīciju, mērogu un leņķi."</string>
 </resources>
