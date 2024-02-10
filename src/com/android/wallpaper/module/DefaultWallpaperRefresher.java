@@ -124,16 +124,14 @@ public class DefaultWallpaperRefresher implements WallpaperRefresher {
             boolean isMultiCropEnabled =
                     flags.isMultiCropPreviewUiEnabled() && flags.isMultiCropEnabled();
             if (mWallpaperManager.getWallpaperInfo() == null) {
-                Map<Point, Rect> crophints =  new ArrayMap<>();
-                if (isMultiCropEnabled) {
-                    crophints = getCurrentWallpaperCropHints(FLAG_SYSTEM);
-                }
+                Map<Point, Rect> cropHints = isMultiCropEnabled ? getCurrentWallpaperCropHints(
+                        FLAG_SYSTEM) : null;
                 wallpaperMetadatas.add(new WallpaperMetadata(
                         mWallpaperPreferences.getHomeWallpaperAttributions(),
                         mWallpaperPreferences.getHomeWallpaperActionUrl(),
                         mWallpaperPreferences.getHomeWallpaperCollectionId(),
                         /* wallpaperComponent= */ null,
-                        crophints));
+                        cropHints));
             } else {
                 wallpaperMetadatas.add(
                         new LiveWallpaperMetadata(mWallpaperManager.getWallpaperInfo()));
@@ -153,16 +151,14 @@ public class DefaultWallpaperRefresher implements WallpaperRefresher {
             }
 
             if (mWallpaperManager.getWallpaperInfo(FLAG_LOCK) == null) {
-                Map<Point, Rect> crophints =  new ArrayMap<>();
-                if (isMultiCropEnabled) {
-                    crophints = getCurrentWallpaperCropHints(FLAG_LOCK);
-                }
+                Map<Point, Rect> cropHints = isMultiCropEnabled ? getCurrentWallpaperCropHints(
+                        FLAG_LOCK) : null;
                 wallpaperMetadatas.add(new WallpaperMetadata(
                         mWallpaperPreferences.getLockWallpaperAttributions(),
                         mWallpaperPreferences.getLockWallpaperActionUrl(),
                         mWallpaperPreferences.getLockWallpaperCollectionId(),
                         /* wallpaperComponent= */ null,
-                        crophints));
+                        cropHints));
             } else {
                 wallpaperMetadatas.add(new LiveWallpaperMetadata(
                         mWallpaperManager.getWallpaperInfo(FLAG_LOCK)));

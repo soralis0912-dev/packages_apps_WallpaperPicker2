@@ -133,4 +133,6 @@
     <string name="more_wallpapers" msgid="8116268433411881705">"배경화면 더보기"</string>
     <string name="recents_wallpaper_label" msgid="8653165542635660222">"%1$s, %2$d"</string>
     <string name="default_wallpaper_title" msgid="2541071182656978180">"배경화면"</string>
+    <string name="small_preview_tooltip" msgid="1920430079013352071">"탭하여 사진 수정"</string>
+    <string name="full_preview_tooltip" msgid="4648994028015322759">"사진의 위치, 크기, 각도 조정"</string>
 </resources>

@@ -133,4 +133,6 @@
     <string name="more_wallpapers" msgid="8116268433411881705">"更多壁纸"</string>
     <string name="recents_wallpaper_label" msgid="8653165542635660222">"%1$s、%2$d"</string>
     <string name="default_wallpaper_title" msgid="2541071182656978180">"壁纸"</string>
+    <string name="small_preview_tooltip" msgid="1920430079013352071">"点按即可修改照片"</string>
+    <string name="full_preview_tooltip" msgid="4648994028015322759">"调整照片的位置、缩放比和角度"</string>
 </resources>

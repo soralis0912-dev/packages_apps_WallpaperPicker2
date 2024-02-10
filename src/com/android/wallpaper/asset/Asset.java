@@ -44,6 +44,7 @@ import com.android.wallpaper.util.WallpaperCropUtils;
 import com.bumptech.glide.load.resource.bitmap.BitmapTransformation;
 
 import java.io.File;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -327,6 +328,24 @@ public abstract class Asset {
      */
     public void loadPreviewImage(Activity activity, ImageView imageView, int placeholderColor,
             boolean offsetToStart) {
+        loadPreviewImage(activity, imageView, placeholderColor, offsetToStart, null);
+    }
+
+    /**
+     * Loads the image for this asset into the provided ImageView which is used for the preview.
+     * While waiting for the image to load, first loads a ColorDrawable based on the provided
+     * placeholder color.
+     *
+     * @param activity         Activity hosting the ImageView.
+     * @param imageView        ImageView which is the target view of this asset.
+     * @param placeholderColor Color of placeholder set to ImageView while waiting for image to
+     *                         load.
+     * @param offsetToStart    true to let the preview show from the start of the image, false to
+     *                         center-aligned to the image.
+     * @param cropHints        A Map of display size to crop rect
+     */
+    public void loadPreviewImage(Activity activity, ImageView imageView, int placeholderColor,
+            boolean offsetToStart, @Nullable Map<Point, Rect> cropHints) {
         boolean needsTransition = imageView.getDrawable() == null;
         Drawable placeholderDrawable = new ColorDrawable(placeholderColor);
         if (needsTransition) {
@@ -348,6 +367,9 @@ public abstract class Asset {
             Point screenSize = ScreenSizeCalculator.getInstance().getScreenSize(defaultDisplay);
             Rect visibleRawWallpaperRect =
                     WallpaperCropUtils.calculateVisibleRect(dimensions, screenSize);
+            if (cropHints != null && cropHints.containsKey(screenSize)) {
+                visibleRawWallpaperRect = cropHints.get(screenSize);
+            }
 
             // TODO(b/264234793): Make offsetToStart general support or for the specific asset.
             adjustCropRect(activity, dimensions, visibleRawWallpaperRect, offsetToStart);
