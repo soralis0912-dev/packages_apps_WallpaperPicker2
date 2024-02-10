@@ -133,4 +133,6 @@
     <string name="more_wallpapers" msgid="8116268433411881705">"વધુ વૉલપેપર"</string>
     <string name="recents_wallpaper_label" msgid="8653165542635660222">"%1$s, %2$d"</string>
     <string name="default_wallpaper_title" msgid="2541071182656978180">"વૉલપેપર"</string>
+    <string name="small_preview_tooltip" msgid="1920430079013352071">"તમારા ફોટામાં ફેરફાર કરવા માટે ટૅપ કરો"</string>
+    <string name="full_preview_tooltip" msgid="4648994028015322759">"તમારા ફોટાની જગ્યા, સ્કેલ અને ખૂણાની ગોઠવણી કરો"</string>
 </resources>

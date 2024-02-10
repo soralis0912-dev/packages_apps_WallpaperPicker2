@@ -611,7 +611,8 @@ object ScreenPreviewBinder {
                     activity,
                     imageView,
                     ResourceUtils.getColorAttr(activity, android.R.attr.colorSecondary),
-                    /* offsetToStart= */ thumbAsset !is CurrentWallpaperAsset || offsetToStart
+                    /* offsetToStart= */ thumbAsset !is CurrentWallpaperAsset || offsetToStart,
+                    wallpaperInfo.wallpaperCropHints
                 )
             if (wallpaperInfo !is LiveWallpaperInfo) {
                 imageView.addOnLayoutChangeListener(
