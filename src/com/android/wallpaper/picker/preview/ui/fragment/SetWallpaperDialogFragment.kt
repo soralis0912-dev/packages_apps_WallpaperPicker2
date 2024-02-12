@@ -20,6 +20,7 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.app.Dialog
 import android.content.DialogInterface
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.widget.Toast
@@ -27,11 +28,15 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.android.wallpaper.R
+import com.android.wallpaper.picker.TrampolinePickerActivity
 import com.android.wallpaper.picker.di.modules.MainDispatcher
 import com.android.wallpaper.picker.preview.ui.WallpaperPreviewActivity
 import com.android.wallpaper.picker.preview.ui.binder.SetWallpaperDialogBinder
 import com.android.wallpaper.picker.preview.ui.viewmodel.WallpaperPreviewViewModel
 import com.android.wallpaper.util.DisplayUtils
+import com.android.wallpaper.util.LaunchSourceUtils.LAUNCH_SOURCE_LAUNCHER
+import com.android.wallpaper.util.LaunchSourceUtils.LAUNCH_SOURCE_SETTINGS_HOMEPAGE
+import com.android.wallpaper.util.LaunchSourceUtils.WALLPAPER_LAUNCH_SOURCE
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
@@ -76,8 +81,23 @@ class SetWallpaperDialogFragment : Hilt_SetWallpaperDialogFragment() {
                         Toast.LENGTH_SHORT
                     )
                     .show()
-                activityReference?.setResult(Activity.RESULT_OK)
-                activityReference?.finish()
+                if (activityReference != null) {
+                    if (wallpaperPreviewViewModel.isNewTask) {
+                        val intent = Intent(activityReference, TrampolinePickerActivity::class.java)
+                        intent.setFlags(
+                            Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+                        )
+                        intent.putExtra(
+                            WALLPAPER_LAUNCH_SOURCE,
+                            if (wallpaperPreviewViewModel.isViewAsHome) LAUNCH_SOURCE_LAUNCHER
+                            else LAUNCH_SOURCE_SETTINGS_HOMEPAGE
+                        )
+                        activityReference.startActivity(intent)
+                    } else {
+                        activityReference.setResult(Activity.RESULT_OK)
+                        activityReference.finish()
+                    }
+                }
             },
             onDismissDialog = { findNavController().popBackStack() },
             navigate = null,
