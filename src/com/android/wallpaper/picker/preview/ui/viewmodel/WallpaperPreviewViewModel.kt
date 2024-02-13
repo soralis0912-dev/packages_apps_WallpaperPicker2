@@ -63,6 +63,8 @@ constructor(
 
     val smallerDisplaySize = displayUtils.getRealSize(displayUtils.getSmallerDisplay())
     val wallpaperDisplaySize = displayUtils.getRealSize(displayUtils.getWallpaperDisplay())
+    var isViewAsHome = false
+    var isNewTask = false
 
     // TODO (b/303318205): cache value in wallpaper preferences
     private val _showTooltip: MutableStateFlow<Boolean> = MutableStateFlow(true)

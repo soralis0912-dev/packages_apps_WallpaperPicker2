@@ -48,6 +48,7 @@ class WallpaperPreviewActivityTest {
             context = ApplicationProvider.getApplicationContext(),
             wallpaperInfo = testStaticWallpaper,
             isAssetIdPresent = false,
+            isViewAsHome = false,
             isNewTask = false,
         )
 
