@@ -37,6 +37,8 @@ public abstract class BasePreviewActivity extends BaseActivity {
             "com.android.wallpaper.picker.view_as_home";
     public static final String IS_ASSET_ID_PRESENT =
             "com.android.wallpaper.picker.asset_id_present";
+    public static final String IS_NEW_TASK =
+            "com.android.wallpaper.picker.new_task";
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
