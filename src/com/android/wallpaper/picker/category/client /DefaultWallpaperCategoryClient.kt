@@ -31,6 +31,7 @@ import com.android.wallpaper.module.PartnerProvider
 import com.android.wallpaper.picker.data.category.CategoryModel
 import com.android.wallpaper.util.WallpaperXMLParser
 import com.android.wallpaper.util.converter.category.CategoryFactory
+import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.IOException
 import java.util.Locale
 import javax.inject.Inject
@@ -38,8 +39,7 @@ import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserException
 
 /**
- * This class is responsible for fetching wallpaper categories. At a high level, this class is
- * responsible for fetching the following:
+ * This class is responsible for fetching wallpaper categories, listed as follows:
  * 1. MyPhotos category that allows users to select custom photos
  * 2. OnDevice category that are pre-loaded wallpapers on device (legacy way of pre-loading
  *    wallpapers, modern way is described below)
@@ -48,14 +48,14 @@ import org.xmlpull.v1.XmlPullParserException
 class DefaultWallpaperCategoryClient
 @Inject
 constructor(
-    private val context: Context,
+    @ApplicationContext val context: Context,
     private val partnerProvider: PartnerProvider,
     private val categoryFactory: CategoryFactory,
     private val wallpaperXMLParser: WallpaperXMLParser
 ) {
 
     /** This method is used for fetching and creating the MyPhotos category tile. */
-    fun getMyPhotosCategory(context: Context): CategoryModel {
+    fun getMyPhotosCategory(): CategoryModel {
         val imageCategory =
             ImageCategory(
                 context.getString(R.string.my_photos_category_title),
@@ -113,6 +113,8 @@ constructor(
 
         val wallpapersResId =
             partnerRes.getIdentifier(PartnerProvider.WALLPAPER_RES_ID, "xml", packageName)
+        // Certain partner configurations don't have wallpapers provided, so need to check;
+        // return early if they are missing.
         if (wallpapersResId == 0) {
             return categoryModels
         }
