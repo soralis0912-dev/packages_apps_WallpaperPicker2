@@ -31,6 +31,7 @@ import com.android.wallpaper.picker.data.WallpaperModel.StaticWallpaperModel
 import com.android.wallpaper.picker.di.modules.PreviewUtilsModule.HomeScreenPreviewUtils
 import com.android.wallpaper.picker.di.modules.PreviewUtilsModule.LockScreenPreviewUtils
 import com.android.wallpaper.picker.preview.domain.interactor.WallpaperPreviewInteractor
+import com.android.wallpaper.picker.preview.shared.model.FullPreviewCropModel
 import com.android.wallpaper.picker.preview.ui.WallpaperPreviewActivity
 import com.android.wallpaper.util.DisplayUtils
 import com.android.wallpaper.util.PreviewUtils
@@ -92,9 +93,15 @@ constructor(
     }
 
     fun setCropHints(cropHints: Map<Point, Rect>) {
-        wallpaper.value?.let {
-            if (it is StaticWallpaperModel && !it.isDownloadableWallpaper()) {
-                staticWallpaperPreviewViewModel.updateCropHints(cropHints)
+        wallpaper.value?.let { model ->
+            if (model is StaticWallpaperModel && !model.isDownloadableWallpaper()) {
+                staticWallpaperPreviewViewModel.updateCropHintsInfo(
+                    cropHints.mapValues {
+                        FullPreviewCropModel(
+                            cropHint = it.value,
+                        )
+                    }
+                )
             }
         }
     }
@@ -159,9 +166,17 @@ constructor(
             previewViewModel ->
             if (wallpaper is StaticWallpaperModel && !wallpaper.isDownloadableWallpaper()) {
                 {
-                    staticWallpaperPreviewViewModel.fullPreviewCrop?.let {
-                        staticWallpaperPreviewViewModel.updateCropHints(
-                            mapOf(previewViewModel.displaySize to it)
+                    staticWallpaperPreviewViewModel.fullPreviewCropModel?.let {
+                        staticWallpaperPreviewViewModel.updateCropHintsInfo(
+                            mapOf(
+                                previewViewModel.displaySize to
+                                    FullPreviewCropModel(
+                                        it.cropHint,
+                                        it.wallpaperZoom,
+                                        it.hostViewSize,
+                                        it.cropSurfaceSize,
+                                    )
+                            )
                         )
                     }
                 }
@@ -229,7 +244,8 @@ constructor(
                                 wallpaperModel = wallpaper,
                                 inputStream = it.stream,
                                 bitmap = it.rawWallpaperBitmap,
-                                cropHints = it.cropHints ?: emptyMap(),
+                                wallpaperSize = it.rawWallpaperSize,
+                                fullPreviewCropModels = it.fullPreviewCropModels,
                             )
                         }
                     is LiveWallpaperModel -> {

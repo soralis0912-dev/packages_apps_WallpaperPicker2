@@ -21,7 +21,6 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.ColorSpace
 import android.graphics.Point
-import android.graphics.Rect
 import com.android.wallpaper.asset.Asset
 import com.android.wallpaper.asset.StreamableAsset
 import com.android.wallpaper.module.WallpaperPreferences
@@ -29,6 +28,7 @@ import com.android.wallpaper.picker.customization.shared.model.WallpaperColorsMo
 import com.android.wallpaper.picker.data.WallpaperModel.StaticWallpaperModel
 import com.android.wallpaper.picker.di.modules.BackgroundDispatcher
 import com.android.wallpaper.picker.preview.domain.interactor.WallpaperPreviewInteractor
+import com.android.wallpaper.picker.preview.shared.model.FullPreviewCropModel
 import com.android.wallpaper.picker.preview.ui.WallpaperPreviewActivity
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.android.scopes.ViewModelScoped
@@ -57,9 +57,11 @@ constructor(
     @BackgroundDispatcher private val bgDispatcher: CoroutineDispatcher,
 ) {
     /** The state of static wallpaper crop in full preview, before user confirmation. */
-    var fullPreviewCrop: Rect? = null
+    var fullPreviewCropModel: FullPreviewCropModel? = null
 
-    private val cropHints: MutableStateFlow<Map<Point, Rect>?> = MutableStateFlow(null)
+    /** The info picker needs to post process crops for setting static wallpaper. */
+    private val cropHintsInfo: MutableStateFlow<Map<Point, FullPreviewCropModel>?> =
+        MutableStateFlow(null)
 
     val staticWallpaperModel: Flow<StaticWallpaperModel> =
         interactor.wallpaperModel.map { it as? StaticWallpaperModel }.filterNotNull()
@@ -84,12 +86,14 @@ constructor(
             }
             .flowOn(bgDispatcher)
     val fullResWallpaperViewModel: Flow<FullResWallpaperViewModel?> =
-        combine(assetDetail, cropHints) { assetDetail, cropHints ->
+        combine(assetDetail, cropHintsInfo) { assetDetail, cropHintsInfo ->
                 if (assetDetail == null) {
                     null
                 } else {
                     val (dimensions, bitmap, stream) = assetDetail
-                    bitmap?.let { FullResWallpaperViewModel(bitmap, dimensions, cropHints, stream) }
+                    bitmap?.let {
+                        FullResWallpaperViewModel(bitmap, dimensions, stream, cropHintsInfo)
+                    }
                 }
             }
             .flowOn(bgDispatcher)
@@ -104,8 +108,8 @@ constructor(
             }
             .distinctUntilChanged()
 
-    fun updateCropHints(cropHints: Map<Point, Rect>) {
-        this.cropHints.value = this.cropHints.value?.plus(cropHints) ?: cropHints
+    fun updateCropHintsInfo(cropHintsInfo: Map<Point, FullPreviewCropModel>) {
+        this.cropHintsInfo.value = this.cropHintsInfo.value?.plus(cropHintsInfo) ?: cropHintsInfo
     }
 
     // TODO b/296288298 Create a util class for Bitmap and Asset

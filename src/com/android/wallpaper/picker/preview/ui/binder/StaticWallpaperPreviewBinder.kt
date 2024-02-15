@@ -30,6 +30,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.android.wallpaper.picker.preview.shared.model.FullPreviewCropModel
 import com.android.wallpaper.picker.preview.ui.util.FullResImageViewUtil
 import com.android.wallpaper.picker.preview.ui.view.SystemScaledWallpaperPreviewSurfaceView
 import com.android.wallpaper.picker.preview.ui.viewmodel.StaticWallpaperPreviewViewModel
@@ -44,12 +45,18 @@ object StaticWallpaperPreviewBinder {
     private val ALPHA_OUT: Interpolator = PathInterpolator(0f, 0f, 0.8f, 1f)
     private const val CROSS_FADE_DURATION: Long = 200
 
+    /**
+     * Binds static wallpaper preview.
+     *
+     * @param fullPreviewCropModel null if this is not binding the full preview.
+     */
     fun bind(
         lowResImageView: ImageView,
         fullResImageView: SubsamplingScaleImageView,
         viewModel: StaticWallpaperPreviewViewModel,
         displaySize: Point,
         viewLifecycleOwner: LifecycleOwner,
+        allowUserCropping: Boolean = false,
         shouldCalibrateWithSystemScale: Boolean = false,
     ) {
         lowResImageView.initLowResImageView()
@@ -60,27 +67,34 @@ object StaticWallpaperPreviewBinder {
                 launch { viewModel.lowResBitmap.collect { lowResImageView.setImageBitmap(it) } }
 
                 launch {
-                    viewModel.subsamplingScaleImageViewModel.collect {
-                        val cropHint = it.cropHints?.get(displaySize)
+                    viewModel.subsamplingScaleImageViewModel.collect { imageModel ->
+                        val cropHint = imageModel.fullPreviewCropModels?.get(displaySize)?.cropHint
                         fullResImageView.setFullResImage(
-                            it.rawWallpaperBitmap,
-                            it.rawWallpaperSize,
+                            imageModel.rawWallpaperBitmap,
+                            imageModel.rawWallpaperSize,
                             cropHint,
                             shouldCalibrateWithSystemScale,
                         )
 
-                        // Both small and full previews change fullPreviewCrop but it should track
-                        // only full preview crop, initial value should align with existing crop
-                        // otherwise it's a new preview selection and use current visible crop
-                        viewModel.fullPreviewCrop =
-                            cropHint
-                                ?: WallpaperCropUtils.calculateVisibleRect(
-                                    it.rawWallpaperSize,
-                                    Point(
-                                        fullResImageView.measuredWidth,
-                                        fullResImageView.measuredHeight
+                        if (allowUserCropping) {
+                            viewModel.fullPreviewCropModel?.let {
+                                viewModel.fullPreviewCropModel =
+                                    FullPreviewCropModel(
+                                        cropHint = cropHint
+                                                ?: WallpaperCropUtils.calculateVisibleRect(
+                                                    imageModel.rawWallpaperSize,
+                                                    Point(
+                                                        fullResImageView.measuredWidth,
+                                                        fullResImageView.measuredHeight
+                                                    )
+                                                ),
+                                        it.wallpaperZoom,
+                                        it.hostViewSize,
+                                        it.cropSurfaceSize,
                                     )
-                                )
+                            }
+                        }
+
                         crossFadeInFullResImageView(lowResImageView, fullResImageView)
                     }
                 }

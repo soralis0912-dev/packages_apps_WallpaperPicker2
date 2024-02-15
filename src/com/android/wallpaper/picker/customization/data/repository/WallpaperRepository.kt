@@ -19,7 +19,6 @@ package com.android.wallpaper.picker.customization.data.repository
 
 import android.graphics.Bitmap
 import android.graphics.Point
-import android.graphics.Rect
 import android.util.LruCache
 import com.android.wallpaper.module.WallpaperPreferences
 import com.android.wallpaper.module.logging.UserEventLogger.SetWallpaperEntryPoint
@@ -28,6 +27,7 @@ import com.android.wallpaper.picker.customization.shared.model.WallpaperDestinat
 import com.android.wallpaper.picker.customization.shared.model.WallpaperModel
 import com.android.wallpaper.picker.data.WallpaperModel.LiveWallpaperModel
 import com.android.wallpaper.picker.data.WallpaperModel.StaticWallpaperModel
+import com.android.wallpaper.picker.preview.shared.model.FullPreviewCropModel
 import java.io.InputStream
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -124,7 +124,8 @@ class WallpaperRepository(
         wallpaperModel: StaticWallpaperModel,
         inputStream: InputStream?,
         bitmap: Bitmap,
-        cropHints: Map<Point, Rect>,
+        wallpaperSize: Point,
+        fullPreviewCropModels: Map<Point, FullPreviewCropModel>? = null,
     ) {
         // TODO(b/303317694): provide set wallpaper status as flow
         withContext(backgroundDispatcher) {
@@ -134,7 +135,8 @@ class WallpaperRepository(
                 wallpaperModel,
                 inputStream,
                 bitmap,
-                cropHints,
+                wallpaperSize,
+                fullPreviewCropModels,
             )
         }
     }
