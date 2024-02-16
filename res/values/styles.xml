@@ -269,7 +269,7 @@
 
     <style name="SetWallpaperDialog"/>
     <style name="SetWallpaperDialog.Button">
-        <item name="android:textColor">@color/system_on_primary</item>
+        <item name="android:textColor">@color/system_on_secondary</item>
         <item name="android:background">@drawable/set_wallpaper_dialog_button</item>
     </style>
 

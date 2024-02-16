@@ -51,8 +51,8 @@ object SetWallpaperButtonBinder {
                 }
 
                 launch {
-                    viewModel.setWallpaperDialog.collect {
-                        if (it != null) {
+                    viewModel.showSetWallpaperDialog.collect {
+                        if (it) {
                             navigate.invoke()
                         }
                     }
