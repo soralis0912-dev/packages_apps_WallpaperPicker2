@@ -18,8 +18,6 @@
 package com.android.wallpaper.picker.customization.data.content
 
 import android.app.WallpaperManager
-import android.app.WallpaperManager.FLAG_LOCK
-import android.app.WallpaperManager.FLAG_SYSTEM
 import android.content.ComponentName
 import android.content.ContentResolver
 import android.content.ContentValues
@@ -33,6 +31,7 @@ import android.graphics.Rect
 import android.net.Uri
 import android.os.Looper
 import android.util.Log
+import androidx.collection.ArrayMap
 import com.android.wallpaper.asset.BitmapUtils
 import com.android.wallpaper.model.CreativeCategory
 import com.android.wallpaper.model.LiveWallpaperPrefMetadata
@@ -536,6 +535,26 @@ class WallpaperClientImpl(
                 }
         }
         return recentsContentProviderAvailable == true
+    }
+
+    override fun getCurrentCropHints(
+        displaySizes: MutableList<Point>,
+        @WallpaperManager.SetWallpaperFlags which: Int
+    ): Map<Point, Rect>? {
+        val flags = InjectorProvider.getInjector().getFlags()
+        val isMultiCropEnabled = flags.isMultiCropPreviewUiEnabled() && flags.isMultiCropEnabled()
+        if (!isMultiCropEnabled) {
+            return null
+        }
+        val cropHints: List<Rect>? =
+            wallpaperManager.getBitmapCrops(displaySizes, which, /* originalBitmap= */ true)
+        val cropHintsMap: MutableMap<Point, Rect> = ArrayMap()
+        if (cropHints != null) {
+            for (i in cropHints.indices) {
+                cropHintsMap[displaySizes[i]] = cropHints[i]
+            }
+        }
+        return cropHintsMap
     }
 
     fun WallpaperDestination.asString(): String {

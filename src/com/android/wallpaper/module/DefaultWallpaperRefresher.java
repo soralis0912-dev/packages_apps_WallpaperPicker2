@@ -29,15 +29,12 @@ import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
-import android.view.Display;
-
-import androidx.collection.ArrayMap;
 
 import com.android.wallpaper.R;
 import com.android.wallpaper.asset.BitmapUtils;
-import com.android.wallpaper.config.BaseFlags;
 import com.android.wallpaper.model.LiveWallpaperMetadata;
 import com.android.wallpaper.model.WallpaperMetadata;
+import com.android.wallpaper.picker.customization.data.content.WallpaperClient;
 import com.android.wallpaper.util.DisplayUtils;
 
 import java.io.FileInputStream;
@@ -64,6 +61,8 @@ public class DefaultWallpaperRefresher implements WallpaperRefresher {
 
     private final DisplayUtils mDisplayUtils;
 
+    private final WallpaperClient mWallpaperClient;
+
 
     /**
      * @param context The application's context.
@@ -75,6 +74,7 @@ public class DefaultWallpaperRefresher implements WallpaperRefresher {
         mWallpaperPreferences = injector.getPreferences(mAppContext);
         mWallpaperStatusChecker = injector.getWallpaperStatusChecker(context);
         mDisplayUtils = injector.getDisplayUtils(mAppContext);
+        mWallpaperClient = injector.getWallpaperClient(mAppContext);
 
         // Retrieve WallpaperManager using Context#getSystemService instead of
         // WallpaperManager#getInstance so it can be mocked out in test.
@@ -120,18 +120,13 @@ public class DefaultWallpaperRefresher implements WallpaperRefresher {
             boolean isLockScreenWallpaperCurrentlySet =
                     mWallpaperStatusChecker.isLockWallpaperSet();
 
-            BaseFlags flags = InjectorProvider.getInjector().getFlags();
-            boolean isMultiCropEnabled =
-                    flags.isMultiCropPreviewUiEnabled() && flags.isMultiCropEnabled();
             if (mWallpaperManager.getWallpaperInfo() == null) {
-                Map<Point, Rect> cropHints = isMultiCropEnabled ? getCurrentWallpaperCropHints(
-                        FLAG_SYSTEM) : null;
                 wallpaperMetadatas.add(new WallpaperMetadata(
                         mWallpaperPreferences.getHomeWallpaperAttributions(),
                         mWallpaperPreferences.getHomeWallpaperActionUrl(),
                         mWallpaperPreferences.getHomeWallpaperCollectionId(),
                         /* wallpaperComponent= */ null,
-                        cropHints));
+                        getCurrentWallpaperCropHints(FLAG_SYSTEM)));
             } else {
                 wallpaperMetadatas.add(
                         new LiveWallpaperMetadata(mWallpaperManager.getWallpaperInfo()));
@@ -151,14 +146,12 @@ public class DefaultWallpaperRefresher implements WallpaperRefresher {
             }
 
             if (mWallpaperManager.getWallpaperInfo(FLAG_LOCK) == null) {
-                Map<Point, Rect> cropHints = isMultiCropEnabled ? getCurrentWallpaperCropHints(
-                        FLAG_LOCK) : null;
                 wallpaperMetadatas.add(new WallpaperMetadata(
                         mWallpaperPreferences.getLockWallpaperAttributions(),
                         mWallpaperPreferences.getLockWallpaperActionUrl(),
                         mWallpaperPreferences.getLockWallpaperCollectionId(),
                         /* wallpaperComponent= */ null,
-                        cropHints));
+                        getCurrentWallpaperCropHints(FLAG_LOCK)));
             } else {
                 wallpaperMetadatas.add(new LiveWallpaperMetadata(
                         mWallpaperManager.getWallpaperInfo(FLAG_LOCK)));
@@ -377,18 +370,8 @@ public class DefaultWallpaperRefresher implements WallpaperRefresher {
 
         private Map<Point, Rect> getCurrentWallpaperCropHints(
                 @WallpaperManager.SetWallpaperFlags int which) {
-            List<Display> displays = mDisplayUtils.getInternalDisplays();
-            List<Point> displaySizes = new ArrayList<>();
-            displays.forEach(display -> displaySizes.add(mDisplayUtils.getRealSize(display)));
-            List<Rect> cropHints = mWallpaperManager.getBitmapCrops(displaySizes,
-                    which, /* originalBitmap= */true);
-            Map<Point, Rect> crophintsMap = new ArrayMap<>();
-            if (cropHints != null) {
-                for (int i = 0; i < cropHints.size(); i++) {
-                    crophintsMap.put(displaySizes.get(i), cropHints.get(i));
-                }
-            }
-            return crophintsMap;
+            List<Point> displaySizes = mDisplayUtils.getInternalDisplaySizes();
+            return mWallpaperClient.getCurrentCropHints(displaySizes, which);
         }
     }
 }
