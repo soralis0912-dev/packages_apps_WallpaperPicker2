@@ -933,6 +933,17 @@ open class DefaultWallpaperPreferences(private val context: Context) : Wallpaper
         return map ?: emptyMap()
     }
 
+    override fun setShowPreviewTooltip(shouldShowTooltip: Boolean) {
+        sharedPrefs
+            .edit()
+            .putBoolean(WallpaperPreferenceKeys.KEY_SHOULD_SHOW_PREVIEW_TOOLTIP, shouldShowTooltip)
+            .apply()
+    }
+
+    override fun getShowPreviewTooltip(): Boolean {
+        return sharedPrefs.getBoolean(WallpaperPreferenceKeys.KEY_SHOULD_SHOW_PREVIEW_TOOLTIP, true)
+    }
+
     private fun setFirstLaunchDateSinceSetup(firstLaunchDate: Int) {
         noBackupPrefs
             .edit()
