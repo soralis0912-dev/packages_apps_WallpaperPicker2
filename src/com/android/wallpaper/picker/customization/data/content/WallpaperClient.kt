@@ -17,6 +17,7 @@
 
 package com.android.wallpaper.picker.customization.data.content
 
+import android.app.WallpaperManager
 import android.graphics.Bitmap
 import android.graphics.Point
 import android.graphics.Rect
@@ -91,4 +92,9 @@ interface WallpaperClient {
 
     /** Returns whether the recent wallpapers provider is available. */
     fun areRecentsAvailable(): Boolean
+
+    fun getCurrentCropHints(
+        displaySizes: MutableList<Point>,
+        @WallpaperManager.SetWallpaperFlags which: Int
+    ): Map<Point, Rect>?
 }

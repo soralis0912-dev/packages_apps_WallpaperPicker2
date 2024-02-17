@@ -147,4 +147,11 @@ class DisplayUtils(private val context: Context) {
         }
         return allDisplays.filter { it.type == Display.TYPE_INTERNAL }
     }
+
+    fun getInternalDisplaySizes(): List<Point> {
+        val displays: List<Display> = getInternalDisplays()
+        val displaySizes: MutableList<Point> = ArrayList()
+        displays.forEach { display: Display -> displaySizes.add(getRealSize(display)) }
+        return displaySizes
+    }
 }

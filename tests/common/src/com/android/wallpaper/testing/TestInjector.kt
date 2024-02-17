@@ -275,7 +275,7 @@ open class TestInjector @Inject constructor(private val userEventLogger: UserEve
                     repository =
                         WallpaperRepository(
                             scope = getApplicationCoroutineScope(),
-                            client = getWallpaperClient(),
+                            client = getWallpaperClient(context),
                             wallpaperPreferences = getPreferences(context = context),
                             backgroundDispatcher = Dispatchers.IO,
                         ),
@@ -326,7 +326,7 @@ open class TestInjector @Inject constructor(private val userEventLogger: UserEve
             }
     }
 
-    fun getWallpaperClient(): FakeWallpaperClient {
+    override fun getWallpaperClient(context: Context): FakeWallpaperClient {
         return wallpaperClient ?: FakeWallpaperClient().also { wallpaperClient = it }
     }
 
