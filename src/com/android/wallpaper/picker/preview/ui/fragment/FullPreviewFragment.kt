@@ -136,7 +136,7 @@ class FullPreviewFragment : Hilt_FullPreviewFragment() {
                 viewModel = wallpaperPreviewViewModel,
                 lifecycleOwner = viewLifecycleOwner
             )
-            tooltip.setOnClickListener { wallpaperPreviewViewModel.setShowTooltip(false) }
+            tooltip.setOnClickListener { wallpaperPreviewViewModel.dismissTooltip() }
         }
 
         return view

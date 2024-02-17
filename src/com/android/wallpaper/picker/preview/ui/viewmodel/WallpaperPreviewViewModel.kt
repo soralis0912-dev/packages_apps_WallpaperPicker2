@@ -21,6 +21,7 @@ import android.stats.style.StyleEnums
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.wallpaper.model.wallpaper.FoldableDisplay
+import com.android.wallpaper.module.CustomizationSections
 import com.android.wallpaper.module.CustomizationSections.Screen
 import com.android.wallpaper.picker.customization.shared.model.WallpaperColorsModel
 import com.android.wallpaper.picker.customization.shared.model.WallpaperDestination
@@ -35,6 +36,7 @@ import com.android.wallpaper.util.DisplayUtils
 import com.android.wallpaper.util.PreviewUtils
 import com.android.wallpaper.util.WallpaperConnection.WhichPreview
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.util.EnumSet
 import javax.inject.Inject
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -66,12 +68,8 @@ constructor(
     var isViewAsHome = false
     var isNewTask = false
 
-    // TODO (b/303318205): cache value in wallpaper preferences
-    private val _showTooltip: MutableStateFlow<Boolean> = MutableStateFlow(true)
-    val showTooltip: StateFlow<Boolean> = _showTooltip.asStateFlow()
-    fun setShowTooltip(showTooltip: Boolean) {
-        _showTooltip.value = showTooltip
-    }
+    val showTooltip: StateFlow<Boolean> = interactor.showTooltip
+    fun dismissTooltip() = interactor.dismissTooltip()
 
     val wallpaper: StateFlow<WallpaperModel?> = interactor.wallpaperModel
     private val _whichPreview = MutableStateFlow<WhichPreview?>(null)
@@ -159,68 +157,94 @@ constructor(
             }
         }
 
-    private val _isSetWallpaperProgressBarVisible = MutableStateFlow(false)
-    val isSetWallpaperProgressBarVisible: Flow<Boolean> =
-        _isSetWallpaperProgressBarVisible.asStateFlow()
-
-    val onSetWallpaperButtonClicked: Flow<(() -> Unit)?> =
+    // Set wallpaper button and set wallpaper dialog
+    val isSetWallpaperButtonVisible: Flow<Boolean> =
         combine(
             wallpaper,
             staticWallpaperPreviewViewModel.fullResWallpaperViewModel,
         ) { wallpaper, fullResWallpaperViewModel ->
-            if (
-                wallpaper == null ||
-                    wallpaper.isDownloadableWallpaper() ||
-                    (wallpaper is StaticWallpaperModel && fullResWallpaperViewModel == null)
-            ) {
-                null
-            } else {
-                { showSetWallpaperDialog(wallpaper, fullResWallpaperViewModel) }
-            }
+            wallpaper != null &&
+                !wallpaper.isDownloadableWallpaper() &&
+                !(wallpaper is StaticWallpaperModel && fullResWallpaperViewModel == null)
         }
-    val isSetWallpaperButtonVisible: Flow<Boolean> = onSetWallpaperButtonClicked.map { it != null }
+    val onSetWallpaperButtonClicked: Flow<(() -> Unit)?> =
+        isSetWallpaperButtonVisible.map { visible ->
+            if (visible) {
+                { _showSetWallpaperDialog.value = true }
+            } else null
+        }
 
-    private val _setWallpaperDialog = MutableStateFlow<WallpaperConfirmDialogViewModel?>(null)
-    val setWallpaperDialog = _setWallpaperDialog.asStateFlow()
+    private val _showSetWallpaperDialog = MutableStateFlow(false)
+    val showSetWallpaperDialog = _showSetWallpaperDialog.asStateFlow()
 
-    private fun showSetWallpaperDialog(
-        viewModel: WallpaperModel,
-        scaleImageViewModel: FullResWallpaperViewModel?,
-    ) {
-        _setWallpaperDialog.value =
-            WallpaperConfirmDialogViewModel(
-                onConfirmButtonClicked = {
-                    _isSetWallpaperProgressBarVisible.value = true
-                    _setWallpaperDialog.value = null
-                    when (viewModel) {
-                        is StaticWallpaperModel ->
-                            scaleImageViewModel?.let {
-                                interactor.setStaticWallpaper(
-                                    setWallpaperEntryPoint =
-                                        StyleEnums.SET_WALLPAPER_ENTRY_POINT_WALLPAPER_PREVIEW,
-                                    destination = WallpaperDestination.BOTH,
-                                    wallpaperModel = viewModel,
-                                    inputStream = it.stream,
-                                    bitmap = it.rawWallpaperBitmap,
-                                    cropHints = it.cropHints ?: emptyMap(),
-                                )
-                            }
-                        is LiveWallpaperModel -> {
-                            interactor.setLiveWallpaper(
+    private val _setWallpaperDialogSelectedScreens: MutableStateFlow<Set<Screen>> =
+        MutableStateFlow(EnumSet.allOf(Screen::class.java))
+    val setWallpaperDialogSelectedScreens: StateFlow<Set<Screen>> =
+        _setWallpaperDialogSelectedScreens.asStateFlow()
+
+    fun onSetWallpaperDialogScreenSelected(screen: Screen) {
+        val previousSelection = _setWallpaperDialogSelectedScreens.value
+        _setWallpaperDialogSelectedScreens.value =
+            if (previousSelection.contains(screen) && previousSelection.size > 1) {
+                previousSelection.minus(screen)
+            } else {
+                previousSelection.plus(screen)
+            }
+    }
+
+    private val _isSetWallpaperProgressBarVisible = MutableStateFlow(false)
+    val isSetWallpaperProgressBarVisible: Flow<Boolean> =
+        _isSetWallpaperProgressBarVisible.asStateFlow()
+
+    val setWallpaperDialogOnConfirmButtonClicked: Flow<suspend () -> Unit> =
+        combine(
+            wallpaper.filterNotNull(),
+            staticWallpaperPreviewViewModel.fullResWallpaperViewModel,
+            setWallpaperDialogSelectedScreens,
+        ) { wallpaper, fullResWallpaperViewModel, selectedScreens ->
+            {
+                _isSetWallpaperProgressBarVisible.value = true
+                val destination = selectedScreens.getDestination()
+                _showSetWallpaperDialog.value = false
+                when (wallpaper) {
+                    is StaticWallpaperModel ->
+                        fullResWallpaperViewModel?.let {
+                            interactor.setStaticWallpaper(
                                 setWallpaperEntryPoint =
                                     StyleEnums.SET_WALLPAPER_ENTRY_POINT_WALLPAPER_PREVIEW,
-                                destination = WallpaperDestination.BOTH,
-                                wallpaperModel = viewModel,
+                                destination = destination,
+                                wallpaperModel = wallpaper,
+                                inputStream = it.stream,
+                                bitmap = it.rawWallpaperBitmap,
+                                cropHints = it.cropHints ?: emptyMap(),
                             )
                         }
+                    is LiveWallpaperModel -> {
+                        interactor.setLiveWallpaper(
+                            setWallpaperEntryPoint =
+                                StyleEnums.SET_WALLPAPER_ENTRY_POINT_WALLPAPER_PREVIEW,
+                            destination = destination,
+                            wallpaperModel = wallpaper,
+                        )
                     }
-                },
-                onCancelButtonClicked = { _setWallpaperDialog.value = null },
-            )
+                }
+            }
+        }
+
+    private fun Set<Screen>.getDestination(): WallpaperDestination {
+        return if (containsAll(CustomizationSections.Screen.entries)) {
+            WallpaperDestination.BOTH
+        } else if (contains(Screen.HOME_SCREEN)) {
+            WallpaperDestination.HOME
+        } else if (contains(Screen.LOCK_SCREEN)) {
+            WallpaperDestination.LOCK
+        } else {
+            throw IllegalArgumentException("Unknown screens selected: $this")
+        }
     }
 
     fun dismissSetWallpaperDialog() {
-        _setWallpaperDialog.value = null
+        _showSetWallpaperDialog.value = false
     }
 
     fun setWallpaperConnectionColors(wallpaperColors: WallpaperColorsModel) {

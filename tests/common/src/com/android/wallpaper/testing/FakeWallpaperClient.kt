@@ -136,6 +136,13 @@ class FakeWallpaperClient : WallpaperClient {
         return true
     }
 
+    override fun getCurrentCropHints(
+        displaySizes: MutableList<Point>,
+        which: Int
+    ): Map<Point, Rect>? {
+        return emptyMap()
+    }
+
     companion object {
         val INITIAL_RECENT_WALLPAPERS =
             listOf(

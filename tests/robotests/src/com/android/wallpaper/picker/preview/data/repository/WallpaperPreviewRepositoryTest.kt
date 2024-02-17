@@ -24,6 +24,7 @@ import android.content.pm.ResolveInfo
 import android.content.pm.ServiceInfo
 import android.graphics.Color
 import androidx.test.core.app.ApplicationProvider
+import com.android.wallpaper.module.WallpaperPreferences
 import com.android.wallpaper.picker.data.ColorInfo
 import com.android.wallpaper.picker.data.CommonWallpaperData
 import com.android.wallpaper.picker.data.Destination
@@ -35,6 +36,7 @@ import com.android.wallpaper.picker.preview.data.util.TestLiveWallpaperDownloade
 import com.android.wallpaper.picker.preview.shared.model.LiveWallpaperDownloadResultCode
 import com.android.wallpaper.picker.preview.shared.model.LiveWallpaperDownloadResultModel
 import com.android.wallpaper.testing.TestAsset
+import com.android.wallpaper.testing.TestWallpaperPreferences
 import com.android.wallpaper.testing.WallpaperModelUtils.Companion.getStaticWallpaperModel
 import com.google.common.truth.Truth.assertThat
 import dagger.hilt.android.testing.HiltTestApplication
@@ -63,12 +65,14 @@ class WallpaperPreviewRepositoryTest {
     private lateinit var testDispatcher: CoroutineDispatcher
     private lateinit var testScope: TestScope
     private lateinit var underTest: WallpaperPreviewRepository
+    private lateinit var prefs: WallpaperPreferences
 
     @Before
     fun setUp() {
         context = ApplicationProvider.getApplicationContext<HiltTestApplication>()
         testDispatcher = StandardTestDispatcher()
         testScope = TestScope(testDispatcher)
+        prefs = TestWallpaperPreferences()
     }
 
     @Test
@@ -76,6 +80,7 @@ class WallpaperPreviewRepositoryTest {
         underTest =
             WallpaperPreviewRepository(
                 liveWallpaperDownloader = TestLiveWallpaperDownloader(null),
+                preferences = prefs,
                 bgDispatcher = testDispatcher,
             )
 
@@ -92,6 +97,22 @@ class WallpaperPreviewRepositoryTest {
     }
 
     @Test
+    fun dismissTooltip() {
+        prefs.setShowPreviewTooltip(true)
+        underTest =
+            WallpaperPreviewRepository(
+                liveWallpaperDownloader = TestLiveWallpaperDownloader(null),
+                preferences = prefs,
+                bgDispatcher = testDispatcher,
+            )
+        assertThat(underTest.showTooltip.value).isTrue()
+
+        underTest.dismissTooltip()
+        assertThat(prefs.getShowPreviewTooltip()).isFalse()
+        assertThat(underTest.showTooltip.value).isFalse()
+    }
+
+    @Test
     fun downloadWallpaper_fails() {
         underTest =
             WallpaperPreviewRepository(
@@ -99,6 +120,7 @@ class WallpaperPreviewRepositoryTest {
                     TestLiveWallpaperDownloader(
                         LiveWallpaperDownloadResultModel(LiveWallpaperDownloadResultCode.FAIL, null)
                     ),
+                preferences = prefs,
                 bgDispatcher = testDispatcher,
             )
 
@@ -124,6 +146,7 @@ class WallpaperPreviewRepositoryTest {
                             wallpaperModel = resultWallpaper,
                         )
                     ),
+                preferences = prefs,
                 bgDispatcher = testDispatcher,
             )
 
