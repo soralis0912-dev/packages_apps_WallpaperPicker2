@@ -90,11 +90,14 @@ object SmallWallpaperPreviewBinder {
                                     surface.attachView(staticPreviewView)
                                     // Bind static wallpaper
                                     StaticWallpaperPreviewBinder.bind(
-                                        staticPreviewView.requireViewById(R.id.low_res_image),
-                                        staticPreviewView.requireViewById(R.id.full_res_image),
-                                        viewModel.staticWallpaperPreviewViewModel,
-                                        displaySize,
-                                        viewLifecycleOwner,
+                                        lowResImageView =
+                                            staticPreviewView.requireViewById(R.id.low_res_image),
+                                        fullResImageView =
+                                            staticPreviewView.requireViewById(R.id.full_res_image),
+                                        viewModel = viewModel.staticWallpaperPreviewViewModel,
+                                        displaySize = displaySize,
+                                        viewLifecycleOwner = viewLifecycleOwner,
+                                        shouldCalibrateWithSystemScale = true,
                                     )
                                 }
                             }
