@@ -44,7 +44,7 @@ object DualPreviewPagerBinder {
     ) {
         // implement adapter for the dual preview pager
         dualPreviewView.adapter = DualPreviewPagerAdapter { view, position ->
-            if (wallpaperPreviewViewModel.showTooltip.value) {
+            if (wallpaperPreviewViewModel.shouldShowTooltipWorkflow()) {
                 val inflater =
                     applicationContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE)
                         as LayoutInflater
