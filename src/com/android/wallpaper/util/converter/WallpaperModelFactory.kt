@@ -79,7 +79,8 @@ interface WallpaperModelFactory {
                 WallpaperId(
                     componentName = componentName,
                     uniqueId =
-                        if (this is ImageWallpaperInfo && getWallpaperId() == null) uri.toString()
+                        if (this is ImageWallpaperInfo && getWallpaperId() == null)
+                            "${uri.hashCode()}"
                         else wallpaperId,
                     // TODO(b/308800470): Figure out the use of collection ID
                     collectionId = getCollectionId(context) ?: UNKNOWN_COLLECTION_ID,
