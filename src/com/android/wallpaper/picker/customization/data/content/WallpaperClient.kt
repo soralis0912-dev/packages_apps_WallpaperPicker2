@@ -94,7 +94,7 @@ interface WallpaperClient {
     fun areRecentsAvailable(): Boolean
 
     fun getCurrentCropHints(
-        displaySizes: MutableList<Point>,
+        displaySizes: List<Point>,
         @WallpaperManager.SetWallpaperFlags which: Int
     ): Map<Point, Rect>?
 }
