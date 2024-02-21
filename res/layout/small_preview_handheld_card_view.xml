@@ -14,14 +14,20 @@
   ~ limitations under the License.
   ~
   -->
-<com.android.wallpaper.picker.DisplayAspectRatioFrameLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content">
-    <include
-        android:id="@+id/preview"
-        layout="@layout/wallpaper_preview_card2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"/>
-</com.android.wallpaper.picker.DisplayAspectRatioFrameLayout>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipChildren="false">
+
+    <com.android.wallpaper.picker.DisplayAspectRatioFrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <include
+            android:id="@+id/preview"
+            layout="@layout/small_wallpaper_preview_card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"/>
+    </com.android.wallpaper.picker.DisplayAspectRatioFrameLayout>
+</FrameLayout>
