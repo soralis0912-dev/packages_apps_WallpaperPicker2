@@ -127,7 +127,7 @@ class DisplayUtils(private val context: Context) {
      */
     fun getSmallerDisplay(): Display {
         val internalDisplays = getInternalDisplays()
-        var largestDisplay = getWallpaperDisplay()
+        val largestDisplay = getWallpaperDisplay()
         val smallestDisplay = internalDisplays.firstOrNull() { it != largestDisplay }
         return smallestDisplay ?: largestDisplay
     }
@@ -138,7 +138,7 @@ class DisplayUtils(private val context: Context) {
         return displayInfo.logicalHeight * displayInfo.logicalWidth
     }
 
-    fun getInternalDisplays(): List<Display> {
+    private fun getInternalDisplays(): List<Display> {
         val allDisplays: Array<out Display> =
             displayManager.getDisplays(DisplayManager.DISPLAY_CATEGORY_ALL_INCLUDING_DISABLED)
         if (allDisplays.isEmpty()) {
@@ -149,9 +149,6 @@ class DisplayUtils(private val context: Context) {
     }
 
     fun getInternalDisplaySizes(): List<Point> {
-        val displays: List<Display> = getInternalDisplays()
-        val displaySizes: MutableList<Point> = ArrayList()
-        displays.forEach { display: Display -> displaySizes.add(getRealSize(display)) }
-        return displaySizes
+        return getInternalDisplays().map { getRealSize(it) }
     }
 }
