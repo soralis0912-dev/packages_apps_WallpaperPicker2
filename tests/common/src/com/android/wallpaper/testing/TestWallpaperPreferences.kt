@@ -87,7 +87,7 @@ open class TestWallpaperPreferences @Inject constructor() : WallpaperPreferences
 
     private val wallpaperCropHints: MutableMap<Point, Rect?>
 
-    private var shouldShowPreviewTooltip = true
+    private var hasPreviewTooltipBeenShown = true
 
     init {
         wallpaperPresentationMode = WallpaperPreferences.PRESENTATION_MODE_STATIC
@@ -497,12 +497,12 @@ open class TestWallpaperPreferences @Inject constructor() : WallpaperPreferences
         wallpaperCropHints.putAll(cropHints)
     }
 
-    override fun setShowPreviewTooltip(shouldShowTooltip: Boolean) {
-        shouldShowPreviewTooltip = shouldShowTooltip
+    override fun setHasPreviewTooltipBeenShown(hasTooltipBeenShown: Boolean) {
+        this.hasPreviewTooltipBeenShown = hasTooltipBeenShown
     }
 
-    override fun getShowPreviewTooltip(): Boolean {
-        return shouldShowPreviewTooltip
+    override fun getHasPreviewTooltipBeenShown(): Boolean {
+        return hasPreviewTooltipBeenShown
     }
 
     private fun setAppLaunchCount(count: Int) {

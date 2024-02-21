@@ -33,9 +33,10 @@ object PreviewTooltipBinder {
         lifecycleOwner.lifecycleScope.launch {
             lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
-                    viewModel.showTooltip.collect { showTooltip ->
+                    viewModel.hasTooltipBeenShown.collect { hasTooltipBeenShown ->
                         // TODO (b/303318205): animate tooltip
-                        view.isVisible = showTooltip
+                        // Only show tooltip if it has not been shown before.
+                        view.isVisible = !hasTooltipBeenShown
                     }
                 }
             }
