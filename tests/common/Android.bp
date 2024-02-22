@@ -33,6 +33,4 @@ android_library {
         "kotlinx_coroutines_test",
         "truth",
     ],
-
-    platform_apis: true,
 }
