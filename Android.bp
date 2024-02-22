@@ -48,6 +48,7 @@ android_library {
         "kotlinx-coroutines-core",
         "libbackup",
         "SettingsLibCollapsingToolbarBaseActivity",
+	"SettingsLibSettingsTheme",
         "subsampling-scale-image-view",
         "SystemUISharedLib",
         "SystemUICustomizationLib",

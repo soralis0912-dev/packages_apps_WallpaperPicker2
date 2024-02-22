@@ -17,9 +17,19 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="@dimen/set_wallpaper_dialog_handheld_preview_width"
     android:layout_height="@dimen/set_wallpaper_dialog_handheld_preview_height">
-    <include layout="@layout/preview_handheld_card_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+
+    <com.android.wallpaper.picker.DisplayAspectRatioFrameLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <include
+            android:id="@+id/preview"
+            layout="@layout/small_wallpaper_preview_card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"/>
+    </com.android.wallpaper.picker.DisplayAspectRatioFrameLayout>
 
     <ImageView
         android:layout_width="match_parent"
