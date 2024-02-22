@@ -26,13 +26,13 @@
 
         <include
             android:id="@+id/small_preview_folded_preview"
-            layout="@layout/wallpaper_preview_card2"
+            layout="@layout/small_wallpaper_preview_card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 
         <include
             android:id="@+id/small_preview_unfolded_preview"
-            layout="@layout/wallpaper_preview_card2"
+            layout="@layout/small_wallpaper_preview_card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
     </com.android.wallpaper.picker.preview.ui.view.DualDisplayAspectRatioLayout>

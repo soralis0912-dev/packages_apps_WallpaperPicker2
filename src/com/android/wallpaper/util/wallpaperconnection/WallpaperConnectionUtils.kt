@@ -21,6 +21,7 @@ import com.android.wallpaper.picker.di.modules.MainDispatcher
 import com.android.wallpaper.util.ScreenSizeCalculator
 import com.android.wallpaper.util.WallpaperConnection
 import com.android.wallpaper.util.WallpaperConnection.WhichPreview
+import com.android.wallpaper.util.wallpaperconnection.WallpaperConnectionUtils.getKey
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
@@ -113,6 +114,26 @@ object WallpaperConnectionUtils {
                 surfaceControlMap.remove(engineKey)?.let { surfaceControls ->
                     surfaceControls.forEach { it.release() }
                     surfaceControls.clear()
+                }
+            }
+        }
+    }
+
+    /**
+     * Disconnect all live wallpaper services without releasing and clear surface controls. This
+     * function is called before binding static wallpapers. We have cases that user switch between
+     * live wan static wallpapers. When switching from live to static wallpapers, we need to
+     * disconnect the live wallpaper services to have the static wallpapers show up. But we can not
+     * clear the surface controls yet, because we will need them to render the live wallpapers again
+     * when switching from static to live wallpapers again.
+     */
+    suspend fun disconnectAllServices(context: Context) {
+        engineMap.keys.map { key ->
+            mutex.withLock {
+                engineMap.remove(key)?.await()?.let { (serviceConnection, engineConnection) ->
+                    engineConnection.engine?.destroy()
+                    engineConnection.removeListener()
+                    context.unbindService(serviceConnection)
                 }
             }
         }
