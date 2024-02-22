@@ -82,6 +82,8 @@ import com.android.wallpaper.widget.floatingsheetcontent.WallpaperInfoContent;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.transition.MaterialSharedAxis;
 
+import java.util.List;
+
 import kotlinx.coroutines.BuildersKt;
 import kotlinx.coroutines.CoroutineStart;
 import kotlinx.coroutines.Dispatchers;
@@ -303,10 +305,15 @@ public abstract class PreviewFragment extends Fragment implements WallpaperColor
         mFloatingSheet = view.findViewById(R.id.floating_sheet);
         mHideFloatingSheetTouchLayout = view.findViewById(R.id.hide_floating_sheet_touch_layout);
         mWallpaperControlButtonGroup = view.findViewById(R.id.wallpaper_control_button_group);
-        setUpFloatingSheet(requireContext());
-        mWallpaperControlButtonGroup.showButton(WallpaperControlButtonGroup.INFORMATION,
-                getFloatingSheetControlButtonChangeListener(WallpaperControlButtonGroup.INFORMATION,
-                        INFORMATION));
+        boolean shouldShowInformationFloatingSheet = shouldShowInformationFloatingSheet(mWallpaper);
+        setUpFloatingSheet(requireContext(), shouldShowInformationFloatingSheet);
+        if (shouldShowInformationFloatingSheet) {
+            mWallpaperControlButtonGroup.showButton(
+                    WallpaperControlButtonGroup.INFORMATION,
+                    getFloatingSheetControlButtonChangeListener(
+                            WallpaperControlButtonGroup.INFORMATION,
+                            INFORMATION));
+        }
         mPreviewScrim = view.findViewById(R.id.preview_scrim);
         mExitFullPreviewButton = view.findViewById(R.id.exit_full_preview_button);
         mExitFullPreviewButton.setOnClickListener(v -> toggleWallpaperPreviewControl());
@@ -361,8 +368,22 @@ public abstract class PreviewFragment extends Fragment implements WallpaperColor
         mLockSurface.getHolder().addCallback(mLockSurfaceCallback);
     }
 
+    private boolean shouldShowInformationFloatingSheet(WallpaperInfo wallpaperInfo) {
+        List<String> attributions = wallpaperInfo.getAttributions(requireContext());
+        String actionUrl = wallpaperInfo.getActionUrl(requireContext());
+        boolean showAttribution = false;
+        for (String attr : attributions) {
+            if (attr != null && !attr.isEmpty()) {
+                showAttribution = true;
+                break;
+            }
+        }
+        boolean showActionUrl = actionUrl != null && !actionUrl.isEmpty();
+        return showAttribution || showActionUrl;
+    }
+
     @SuppressLint("ClickableViewAccessibility")
-    private void setUpFloatingSheet(Context context) {
+    private void setUpFloatingSheet(Context context, boolean shouldShowInformationFloatingSheet) {
         setHideFloatingSheetLayoutAccessibilityAction();
         mHideFloatingSheetTouchLayout.setContentDescription(
                 getString(R.string.preview_screen_description));
@@ -370,8 +391,10 @@ public abstract class PreviewFragment extends Fragment implements WallpaperColor
         mHideFloatingSheetTouchLayout.setVisibility(View.GONE);
         mFloatingSheet.addFloatingSheetCallback(mStandardFloatingSheetCallback);
         mFloatingSheet.addFloatingSheetCallback(mShowOverlayOnHideFloatingSheetCallback);
-        mFloatingSheet.putFloatingSheetContent(INFORMATION,
-                new WallpaperInfoContent(context, mWallpaper));
+        if (shouldShowInformationFloatingSheet) {
+            mFloatingSheet.putFloatingSheetContent(INFORMATION,
+                    new WallpaperInfoContent(context, mWallpaper));
+        }
     }
 
     protected CompoundButton.OnCheckedChangeListener getFloatingSheetControlButtonChangeListener(
