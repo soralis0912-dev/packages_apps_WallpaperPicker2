@@ -99,6 +99,7 @@ constructor(
                     cropHints.mapValues {
                         FullPreviewCropModel(
                             cropHint = it.value,
+                            cropSizeModel = null,
                         )
                     }
                 )
@@ -161,23 +162,11 @@ constructor(
         _fullWorkspacePreviewConfigViewModel.filterNotNull()
 
     val onCropButtonClick: Flow<(() -> Unit)?> =
-        combine(wallpaper, fullWallpaperPreviewConfigViewModel.filterNotNull()) {
-            wallpaper,
-            previewViewModel ->
+        combine(wallpaper, fullWallpaperPreviewConfigViewModel.filterNotNull()) { wallpaper, _ ->
             if (wallpaper is StaticWallpaperModel && !wallpaper.isDownloadableWallpaper()) {
                 {
-                    staticWallpaperPreviewViewModel.fullPreviewCropModel?.let {
-                        staticWallpaperPreviewViewModel.updateCropHintsInfo(
-                            mapOf(
-                                previewViewModel.displaySize to
-                                    FullPreviewCropModel(
-                                        it.cropHint,
-                                        it.wallpaperZoom,
-                                        it.hostViewSize,
-                                        it.cropSurfaceSize,
-                                    )
-                            )
-                        )
+                    staticWallpaperPreviewViewModel.run {
+                        updateCropHintsInfo(fullPreviewCropModels)
                     }
                 }
             } else {
