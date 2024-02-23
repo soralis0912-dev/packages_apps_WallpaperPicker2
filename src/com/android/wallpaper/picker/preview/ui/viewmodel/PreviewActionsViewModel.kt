@@ -342,23 +342,20 @@ constructor(
 
     companion object {
         private fun WallpaperModel.shouldShowInformationFloatingSheet(): Boolean {
-            return if (
-                commonWallpaperData.attributions.isNullOrEmpty() &&
-                    commonWallpaperData.exploreActionUrl.isNullOrEmpty()
-            ) {
-                // If neither of the attributes nor the action url exists, do not show the
-                // information floating sheet.
-                false
-            } else if (
+            if (
                 this is LiveWallpaperModel &&
                     !liveWallpaperData.systemWallpaperInfo.showMetadataInPreview
             ) {
                 // If the live wallpaper's flag of showMetadataInPreview is false, do not show the
                 // information floating sheet.
-                false
-            } else {
-                true
+                return false
             }
+            val attributions = commonWallpaperData.attributions
+            // Show information floating sheet when any of the following contents exists
+            // 1. Attributions: Any of the list values is not null nor empty
+            // 2. Explore action URL
+            return (!attributions.isNullOrEmpty() && attributions.any { !it.isNullOrEmpty() }) ||
+                !commonWallpaperData.exploreActionUrl.isNullOrEmpty()
         }
 
         private fun CreativeWallpaperData.getShareIntent(): Intent {
