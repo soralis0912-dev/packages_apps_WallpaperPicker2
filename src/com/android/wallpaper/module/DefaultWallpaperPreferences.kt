@@ -26,7 +26,6 @@ import android.graphics.Color
 import android.graphics.Point
 import android.graphics.Rect
 import android.util.Log
-import androidx.core.content.edit
 import com.android.wallpaper.model.LiveWallpaperInfo
 import com.android.wallpaper.model.LiveWallpaperPrefMetadata
 import com.android.wallpaper.model.StaticWallpaperPrefMetadata
@@ -282,7 +281,6 @@ open class DefaultWallpaperPreferences(private val context: Context) : Wallpaper
             .remove(NoBackupKeys.KEY_HOME_WALLPAPER_REMOTE_ID)
             .remove(NoBackupKeys.KEY_HOME_WALLPAPER_BASE_IMAGE_URL)
             .remove(NoBackupKeys.KEY_HOME_WALLPAPER_BACKING_FILE)
-            .remove(NoBackupKeys.KEY_CROP_HINTS)
             .apply()
     }
 
@@ -500,7 +498,6 @@ open class DefaultWallpaperPreferences(private val context: Context) : Wallpaper
             .remove(NoBackupKeys.KEY_LOCK_WALLPAPER_MANAGER_ID)
             .remove(NoBackupKeys.KEY_LOCK_WALLPAPER_REMOTE_ID)
             .remove(NoBackupKeys.KEY_LOCK_WALLPAPER_BACKING_FILE)
-            .remove(NoBackupKeys.KEY_CROP_HINTS)
             .apply()
     }
 
@@ -907,31 +904,6 @@ open class DefaultWallpaperPreferences(private val context: Context) : Wallpaper
         destination: WallpaperDestination,
         wallpaperModel: LiveWallpaperModel
     ) {}
-
-    override fun storeWallpaperCropHints(cropHints: Map<Point, Rect?>) {
-        noBackupPrefs.edit {
-            putStringSet(
-                NoBackupKeys.KEY_CROP_HINTS,
-                cropHints
-                    .map { (point, rect) ->
-                        "${point.flattenToString()}$KEY_VALUE_DIVIDER${rect?.flattenToString()}"
-                    }
-                    .toSet()
-            )
-        }
-    }
-
-    override fun getWallpaperCropHints(): Map<Point, Rect?> {
-        val stringSet = noBackupPrefs.getStringSet(NoBackupKeys.KEY_CROP_HINTS, null)
-        val map =
-            stringSet?.associate {
-                val (key, value) = it.split(KEY_VALUE_DIVIDER)
-                val displaySize = Point.unflattenFromString(key)!!
-                val cropRect = Rect.unflattenFromString(value)
-                displaySize to cropRect
-            }
-        return map ?: emptyMap()
-    }
 
     override fun setHasPreviewTooltipBeenShown(hasTooltipBeenShown: Boolean) {
         sharedPrefs
