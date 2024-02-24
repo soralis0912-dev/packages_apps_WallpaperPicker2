@@ -78,6 +78,5 @@ public class WallpaperPreferenceKeys {
         String KEY_PREVIEW_WALLPAPER_COLOR_ID = "preview_wallpaper_color_id";
         String KEY_HOME_WALLPAPER_EFFECTS = "home_wallpaper_effects";
         String KEY_LOCK_WALLPAPER_EFFECTS = "lock_wallpaper_effects";
-        String KEY_CROP_HINTS = "crop_hints";
     }
 }

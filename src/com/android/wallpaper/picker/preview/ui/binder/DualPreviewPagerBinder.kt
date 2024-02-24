@@ -16,9 +16,7 @@
 package com.android.wallpaper.picker.preview.ui.binder
 
 import android.content.Context
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import androidx.lifecycle.LifecycleOwner
 import com.android.wallpaper.R
 import com.android.wallpaper.model.wallpaper.FoldableDisplay
@@ -44,18 +42,12 @@ object DualPreviewPagerBinder {
     ) {
         // implement adapter for the dual preview pager
         dualPreviewView.adapter = DualPreviewPagerAdapter { view, position ->
-            if (wallpaperPreviewViewModel.shouldShowTooltipWorkflow()) {
-                val inflater =
-                    applicationContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE)
-                        as LayoutInflater
-                inflater.inflate(R.layout.tooltip_small_preview, view as ViewGroup)
-                val tooltip = view.requireViewById<View>(R.id.tooltip)
-                PreviewTooltipBinder.bind(
-                    view = tooltip,
-                    viewModel = wallpaperPreviewViewModel,
-                    lifecycleOwner = viewLifecycleOwner,
-                )
-            }
+            PreviewTooltipBinder.bind(
+                tooltipStub = view.requireViewById(R.id.tooltip_stub),
+                enableClickToDismiss = false,
+                viewModel = wallpaperPreviewViewModel,
+                lifecycleOwner = viewLifecycleOwner,
+            )
 
             val dualDisplayAspectRatioLayout: DualDisplayAspectRatioLayout =
                 view.requireViewById(R.id.dual_preview)
