@@ -31,15 +31,19 @@ import com.android.wallpaper.R
 import com.android.wallpaper.picker.TouchForwardingLayout
 import com.android.wallpaper.picker.data.WallpaperModel
 import com.android.wallpaper.picker.di.modules.MainDispatcher
+import com.android.wallpaper.picker.preview.shared.model.FullPreviewCropModel
 import com.android.wallpaper.picker.preview.ui.util.FullResImageViewUtil.getCropRect
 import com.android.wallpaper.picker.preview.ui.util.SurfaceViewUtil
 import com.android.wallpaper.picker.preview.ui.util.SurfaceViewUtil.attachView
 import com.android.wallpaper.picker.preview.ui.view.FullPreviewFrameLayout
 import com.android.wallpaper.picker.preview.ui.viewmodel.WallpaperPreviewViewModel
 import com.android.wallpaper.util.DisplayUtils
+import com.android.wallpaper.util.WallpaperCropUtils
 import com.android.wallpaper.util.wallpaperconnection.WallpaperConnectionUtils
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView.OnStateChangedListener
+import java.lang.Integer.min
+import kotlin.math.max
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -75,6 +79,15 @@ object FullWallpaperPreviewBinder {
         surfaceView.holder.addCallback(
             object : SurfaceViewUtil.SurfaceCallback {
                 override fun surfaceCreated(holder: SurfaceHolder) {
+                    val surfaceSize = holder.surface.defaultSize
+                    val cropSurfaceSize =
+                        WallpaperCropUtils.calculateCropSurfaceSize(
+                            view.resources,
+                            max(surfaceSize.x, surfaceSize.y),
+                            min(surfaceSize.x, surfaceSize.y),
+                            surfaceSize.x,
+                            surfaceSize.y
+                        )
                     job =
                         lifecycleOwner.lifecycleScope.launch {
                             viewModel.fullWallpaper.collect {
@@ -93,9 +106,15 @@ object FullWallpaperPreviewBinder {
                                         initStaticPreviewSurface(
                                             applicationContext,
                                             surfaceView,
-                                        ) { rect ->
+                                        ) { crop, zoom ->
                                             viewModel.staticWallpaperPreviewViewModel
-                                                .fullPreviewCrop = rect
+                                                .fullPreviewCropModel =
+                                                FullPreviewCropModel(
+                                                    cropHint = crop,
+                                                    wallpaperZoom = zoom,
+                                                    hostViewSize = surfaceSize,
+                                                    cropSurfaceSize = cropSurfaceSize,
+                                                )
                                         }
 
                                     // We do not allow users to pinch to crop if it is a
@@ -113,6 +132,7 @@ object FullWallpaperPreviewBinder {
                                         viewModel.staticWallpaperPreviewViewModel,
                                         config.displaySize,
                                         lifecycleOwner,
+                                        allowUserCropping,
                                     )
                                 }
                             }
@@ -134,7 +154,7 @@ object FullWallpaperPreviewBinder {
     private fun initStaticPreviewSurface(
         applicationContext: Context,
         surfaceView: SurfaceView,
-        onNewCrop: (crop: Rect) -> Unit
+        onNewCrop: (crop: Rect, zoom: Float) -> Unit
     ): Pair<ImageView, SubsamplingScaleImageView> {
         val preview =
             LayoutInflater.from(applicationContext)
@@ -142,7 +162,7 @@ object FullWallpaperPreviewBinder {
         surfaceView.attachView(preview)
         val fullResImageView =
             preview.requireViewById<SubsamplingScaleImageView>(R.id.full_res_image)
-        fullResImageView.setOnNewCropListener { onNewCrop.invoke(it) }
+        fullResImageView.setOnNewCropListener { crop, zoom -> onNewCrop.invoke(crop, zoom) }
         return Pair(preview.requireViewById(R.id.low_res_image), fullResImageView)
     }
 
@@ -151,15 +171,17 @@ object FullWallpaperPreviewBinder {
         setTargetView(targetView)
     }
 
-    private fun SubsamplingScaleImageView.setOnNewCropListener(onNewCrop: (crop: Rect) -> Unit) {
+    private fun SubsamplingScaleImageView.setOnNewCropListener(
+        onNewCrop: (crop: Rect, zoom: Float) -> Unit
+    ) {
         setOnStateChangedListener(
             object : OnStateChangedListener {
                 override fun onScaleChanged(p0: Float, p1: Int) {
-                    onNewCrop.invoke(getCropRect())
+                    onNewCrop.invoke(getCropRect(), scale)
                 }
 
                 override fun onCenterChanged(p0: PointF?, p1: Int) {
-                    onNewCrop.invoke(getCropRect())
+                    onNewCrop.invoke(getCropRect(), scale)
                 }
             }
         )

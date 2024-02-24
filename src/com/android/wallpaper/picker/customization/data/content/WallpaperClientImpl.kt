@@ -50,6 +50,8 @@ import com.android.wallpaper.picker.customization.shared.model.WallpaperDestinat
 import com.android.wallpaper.picker.customization.shared.model.WallpaperModel
 import com.android.wallpaper.picker.data.WallpaperModel.LiveWallpaperModel
 import com.android.wallpaper.picker.data.WallpaperModel.StaticWallpaperModel
+import com.android.wallpaper.picker.preview.shared.model.FullPreviewCropModel
+import com.android.wallpaper.util.WallpaperCropUtils
 import java.io.IOException
 import java.io.InputStream
 import java.util.EnumMap
@@ -129,7 +131,8 @@ class WallpaperClientImpl(
         wallpaperModel: StaticWallpaperModel,
         inputStream: InputStream?,
         bitmap: Bitmap,
-        cropHints: Map<Point, Rect>,
+        wallpaperSize: Point,
+        fullPreviewCropModels: Map<Point, FullPreviewCropModel>?,
     ) {
         if (destination == HOME || destination == BOTH) {
             // Disable rotation wallpaper when setting to home screen. Daily rotation rotates both
@@ -138,8 +141,18 @@ class WallpaperClientImpl(
             stopWallpaperRotation()
         }
 
+        val cropHintsWithParallax =
+            fullPreviewCropModels?.let { cropModels ->
+                cropModels.mapValues { it.value.adjustCropForParallax(wallpaperSize) }
+            }
+                ?: emptyMap()
         val managerId =
-            wallpaperManager.setStaticWallpaperToSystem(inputStream, bitmap, cropHints, destination)
+            wallpaperManager.setStaticWallpaperToSystem(
+                inputStream,
+                bitmap,
+                cropHintsWithParallax,
+                destination,
+            )
 
         wallpaperPreferences.setStaticWallpaperMetadata(
             metadata = wallpaperModel.getMetadata(bitmap, managerId),
@@ -571,6 +584,30 @@ class WallpaperClientImpl(
             HOME -> FLAG_SYSTEM
             LOCK -> FLAG_LOCK
         }
+    }
+
+    /**
+     * Adjusts cropHints for parallax effect.
+     *
+     * [WallpaperCropUtils.calculateCropRect] calculates based on the scaled size, the scale depends
+     * on the view size hosting the preview and the wallpaper zoom of the preview on that view,
+     * whereas the rest of multi-crop is based on full wallpaper size. So scaled back at the end.
+     *
+     * @param wallpaperSize full wallpaper image size.
+     */
+    private fun FullPreviewCropModel.adjustCropForParallax(
+        wallpaperSize: Point,
+    ): Rect {
+        return WallpaperCropUtils.calculateCropRect(
+                context,
+                hostViewSize,
+                cropSurfaceSize,
+                wallpaperSize,
+                cropHint,
+                wallpaperZoom,
+                /* cropExtraWidth= */ true,
+            )
+            .apply { scale(1f / wallpaperZoom) }
     }
 
     companion object {
