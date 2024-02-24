@@ -745,9 +745,7 @@ public class DefaultWallpaperPersister implements WallpaperPersister {
                             mWallpaper.getCollectionId(mAppContext),
                             bitmapHash,
                             wallpaperId,
-                            mWallpaper.getWallpaperId(),
-                            // Always null cropHints as this path doesn't support multi-crop
-                            /* cropHints= */ null));
+                            mWallpaper.getWallpaperId()));
 
             if (destination == DEST_HOME_SCREEN || destination == DEST_BOTH) {
                 mWallpaperPreferences.storeLatestWallpaper(

@@ -70,17 +70,19 @@ constructor(
 
     val wallpaper: StateFlow<WallpaperModel?> = interactor.wallpaperModel
 
-    val hasTooltipBeenShown: StateFlow<Boolean> = interactor.hasTooltipBeenShown
-    fun shouldShowTooltipWorkflow(): Boolean {
-        return with(wallpaper.value) {
+    fun shouldShowTooltip(): Flow<Boolean> =
+        combine(interactor.wallpaperModel.filterNotNull(), interactor.hasTooltipBeenShown) {
+            wallpaper,
+            hasTooltipBeenShown ->
             // Only show tooltip for non-downloadable static wallpapers. Hide tooltip for live
             // wallpaper and downloadable wallpaper as their crop is not adjustable.
-            if (this != null && this is StaticWallpaperModel && !this.isDownloadableWallpaper()) {
+            if (wallpaper is StaticWallpaperModel && !wallpaper.isDownloadableWallpaper()) {
                 // Only show tooltip if it has not been shown before.
-                !hasTooltipBeenShown.value
-            } else false
+                !hasTooltipBeenShown
+            } else {
+                false
+            }
         }
-    }
     fun dismissTooltip() = interactor.dismissTooltip()
 
     private val _whichPreview = MutableStateFlow<WhichPreview?>(null)

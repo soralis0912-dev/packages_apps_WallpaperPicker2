@@ -136,10 +136,7 @@ class FakeWallpaperClient : WallpaperClient {
         return true
     }
 
-    override fun getCurrentCropHints(
-        displaySizes: MutableList<Point>,
-        which: Int
-    ): Map<Point, Rect>? {
+    override fun getCurrentCropHints(displaySizes: List<Point>, which: Int): Map<Point, Rect>? {
         return emptyMap()
     }
 

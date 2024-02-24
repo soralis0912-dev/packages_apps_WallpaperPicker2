@@ -46,7 +46,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 
 /** View model for the preview action buttons */
@@ -212,12 +211,13 @@ constructor(
 
     /** [EFFECTS] */
     private val _effectFloatingSheetViewModel: Flow<EffectFloatingSheetViewModel?> =
-        combine(
-            interactor.wallpaperModel,
-            interactor.effectsStatus,
-            interactor.effect.filterNotNull()
-        ) { wallpaper, status, effect ->
+        combine(interactor.wallpaperModel, interactor.effectsStatus, interactor.effect) {
+            wallpaper,
+            status,
+            effect ->
             (wallpaper as? WallpaperModel.StaticWallpaperModel)?.imageWallpaperData?.uri
+                ?: return@combine null
+            effect ?: return@combine null
             when (status) {
                 EffectsRepository.EffectStatus.EFFECT_DISABLE -> {
                     null
@@ -342,23 +342,20 @@ constructor(
 
     companion object {
         private fun WallpaperModel.shouldShowInformationFloatingSheet(): Boolean {
-            return if (
-                commonWallpaperData.attributions.isNullOrEmpty() &&
-                    commonWallpaperData.exploreActionUrl.isNullOrEmpty()
-            ) {
-                // If neither of the attributes nor the action url exists, do not show the
-                // information floating sheet.
-                false
-            } else if (
+            if (
                 this is LiveWallpaperModel &&
                     !liveWallpaperData.systemWallpaperInfo.showMetadataInPreview
             ) {
                 // If the live wallpaper's flag of showMetadataInPreview is false, do not show the
                 // information floating sheet.
-                false
-            } else {
-                true
+                return false
             }
+            val attributions = commonWallpaperData.attributions
+            // Show information floating sheet when any of the following contents exists
+            // 1. Attributions: Any of the list values is not null nor empty
+            // 2. Explore action URL
+            return (!attributions.isNullOrEmpty() && attributions.any { !it.isNullOrEmpty() }) ||
+                !commonWallpaperData.exploreActionUrl.isNullOrEmpty()
         }
 
         private fun CreativeWallpaperData.getShareIntent(): Intent {

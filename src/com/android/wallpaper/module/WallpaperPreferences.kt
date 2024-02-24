@@ -406,12 +406,6 @@ interface WallpaperPreferences {
         wallpaperModel: LiveWallpaperModel,
     )
 
-    /** Stores wallpaper crop hints for each dimensions. */
-    fun storeWallpaperCropHints(cropHints: Map<Point, Rect?>)
-
-    /** Gets wallpaper crop hints for each dimensions. */
-    fun getWallpaperCropHints(): Map<Point, Rect?>
-
     /** Sets whether the preview tooltip should be shown. */
     fun setHasPreviewTooltipBeenShown(hasTooltipBeenShown: Boolean)
 
