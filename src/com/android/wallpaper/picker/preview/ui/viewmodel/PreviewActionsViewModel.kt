@@ -46,7 +46,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 
 /** View model for the preview action buttons */
@@ -212,12 +211,13 @@ constructor(
 
     /** [EFFECTS] */
     private val _effectFloatingSheetViewModel: Flow<EffectFloatingSheetViewModel?> =
-        combine(
-            interactor.wallpaperModel,
-            interactor.effectsStatus,
-            interactor.effect.filterNotNull()
-        ) { wallpaper, status, effect ->
+        combine(interactor.wallpaperModel, interactor.effectsStatus, interactor.effect) {
+            wallpaper,
+            status,
+            effect ->
             (wallpaper as? WallpaperModel.StaticWallpaperModel)?.imageWallpaperData?.uri
+                ?: return@combine null
+            effect ?: return@combine null
             when (status) {
                 EffectsRepository.EffectStatus.EFFECT_DISABLE -> {
                     null

@@ -26,6 +26,7 @@ import com.android.wallpaper.picker.customization.shared.model.WallpaperDestinat
 import com.android.wallpaper.picker.customization.shared.model.WallpaperModel
 import com.android.wallpaper.picker.data.WallpaperModel.LiveWallpaperModel
 import com.android.wallpaper.picker.data.WallpaperModel.StaticWallpaperModel
+import com.android.wallpaper.picker.preview.shared.model.FullPreviewCropModel
 import java.io.InputStream
 import kotlinx.coroutines.flow.Flow
 
@@ -46,8 +47,8 @@ interface WallpaperClient {
      * @param wallpaperModel The wallpaper model of the wallpaper.
      * @param bitmap The bitmap of the static wallpaper. Note that the bitmap should be the
      *   original, full-size bitmap.
-     * @param cropHints The crop hints that indicate how the wallpaper should be cropped and render
-     *   on the designated screen and orientation.
+     * @param wallpaperSize raw wallpaper size
+     * @param fullPreviewCropModels full preview crop info for each dimension that user has cropped
      */
     suspend fun setStaticWallpaper(
         @SetWallpaperEntryPoint setWallpaperEntryPoint: Int,
@@ -55,7 +56,8 @@ interface WallpaperClient {
         wallpaperModel: StaticWallpaperModel,
         inputStream: InputStream?,
         bitmap: Bitmap,
-        cropHints: Map<Point, Rect>,
+        wallpaperSize: Point,
+        fullPreviewCropModels: Map<Point, FullPreviewCropModel>?,
     )
 
     /**
