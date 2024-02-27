@@ -84,10 +84,12 @@ constructor(
                 false
             }
         }
+
     fun dismissTooltip() = interactor.dismissTooltip()
 
     private val _whichPreview = MutableStateFlow<WhichPreview?>(null)
     private val whichPreview: Flow<WhichPreview> = _whichPreview.asStateFlow().filterNotNull()
+
     fun setWhichPreview(whichPreview: WhichPreview) {
         _whichPreview.value = whichPreview
     }
@@ -321,11 +323,11 @@ constructor(
             getWorkspacePreviewConfig(screen, foldableDisplay)
     }
 
-    fun setDefaultWallpaperPreviewConfigViewModel() {
+    fun setDefaultWallpaperPreviewConfigViewModel(displaySize: Point) {
         fullWallpaperPreviewConfigViewModel.value =
             WallpaperPreviewConfigViewModel(
                 Screen.HOME_SCREEN,
-                wallpaperDisplaySize,
+                displaySize,
             )
     }
 
