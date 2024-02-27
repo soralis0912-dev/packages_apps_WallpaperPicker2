@@ -34,6 +34,7 @@ import com.android.wallpaper.picker.preview.shared.model.FullPreviewCropModel
 import com.android.wallpaper.picker.preview.ui.util.FullResImageViewUtil
 import com.android.wallpaper.picker.preview.ui.view.SystemScaledWallpaperPreviewSurfaceView
 import com.android.wallpaper.picker.preview.ui.viewmodel.StaticWallpaperPreviewViewModel
+import com.android.wallpaper.util.RtlUtils
 import com.android.wallpaper.util.WallpaperCropUtils
 import com.android.wallpaper.util.WallpaperSurfaceCallback.LOW_RES_BITMAP_BLUR_RADIUS
 import com.davemorrissey.labs.subscaleview.ImageSource
@@ -72,7 +73,9 @@ object StaticWallpaperPreviewBinder {
                         fullResImageView.setFullResImage(
                             imageModel.rawWallpaperBitmap,
                             imageModel.rawWallpaperSize,
+                            displaySize,
                             cropHint,
+                            RtlUtils.isRtl(lowResImageView.context),
                             shouldCalibrateWithSystemScale,
                         )
 
@@ -127,7 +130,9 @@ object StaticWallpaperPreviewBinder {
     private fun SubsamplingScaleImageView.setFullResImage(
         rawWallpaperBitmap: Bitmap,
         rawWallpaperSize: Point,
+        displaySize: Point,
         cropHint: Rect?,
+        isRtl: Boolean,
         shouldCalibrateWithSystemScale: Boolean = false,
     ) {
         // Set the full res image
@@ -136,7 +141,9 @@ object StaticWallpaperPreviewBinder {
         FullResImageViewUtil.getScaleAndCenter(
                 Point(measuredWidth, measuredHeight),
                 rawWallpaperSize,
+                displaySize,
                 cropHint,
+                isRtl,
             )
             .let { scaleAndCenter ->
                 minScale = scaleAndCenter.minScale
