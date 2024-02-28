@@ -37,6 +37,7 @@ import androidx.annotation.WorkerThread;
 
 import com.android.wallpaper.module.BitmapCropper;
 import com.android.wallpaper.module.InjectorProvider;
+import com.android.wallpaper.picker.preview.ui.util.CropSizeUtil;
 import com.android.wallpaper.util.RtlUtils;
 import com.android.wallpaper.util.ScreenSizeCalculator;
 import com.android.wallpaper.util.WallpaperCropUtils;
@@ -363,12 +364,18 @@ public abstract class Asset {
                 return;
             }
 
+            boolean isRtl = RtlUtils.isRtl(activity);
             Display defaultDisplay = activity.getWindowManager().getDefaultDisplay();
             Point screenSize = ScreenSizeCalculator.getInstance().getScreenSize(defaultDisplay);
             Rect visibleRawWallpaperRect =
                     WallpaperCropUtils.calculateVisibleRect(dimensions, screenSize);
             if (cropHints != null && cropHints.containsKey(screenSize)) {
-                visibleRawWallpaperRect = cropHints.get(screenSize);
+                visibleRawWallpaperRect = CropSizeUtil.INSTANCE.fitCropRectToLayoutDirection(
+                        cropHints.get(screenSize), screenSize, RtlUtils.isRtl(activity));
+                // For multi-crop, the visibleRawWallpaperRect above is already the exact size of
+                // the part of wallpaper we should show on the screen, turning off the old RTL
+                // logic by assigning false.
+                isRtl = false;
             }
 
             // TODO(b/264234793): Make offsetToStart general support or for the specific asset.
@@ -376,7 +383,7 @@ public abstract class Asset {
 
             BitmapCropper bitmapCropper = InjectorProvider.getInjector().getBitmapCropper();
             bitmapCropper.cropAndScaleBitmap(this, /* scale= */ 1f, visibleRawWallpaperRect,
-                    RtlUtils.isRtl(activity),
+                    isRtl,
                     new BitmapCropper.Callback() {
                         @Override
                         public void onBitmapCropped(Bitmap croppedBitmap) {

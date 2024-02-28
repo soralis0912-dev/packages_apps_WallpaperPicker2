@@ -20,13 +20,13 @@ import android.net.Uri
 
 /** Represents data that is specific to only CreativeWallpapers. */
 data class CreativeWallpaperData(
-    val configPreviewUri: Uri,
-    val cleanPreviewUri: Uri,
-    val deleteUri: Uri,
-    val thumbnailUri: Uri,
-    val shareUri: Uri,
+    val configPreviewUri: Uri?,
+    val cleanPreviewUri: Uri?,
+    val deleteUri: Uri?,
+    val thumbnailUri: Uri?,
+    val shareUri: Uri?,
     val author: String,
     val description: String,
-    val contentDescription: String,
+    val contentDescription: String?,
     val isCurrent: Boolean,
 )
