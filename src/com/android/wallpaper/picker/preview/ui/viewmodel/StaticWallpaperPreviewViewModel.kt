@@ -37,13 +37,16 @@ import java.io.InputStream
 import javax.inject.Inject
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.suspendCancellableCoroutine
 
 /** View model for static wallpaper preview used in [WallpaperPreviewActivity] and its fragments */
@@ -55,6 +58,7 @@ constructor(
     @ApplicationContext private val context: Context,
     private val wallpaperPreferences: WallpaperPreferences,
     @BackgroundDispatcher private val bgDispatcher: CoroutineDispatcher,
+    viewModelScope: CoroutineScope,
 ) {
     /**
      * The state of static wallpaper crop in full preview, before user confirmation.
@@ -96,6 +100,10 @@ constructor(
                 }
             }
             .flowOn(bgDispatcher)
+            // We only want to decode bitmap every time when wallpaper model is updated, instead of
+            // a new subscriber listens to this flow. So we need to use shareIn.
+            .shareIn(viewModelScope, SharingStarted.Lazily, 1)
+
     val fullResWallpaperViewModel: Flow<FullResWallpaperViewModel?> =
         combine(assetDetail, cropHintsInfo) { assetDetail, cropHintsInfo ->
                 if (assetDetail == null) {
@@ -173,5 +181,24 @@ constructor(
             cropped.recycle()
         }
         return colors
+    }
+
+    class Factory
+    @Inject
+    constructor(
+        private val interactor: WallpaperPreviewInteractor,
+        @ApplicationContext private val context: Context,
+        private val wallpaperPreferences: WallpaperPreferences,
+        @BackgroundDispatcher private val bgDispatcher: CoroutineDispatcher,
+    ) {
+        fun create(viewModelScope: CoroutineScope): StaticWallpaperPreviewViewModel {
+            return StaticWallpaperPreviewViewModel(
+                interactor = interactor,
+                context = context,
+                wallpaperPreferences = wallpaperPreferences,
+                bgDispatcher = bgDispatcher,
+                viewModelScope = viewModelScope,
+            )
+        }
     }
 }
