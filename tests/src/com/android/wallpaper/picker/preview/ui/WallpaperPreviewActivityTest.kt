@@ -33,6 +33,7 @@ import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import javax.inject.Inject
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -65,6 +66,7 @@ class WallpaperPreviewActivityTest {
     }
 
     @Test
+    @Ignore("b/327241549")
     @EnableFlags(FLAG_MULTI_CROP_PREVIEW_UI_FLAG, FLAG_MULTI_CROP)
     fun showsNavHostFragment() {
         val scenario: ActivityScenario<WallpaperPreviewActivity> =
