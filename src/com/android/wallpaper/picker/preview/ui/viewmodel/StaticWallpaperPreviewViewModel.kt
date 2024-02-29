@@ -126,7 +126,9 @@ constructor(
      * confirms a crop.
      */
     fun updateCropHintsInfo(cropHintsInfo: Map<Point, FullPreviewCropModel>) {
-        this.cropHintsInfo.value = this.cropHintsInfo.value?.plus(cropHintsInfo) ?: cropHintsInfo
+        val newInfo = this.cropHintsInfo.value?.plus(cropHintsInfo) ?: cropHintsInfo
+        this.cropHintsInfo.value = newInfo
+        fullPreviewCropModels.putAll(newInfo)
     }
 
     // TODO b/296288298 Create a util class for Bitmap and Asset
