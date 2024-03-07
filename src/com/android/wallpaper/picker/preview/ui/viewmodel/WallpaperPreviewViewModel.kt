@@ -235,7 +235,6 @@ constructor(
                                     StyleEnums.SET_WALLPAPER_ENTRY_POINT_WALLPAPER_PREVIEW,
                                 destination = destination,
                                 wallpaperModel = wallpaper,
-                                inputStream = it.stream,
                                 bitmap = it.rawWallpaperBitmap,
                                 wallpaperSize = it.rawWallpaperSize,
                                 asset = it.asset,
