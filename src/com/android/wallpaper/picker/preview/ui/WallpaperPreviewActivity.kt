@@ -26,6 +26,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavController
+import androidx.navigation.NavOptions
 import androidx.navigation.fragment.NavHostFragment
 import com.android.wallpaper.R
 import com.android.wallpaper.model.WallpaperInfo
@@ -63,6 +65,8 @@ class WallpaperPreviewActivity :
     @Inject lateinit var liveWallpaperDownloader: LiveWallpaperDownloader
     @MainDispatcher @Inject lateinit var mainScope: CoroutineScope
 
+    private lateinit var navController: NavController
+
     private val wallpaperPreviewViewModel: WallpaperPreviewViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -71,6 +75,10 @@ class WallpaperPreviewActivity :
         window.navigationBarColor = Color.TRANSPARENT
         window.statusBarColor = Color.TRANSPARENT
         setContentView(R.layout.activity_wallpaper_preview)
+        navController =
+            (supportFragmentManager.findFragmentById(R.id.wallpaper_preview_nav_host)
+                    as NavHostFragment)
+                .navController
         // Fits screen to navbar and statusbar
         WindowCompat.setDecorFitsSystemWindows(window, ActivityUtils.isSUWMode(this))
         val isAssetIdPresent = intent.getBooleanExtra(IS_ASSET_ID_PRESENT, false)
@@ -114,10 +122,6 @@ class WallpaperPreviewActivity :
         if (liveWallpaperModel != null && liveWallpaperModel.isNewCreativeWallpaper()) {
             // If it's a new creative wallpaper, override the start destination to the fullscreen
             // fragment for the create-new flow of creative wallpapers
-            val navController =
-                (supportFragmentManager.findFragmentById(R.id.wallpaper_preview_nav_host)
-                        as NavHostFragment)
-                    .navController
             val navGraph =
                 navController.navInflater.inflate(R.navigation.wallpaper_preview_nav_graph)
             navGraph.setStartDestination(R.id.creativeNewPreviewFragment)
@@ -164,6 +168,22 @@ class WallpaperPreviewActivity :
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
+
+        wallpaperPreviewViewModel.updateDisplayConfiguration()
+        // Restart current navigation destination
+        navController.apply {
+            currentDestination?.id?.let {
+                navigate(
+                    resId = it,
+                    args = null,
+                    navOptions =
+                        NavOptions.Builder()
+                            .setPopUpTo(destinationId = it, inclusive = true)
+                            .build(),
+                )
+            }
+        }
+
         enforcePortraitForHandheldAndFoldedDisplay()
     }
 
