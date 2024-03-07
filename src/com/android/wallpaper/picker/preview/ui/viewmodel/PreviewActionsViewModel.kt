@@ -64,7 +64,11 @@ constructor(
             } else {
                 InformationFloatingSheetViewModel(
                     wallpaperModel.commonWallpaperData.attributions,
-                    wallpaperModel.commonWallpaperData.exploreActionUrl,
+                    if (wallpaperModel.commonWallpaperData.exploreActionUrl.isNullOrEmpty()) {
+                        null
+                    } else {
+                        wallpaperModel.commonWallpaperData.exploreActionUrl
+                    }
                 )
             }
         }
