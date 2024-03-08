@@ -155,7 +155,16 @@ class WallpaperPreviewActivity :
         mainScope.launch {
             liveWallpaperDownloader.cleanup()
             (wallpaperPreviewViewModel.wallpaper.value as? WallpaperModel.LiveWallpaperModel)?.let {
-                WallpaperConnectionUtils.disconnect(appContext, it)
+                WallpaperConnectionUtils.disconnect(
+                    appContext,
+                    it,
+                    wallpaperPreviewViewModel.smallerDisplaySize
+                )
+                WallpaperConnectionUtils.disconnect(
+                    appContext,
+                    it,
+                    wallpaperPreviewViewModel.wallpaperDisplaySize
+                )
             }
             effectsRepository.destroy()
         }
