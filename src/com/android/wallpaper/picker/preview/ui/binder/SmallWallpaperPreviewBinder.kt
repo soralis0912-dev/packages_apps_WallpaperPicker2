@@ -93,7 +93,6 @@ object SmallWallpaperPreviewBinder {
                                         viewModel = viewModel.staticWallpaperPreviewViewModel,
                                         displaySize = displaySize,
                                         viewLifecycleOwner = viewLifecycleOwner,
-                                        shouldCalibrateWithSystemScale = true,
                                     )
                                     // This is to possibly shut down all live wallpaper services
                                     // if they exist; otherwise static wallpaper can not show up.
