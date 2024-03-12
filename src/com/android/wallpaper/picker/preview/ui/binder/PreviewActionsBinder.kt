@@ -38,6 +38,7 @@ import com.android.wallpaper.picker.preview.ui.viewmodel.PreviewActionsViewModel
 import com.android.wallpaper.picker.preview.ui.viewmodel.WallpaperPreviewViewModel
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_HIDDEN
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 /** Binds the action buttons and bottom sheet to [PreviewActionsViewModel] */
@@ -90,29 +91,6 @@ object PreviewActionsBinder {
                 launch {
                     actionsViewModel.onInformationClicked.collect {
                         actionGroup.setClickListener(INFORMATION, it)
-                    }
-                }
-
-                launch {
-                    actionsViewModel.informationFloatingSheetViewModel.collect { viewModel ->
-                        if (viewModel == null) {
-                            floatingSheet.collapse()
-                        } else {
-                            val onExploreButtonClicked =
-                                viewModel.exploreActionUrl?.let { url ->
-                                    {
-                                        logger.logWallpaperExploreButtonClicked()
-                                        floatingSheet.context.startActivity(
-                                            Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                                        )
-                                    }
-                                }
-                            floatingSheet.setInformationContent(
-                                viewModel.attributions,
-                                onExploreButtonClicked
-                            )
-                            floatingSheet.expand()
-                        }
                     }
                 }
 
@@ -234,28 +212,6 @@ object PreviewActionsBinder {
                     }
                 }
 
-                launch {
-                    actionsViewModel.effectFloatingSheetViewModel.collect { viewModel ->
-                        if (viewModel == null) {
-                            floatingSheet.collapse()
-                        } else {
-                            floatingSheet.setEffectContent(
-                                viewModel.effectType,
-                                viewModel.myPhotosClickListener,
-                                viewModel.collapseFloatingSheetListener,
-                                viewModel.effectSwitchListener,
-                                viewModel.effectDownloadClickListener,
-                                viewModel.status,
-                                viewModel.resultCode,
-                                viewModel.errorMessage,
-                                viewModel.title,
-                                viewModel.effectTextRes,
-                            )
-                            floatingSheet.expand()
-                        }
-                    }
-                }
-
                 /** [SHARE] */
                 launch {
                     actionsViewModel.isShareVisible.collect { actionGroup.setIsVisible(SHARE, it) }
@@ -270,6 +226,52 @@ object PreviewActionsBinder {
                             } else null
                         )
                     }
+                }
+
+                /** Floating sheet behavior */
+                launch {
+                    combine(
+                            actionsViewModel.informationFloatingSheetViewModel,
+                            actionsViewModel.effectFloatingSheetViewModel
+                        ) { informationViewModel, effectViewModel ->
+                            informationViewModel to effectViewModel
+                        }
+                        .collect { (informationViewModel, effectViewModel) ->
+                            when {
+                                informationViewModel != null -> {
+                                    val onExploreButtonClicked =
+                                        informationViewModel.exploreActionUrl?.let { url ->
+                                            {
+                                                logger.logWallpaperExploreButtonClicked()
+                                                floatingSheet.context.startActivity(
+                                                    Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                                                )
+                                            }
+                                        }
+                                    floatingSheet.setInformationContent(
+                                        informationViewModel.attributions,
+                                        onExploreButtonClicked
+                                    )
+                                    floatingSheet.expand()
+                                }
+                                effectViewModel != null -> {
+                                    floatingSheet.setEffectContent(
+                                        effectViewModel.effectType,
+                                        effectViewModel.myPhotosClickListener,
+                                        effectViewModel.collapseFloatingSheetListener,
+                                        effectViewModel.effectSwitchListener,
+                                        effectViewModel.effectDownloadClickListener,
+                                        effectViewModel.status,
+                                        effectViewModel.resultCode,
+                                        effectViewModel.errorMessage,
+                                        effectViewModel.title,
+                                        effectViewModel.effectTextRes,
+                                    )
+                                    floatingSheet.expand()
+                                }
+                                else -> floatingSheet.collapse()
+                            }
+                        }
                 }
             }
         }
