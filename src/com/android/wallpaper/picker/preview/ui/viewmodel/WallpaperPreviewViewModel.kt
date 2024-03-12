@@ -68,8 +68,9 @@ constructor(
     // Don't update smaller display since we always use portrait, always use wallpaper display on
     // single display device.
     val smallerDisplaySize = displayUtils.getRealSize(displayUtils.getSmallerDisplay())
-    var wallpaperDisplaySize = displayUtils.getRealSize(displayUtils.getWallpaperDisplay())
-        private set
+    private val _wallpaperDisplaySize =
+        MutableStateFlow(displayUtils.getRealSize(displayUtils.getWallpaperDisplay()))
+    val wallpaperDisplaySize = _wallpaperDisplaySize.asStateFlow()
 
     val staticWallpaperPreviewViewModel =
         staticWallpaperPreviewViewModelFactory.create(viewModelScope)
@@ -79,7 +80,7 @@ constructor(
     val wallpaper: StateFlow<WallpaperModel?> = interactor.wallpaperModel
 
     fun updateDisplayConfiguration() {
-        wallpaperDisplaySize = displayUtils.getRealSize(displayUtils.getWallpaperDisplay())
+        _wallpaperDisplaySize.value = displayUtils.getRealSize(displayUtils.getWallpaperDisplay())
     }
 
     private val isWallpaperCroppable: Flow<Boolean> =
@@ -172,10 +173,22 @@ constructor(
             wallpaper.filterNotNull(),
             fullWallpaperPreviewConfigViewModel.filterNotNull(),
             whichPreview,
-        ) { wallpaper, config, whichPreview ->
+            wallpaperDisplaySize,
+        ) { wallpaper, config, whichPreview, wallpaperDisplaySize ->
+            val displaySize =
+                when (config.deviceDisplayType) {
+                    DeviceDisplayType.SINGLE -> config.displaySize
+                    DeviceDisplayType.FOLDED -> smallerDisplaySize
+                    DeviceDisplayType.UNFOLDED -> wallpaperDisplaySize
+                }
             FullWallpaperPreviewViewModel(
                 wallpaper = wallpaper,
-                config = config,
+                config =
+                    WallpaperPreviewConfigViewModel(
+                        config.screen,
+                        config.deviceDisplayType,
+                        displaySize
+                    ),
                 allowUserCropping =
                     wallpaper is StaticWallpaperModel && !wallpaper.isDownloadableWallpaper(),
                 whichPreview = whichPreview,
@@ -365,13 +378,13 @@ constructor(
         val displaySize =
             when (deviceDisplayType) {
                 DeviceDisplayType.SINGLE -> {
-                    wallpaperDisplaySize
+                    wallpaperDisplaySize.value
                 }
                 DeviceDisplayType.FOLDED -> {
                     smallerDisplaySize
                 }
                 DeviceDisplayType.UNFOLDED -> {
-                    wallpaperDisplaySize
+                    wallpaperDisplaySize.value
                 }
             }
         return WallpaperPreviewConfigViewModel(
@@ -383,7 +396,7 @@ constructor(
 
     companion object {
         private fun WallpaperModel.isDownloadableWallpaper(): Boolean {
-            return this is StaticWallpaperModel && this.downloadableWallpaperData != null
+            return this is StaticWallpaperModel && downloadableWallpaperData != null
         }
     }
 }

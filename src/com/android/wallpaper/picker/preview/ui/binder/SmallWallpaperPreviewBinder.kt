@@ -116,7 +116,7 @@ object SmallWallpaperPreviewBinder {
                                         wallpaper.shouldEnforceSingleEngine(),
                                         deviceDisplayType = deviceDisplayType,
                                         viewModel.smallerDisplaySize,
-                                        viewModel.wallpaperDisplaySize,
+                                        viewModel.wallpaperDisplaySize.value,
                                     ),
                                     object : WallpaperEngineConnectionListener {
                                         override fun onWallpaperColorsChanged(
