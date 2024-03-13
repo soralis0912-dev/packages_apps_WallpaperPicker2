@@ -40,6 +40,7 @@ import com.android.wallpaper.picker.preview.ui.viewmodel.WallpaperPreviewViewMod
 import com.android.wallpaper.util.DisplayUtils
 import com.android.wallpaper.util.WallpaperCropUtils
 import com.android.wallpaper.util.wallpaperconnection.WallpaperConnectionUtils
+import com.android.wallpaper.util.wallpaperconnection.WallpaperConnectionUtils.shouldEnforceSingleEngine
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
 import java.lang.Integer.min
 import kotlin.math.max
@@ -100,6 +101,12 @@ object FullWallpaperPreviewBinder {
                                         whichPreview,
                                         config.screen.toFlag(),
                                         surfaceView,
+                                        WallpaperConnectionUtils.EngineRenderingConfig(
+                                            wallpaper.shouldEnforceSingleEngine(),
+                                            config.foldableDisplay,
+                                            viewModel.smallerDisplaySize,
+                                            viewModel.wallpaperDisplaySize,
+                                        )
                                     )
                                 } else if (wallpaper is WallpaperModel.StaticWallpaperModel) {
                                     val (lowResImageView, fullResImageView) =
