@@ -45,8 +45,7 @@ object PreviewPagerBinder {
             adapter = SinglePreviewPagerAdapter { viewHolder, position ->
                 PreviewTooltipBinder.bind(
                     tooltipStub = viewHolder.itemView.requireViewById(R.id.tooltip_stub),
-                    enableClickToDismiss = false,
-                    viewModel = wallpaperPreviewViewModel,
+                    viewModel = wallpaperPreviewViewModel.smallTooltipViewModel,
                     lifecycleOwner = viewLifecycleOwner,
                 )
 

@@ -33,6 +33,7 @@ import com.android.wallpaper.picker.di.modules.PreviewUtilsModule.LockScreenPrev
 import com.android.wallpaper.picker.preview.domain.interactor.WallpaperPreviewInteractor
 import com.android.wallpaper.picker.preview.shared.model.FullPreviewCropModel
 import com.android.wallpaper.picker.preview.ui.WallpaperPreviewActivity
+import com.android.wallpaper.picker.preview.ui.binder.PreviewTooltipBinder
 import com.android.wallpaper.util.DisplayUtils
 import com.android.wallpaper.util.PreviewUtils
 import com.android.wallpaper.util.WallpaperConnection.WhichPreview
@@ -81,21 +82,38 @@ constructor(
         wallpaperDisplaySize = displayUtils.getRealSize(displayUtils.getWallpaperDisplay())
     }
 
-    fun shouldShowTooltip(): Flow<Boolean> =
-        combine(interactor.wallpaperModel.filterNotNull(), interactor.hasTooltipBeenShown) {
-            wallpaper,
-            hasTooltipBeenShown ->
-            // Only show tooltip for non-downloadable static wallpapers. Hide tooltip for live
-            // wallpaper and downloadable wallpaper as their crop is not adjustable.
-            if (wallpaper is StaticWallpaperModel && !wallpaper.isDownloadableWallpaper()) {
-                // Only show tooltip if it has not been shown before.
-                !hasTooltipBeenShown
-            } else {
-                false
-            }
+    private val isWallpaperCroppable: Flow<Boolean> =
+        wallpaper.map { wallpaper ->
+            wallpaper is StaticWallpaperModel && !wallpaper.isDownloadableWallpaper()
         }
 
-    fun dismissTooltip() = interactor.dismissTooltip()
+    val smallTooltipViewModel =
+        object : PreviewTooltipBinder.TooltipViewModel {
+            override val shouldShowTooltip: Flow<Boolean> =
+                combine(isWallpaperCroppable, interactor.hasSmallPreviewTooltipBeenShown) {
+                    isCroppable,
+                    hasTooltipBeenShown ->
+                    // Only show tooltip if it has not been shown before.
+                    isCroppable && !hasTooltipBeenShown
+                }
+            override val enableClickToDismiss: Boolean = false
+
+            override fun dismissTooltip() = interactor.hasShownSmallPreviewTooltip()
+        }
+
+    val fullTooltipViewModel =
+        object : PreviewTooltipBinder.TooltipViewModel {
+            override val shouldShowTooltip: Flow<Boolean> =
+                combine(isWallpaperCroppable, interactor.hasFullPreviewTooltipBeenShown) {
+                    isCroppable,
+                    hasTooltipBeenShown ->
+                    // Only show tooltip if it has not been shown before.
+                    isCroppable && !hasTooltipBeenShown
+                }
+            override val enableClickToDismiss: Boolean = true
+
+            override fun dismissTooltip() = interactor.dismissFullPreviewTooltip()
+        }
 
     private val _whichPreview = MutableStateFlow<WhichPreview?>(null)
     private val whichPreview: Flow<WhichPreview> = _whichPreview.asStateFlow().filterNotNull()
@@ -322,6 +340,7 @@ constructor(
         screen: Screen,
         foldableDisplay: FoldableDisplay?,
     ) {
+        smallTooltipViewModel.dismissTooltip()
         fullWallpaperPreviewConfigViewModel.value =
             getWallpaperPreviewConfig(screen, foldableDisplay)
         _fullWorkspacePreviewConfigViewModel.value =
