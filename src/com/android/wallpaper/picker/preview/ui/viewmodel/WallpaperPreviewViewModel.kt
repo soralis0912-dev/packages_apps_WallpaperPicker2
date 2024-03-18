@@ -30,6 +30,7 @@ import com.android.wallpaper.picker.data.WallpaperModel.LiveWallpaperModel
 import com.android.wallpaper.picker.data.WallpaperModel.StaticWallpaperModel
 import com.android.wallpaper.picker.di.modules.PreviewUtilsModule.HomeScreenPreviewUtils
 import com.android.wallpaper.picker.di.modules.PreviewUtilsModule.LockScreenPreviewUtils
+import com.android.wallpaper.picker.preview.domain.interactor.PreviewActionsInteractor
 import com.android.wallpaper.picker.preview.domain.interactor.WallpaperPreviewInteractor
 import com.android.wallpaper.picker.preview.shared.model.FullPreviewCropModel
 import com.android.wallpaper.picker.preview.ui.WallpaperPreviewActivity
@@ -58,6 +59,7 @@ class WallpaperPreviewViewModel
 @Inject
 constructor(
     private val interactor: WallpaperPreviewInteractor,
+    actionsInteractor: PreviewActionsInteractor,
     staticWallpaperPreviewViewModelFactory: StaticWallpaperPreviewViewModel.Factory,
     val previewActionsViewModel: PreviewActionsViewModel,
     private val displayUtils: DisplayUtils,
@@ -77,6 +79,9 @@ constructor(
     var isNewTask = false
 
     val wallpaper: StateFlow<WallpaperModel?> = interactor.wallpaperModel
+
+    // Used to display loading indication on the preview.
+    val effectStatus = actionsInteractor.effectsStatus
 
     fun updateDisplayConfiguration() {
         wallpaperDisplaySize = displayUtils.getRealSize(displayUtils.getWallpaperDisplay())
