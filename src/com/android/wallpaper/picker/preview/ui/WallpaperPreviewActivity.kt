@@ -168,7 +168,7 @@ class WallpaperPreviewActivity :
                 WallpaperConnectionUtils.disconnect(
                     appContext,
                     it,
-                    wallpaperPreviewViewModel.wallpaperDisplaySize
+                    wallpaperPreviewViewModel.wallpaperDisplaySize.value
                 )
             }
             effectsRepository.destroy()
