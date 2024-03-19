@@ -68,6 +68,7 @@ constructor(
         EFFECT_DOWNLOAD_IN_PROGRESS,
         EFFECT_APPLY_IN_PROGRESS,
         EFFECT_APPLIED,
+        EFFECT_DOWNLOAD_FAILED,
     }
 
     private val _effectStatus = MutableStateFlow(EffectStatus.EFFECT_DISABLE)
@@ -116,9 +117,10 @@ constructor(
                             // TODO logger.logEffectForegroundDownload
                             _effectStatus.value = EffectStatus.EFFECT_READY
                         }
-                        EffectsController.RESULT_FOREGROUND_DOWNLOAD_FAILED -> {
+                        EffectsController.RESULT_FOREGROUND_DOWNLOAD_FAILED,
+                        EffectsController.RESULT_ERROR_TRY_AGAIN_LATER -> {
                             // TODO logger.logEffectForegroundDownload
-                            _effectStatus.value = EffectStatus.EFFECT_DOWNLOAD_READY
+                            _effectStatus.value = EffectStatus.EFFECT_DOWNLOAD_FAILED
                         }
                         EffectsController.RESULT_SUCCESS,
                         EffectsController.RESULT_SUCCESS_WITH_GENERATION_ERROR -> {
@@ -142,7 +144,7 @@ constructor(
                         }
                         else -> {
                             // TODO onImageEffectFailed
-                            _effectStatus.value = EffectStatus.EFFECT_READY
+                            _effectStatus.value = EffectStatus.EFFECT_DOWNLOAD_FAILED
                             logger.logEffectApply(
                                 getEffectNameForLogging(),
                                 StyleEnums.EFFECT_APPLIED_ON_FAILED,

@@ -44,6 +44,7 @@ import com.android.wallpaper.picker.preview.ui.viewmodel.Action.SHARE
 import com.android.wallpaper.picker.preview.ui.viewmodel.floatingSheet.EffectFloatingSheetViewModel
 import com.android.wallpaper.picker.preview.ui.viewmodel.floatingSheet.ImageEffectFloatingSheetViewModel
 import com.android.wallpaper.picker.preview.ui.viewmodel.floatingSheet.InformationFloatingSheetViewModel
+import com.android.wallpaper.widget.floatingsheetcontent.WallpaperEffectsView2
 import com.android.wallpaper.widget.floatingsheetcontent.WallpaperEffectsView2.EffectDownloadClickListener
 import com.android.wallpaper.widget.floatingsheetcontent.WallpaperEffectsView2.EffectSwitchListener
 import com.android.wallpaper.widget.floatingsheetcontent.WallpaperEffectsView2.Status.DOWNLOADING
@@ -261,6 +262,9 @@ constructor(
                 }
                 EFFECT_DOWNLOAD_IN_PROGRESS -> {
                     DOWNLOADING
+                }
+                ImageEffectsRepository.EffectStatus.EFFECT_DOWNLOAD_FAILED -> {
+                    WallpaperEffectsView2.Status.FAILED
                 }
                 else -> {
                     IDLE
