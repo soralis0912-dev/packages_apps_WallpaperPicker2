@@ -15,6 +15,7 @@ import android.service.wallpaper.WallpaperService
 import android.util.Log
 import android.view.SurfaceControl
 import android.view.SurfaceView
+import com.android.app.tracing.TraceUtils.traceAsync
 import com.android.wallpaper.model.wallpaper.DeviceDisplayType
 import com.android.wallpaper.picker.data.WallpaperModel.LiveWallpaperModel
 import com.android.wallpaper.util.WallpaperConnection
@@ -57,48 +58,50 @@ object WallpaperConnectionUtils {
         val engineDisplaySize = engineRenderingConfig.getEngineDisplaySize()
         val engineKey = wallpaperInfo.getKey(engineDisplaySize)
 
-        // Update the creative wallpaper uri before starting the service.
-        wallpaperModel.creativeWallpaperData?.configPreviewUri?.let {
-            val uriKey = wallpaperInfo.getKey()
-            if (!creativeWallpaperConfigPreviewUriMap.containsKey(uriKey)) {
-                mutex.withLock {
-                    if (!creativeWallpaperConfigPreviewUriMap.containsKey(uriKey)) {
-                        context.contentResolver.update(it, ContentValues(), null)
-                        creativeWallpaperConfigPreviewUriMap[uriKey] = it
-                    }
-                }
-            }
-        }
-
-        if (!engineMap.containsKey(engineKey)) {
-            mutex.withLock {
-                if (!engineMap.containsKey(engineKey)) {
-                    engineMap[engineKey] = coroutineScope {
-                        async {
-                            initEngine(
-                                context,
-                                wallpaperModel.getWallpaperServiceIntent(),
-                                engineDisplaySize,
-                                destinationFlag,
-                                whichPreview,
-                                surfaceView,
-                                listener,
-                            )
+        traceAsync(TAG, "connect") {
+            // Update the creative wallpaper uri before starting the service.
+            wallpaperModel.creativeWallpaperData?.configPreviewUri?.let {
+                val uriKey = wallpaperInfo.getKey()
+                if (!creativeWallpaperConfigPreviewUriMap.containsKey(uriKey)) {
+                    mutex.withLock {
+                        if (!creativeWallpaperConfigPreviewUriMap.containsKey(uriKey)) {
+                            context.contentResolver.update(it, ContentValues(), null)
+                            creativeWallpaperConfigPreviewUriMap[uriKey] = it
                         }
                     }
                 }
             }
-        }
 
-        engineMap[engineKey]?.await()?.let { (_, engineConnection) ->
-            engineConnection.engine?.let {
-                mirrorAndReparent(
-                    engineKey,
-                    it,
-                    surfaceView,
-                    engineRenderingConfig.getEngineDisplaySize(),
-                    engineRenderingConfig.enforceSingleEngine,
-                )
+            if (!engineMap.containsKey(engineKey)) {
+                mutex.withLock {
+                    if (!engineMap.containsKey(engineKey)) {
+                        engineMap[engineKey] = coroutineScope {
+                            async {
+                                initEngine(
+                                    context,
+                                    wallpaperModel.getWallpaperServiceIntent(),
+                                    engineDisplaySize,
+                                    destinationFlag,
+                                    whichPreview,
+                                    surfaceView,
+                                    listener,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            engineMap[engineKey]?.await()?.let { (_, engineConnection) ->
+                engineConnection.engine?.let {
+                    mirrorAndReparent(
+                        engineKey,
+                        it,
+                        surfaceView,
+                        engineRenderingConfig.getEngineDisplaySize(),
+                        engineRenderingConfig.enforceSingleEngine,
+                    )
+                }
             }
         }
     }
@@ -116,30 +119,33 @@ object WallpaperConnectionUtils {
     ) {
         val engineKey = wallpaperModel.liveWallpaperData.systemWallpaperInfo.getKey(displaySize)
 
-        if (engineMap.containsKey(engineKey)) {
-            mutex.withLock {
-                engineMap.remove(engineKey)?.await()?.let { (serviceConnection, engineConnection) ->
-                    engineConnection.engine?.destroy()
-                    engineConnection.removeListener()
-                    context.unbindService(serviceConnection)
+        traceAsync(TAG, "disconnect") {
+            if (engineMap.containsKey(engineKey)) {
+                mutex.withLock {
+                    engineMap.remove(engineKey)?.await()?.let {
+                        (serviceConnection, engineConnection) ->
+                        engineConnection.engine?.destroy()
+                        engineConnection.removeListener()
+                        context.unbindService(serviceConnection)
+                    }
                 }
             }
-        }
 
-        if (surfaceControlMap.containsKey(engineKey)) {
-            mutex.withLock {
-                surfaceControlMap.remove(engineKey)?.let { surfaceControls ->
-                    surfaceControls.forEach { it.release() }
-                    surfaceControls.clear()
+            if (surfaceControlMap.containsKey(engineKey)) {
+                mutex.withLock {
+                    surfaceControlMap.remove(engineKey)?.let { surfaceControls ->
+                        surfaceControls.forEach { it.release() }
+                        surfaceControls.clear()
+                    }
                 }
             }
-        }
 
-        val uriKey = wallpaperModel.liveWallpaperData.systemWallpaperInfo.getKey()
-        if (creativeWallpaperConfigPreviewUriMap.containsKey(uriKey)) {
-            mutex.withLock {
-                if (creativeWallpaperConfigPreviewUriMap.containsKey(uriKey)) {
-                    creativeWallpaperConfigPreviewUriMap.remove(uriKey)
+            val uriKey = wallpaperModel.liveWallpaperData.systemWallpaperInfo.getKey()
+            if (creativeWallpaperConfigPreviewUriMap.containsKey(uriKey)) {
+                mutex.withLock {
+                    if (creativeWallpaperConfigPreviewUriMap.containsKey(uriKey)) {
+                        creativeWallpaperConfigPreviewUriMap.remove(uriKey)
+                    }
                 }
             }
         }
