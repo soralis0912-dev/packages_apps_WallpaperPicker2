@@ -65,6 +65,7 @@ class CreativeNewPreviewFragment : Hilt_CreativeNewPreviewFragment() {
             applicationContext = appContext,
             view = view,
             viewModel = wallpaperPreviewViewModel,
+            transition = null,
             displayUtils = displayUtils,
             lifecycleOwner = viewLifecycleOwner,
         )
