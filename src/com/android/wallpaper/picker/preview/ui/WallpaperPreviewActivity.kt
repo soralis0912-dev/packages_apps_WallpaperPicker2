@@ -192,9 +192,14 @@ class WallpaperPreviewActivity :
         super.onConfigurationChanged(newConfig)
 
         wallpaperPreviewViewModel.updateDisplayConfiguration()
-        // Restart current navigation destination
+        // Restart current navigation destination to force preview layout changes...
         navController.apply {
             currentDestination?.id?.let {
+                // ...unless we're in the creative fragment, where it's not necessary and
+                // interferes with receiving the creative Activity result.
+                if (it == R.id.creativeNewPreviewFragment) {
+                    return@let
+                }
                 navigate(
                     resId = it,
                     args = null,
