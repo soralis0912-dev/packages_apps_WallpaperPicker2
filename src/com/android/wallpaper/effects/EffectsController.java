@@ -15,9 +15,12 @@
  */
 package com.android.wallpaper.effects;
 
+import android.app.WallpaperInfo;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
+
+import androidx.annotation.NonNull;
 
 /**
  * Utility class to provide methods to generate effects for the wallpaper.
@@ -70,6 +73,21 @@ public abstract class EffectsController {
      * Binds the Effects Service.
      */
     public void bindEffectsService() {
+    }
+
+    /**
+     * Returns true if an effects component is available on the current device
+     */
+    public boolean areEffectsAvailable() {
+        return false;
+    }
+
+    /**
+     * Returns true if the given {@link WallpaperInfo} corresponds to a wallpaper matching the
+     * "Effects" wallpaper.
+     */
+    public boolean isEffectsWallpaper(@NonNull WallpaperInfo info) {
+        return false;
     }
 
     /**

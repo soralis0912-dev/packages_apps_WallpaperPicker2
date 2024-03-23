@@ -83,12 +83,18 @@ constructor(
     private val timeOutHandler: Handler = Handler(Looper.getMainLooper())
     private var startGeneratingTime = 0L
 
+    /** Returns whether effects are available at all on the device */
+    fun areEffectsAvailable(): Boolean {
+        return effectsController.areEffectsAvailable()
+    }
+
     suspend fun initializeEffect(
         staticWallpaperModel: StaticWallpaperModel,
         onWallpaperModelUpdated: (wallpaper: WallpaperModel) -> Unit
     ) {
         this.staticWallpaperModel = staticWallpaperModel
         onWallpaperUpdated = onWallpaperModelUpdated
+
         withContext(bgDispatcher) {
             val listener =
                 EffectsController.EffectsServiceListener {
@@ -238,6 +244,7 @@ constructor(
                     systemWallpaperInfo = wallpaperInfo,
                     isTitleVisible = false,
                     isApplied = false,
+                    isEffectWallpaper = effectsController.isEffectsWallpaper(wallpaperInfo),
                     effectNames = effect.toString(),
                 )
             return LiveWallpaperModel(

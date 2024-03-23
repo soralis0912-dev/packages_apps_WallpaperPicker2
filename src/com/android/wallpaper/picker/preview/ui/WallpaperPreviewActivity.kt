@@ -110,7 +110,10 @@ class WallpaperPreviewActivity :
             )
         }
 
-        if ((wallpaper as? WallpaperModel.StaticWallpaperModel)?.imageWallpaperData != null) {
+        if (
+            (wallpaper as? WallpaperModel.StaticWallpaperModel)?.imageWallpaperData != null &&
+                imageEffectsRepository.areEffectsAvailable()
+        ) {
             lifecycleScope.launch {
                 imageEffectsRepository.initializeEffect(
                     staticWallpaperModel = wallpaper,
