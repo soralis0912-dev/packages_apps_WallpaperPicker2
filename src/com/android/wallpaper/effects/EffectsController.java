@@ -163,6 +163,9 @@ public abstract class EffectsController {
         return Uri.EMPTY;
     }
 
+    /** */
+    public void interruptGenerate(com.android.wallpaper.effects.Effect effect) {}
+
     /**
      * This initiates the downloading of the ML models for a given effect
      *
