@@ -328,7 +328,8 @@ constructor(
     }
 
     private fun getEffectNameForLogging(): String {
-        return wallpaperEffect.value?.type.toString()
+        val effect = wallpaperEffect.value
+        return effect?.type?.toString() ?: EffectsController.Effect.UNKNOWN.toString()
     }
 
     companion object {
