@@ -1,6 +1,7 @@
 package com.android.wallpaper.util.wallpaperconnection
 
 import android.app.WallpaperInfo
+import android.app.WallpaperManager
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
@@ -13,12 +14,14 @@ import android.service.wallpaper.IWallpaperEngine
 import android.service.wallpaper.IWallpaperService
 import android.service.wallpaper.WallpaperService
 import android.util.Log
+import android.view.MotionEvent
 import android.view.SurfaceControl
 import android.view.SurfaceView
 import com.android.wallpaper.model.wallpaper.DeviceDisplayType
 import com.android.wallpaper.picker.data.WallpaperModel.LiveWallpaperModel
 import com.android.wallpaper.util.WallpaperConnection
 import com.android.wallpaper.util.WallpaperConnection.WhichPreview
+import com.android.wallpaper.util.wallpaperconnection.WallpaperConnectionUtils.getKey
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
@@ -103,12 +106,6 @@ object WallpaperConnectionUtils {
         }
     }
 
-    private fun LiveWallpaperModel.getWallpaperServiceIntent(): Intent {
-        return liveWallpaperData.systemWallpaperInfo.let {
-            Intent(WallpaperService.SERVICE_INTERFACE).setClassName(it.packageName, it.serviceName)
-        }
-    }
-
     suspend fun disconnect(
         context: Context,
         wallpaperModel: LiveWallpaperModel,
@@ -165,6 +162,51 @@ object WallpaperConnectionUtils {
         }
 
         creativeWallpaperConfigPreviewUriMap.clear()
+    }
+
+    suspend fun dispatchTouchEvent(
+        wallpaperModel: LiveWallpaperModel,
+        engineRenderingConfig: EngineRenderingConfig,
+        event: MotionEvent,
+    ) {
+        val engine =
+            wallpaperModel.liveWallpaperData.systemWallpaperInfo
+                .getKey(engineRenderingConfig.getEngineDisplaySize())
+                .let { engineKey -> engineMap[engineKey]?.await()?.second?.engine }
+
+        if (engine != null) {
+            val action: Int = event.actionMasked
+            val dup = MotionEvent.obtainNoHistory(event).also { it.setLocation(event.x, event.y) }
+            val pointerIndex = event.actionIndex
+            try {
+                engine.dispatchPointer(dup)
+                if (action == MotionEvent.ACTION_UP) {
+                    engine.dispatchWallpaperCommand(
+                        WallpaperManager.COMMAND_TAP,
+                        event.x.toInt(),
+                        event.y.toInt(),
+                        0,
+                        null
+                    )
+                } else if (action == MotionEvent.ACTION_POINTER_UP) {
+                    engine.dispatchWallpaperCommand(
+                        WallpaperManager.COMMAND_SECONDARY_TAP,
+                        event.getX(pointerIndex).toInt(),
+                        event.getY(pointerIndex).toInt(),
+                        0,
+                        null
+                    )
+                }
+            } catch (e: RemoteException) {
+                Log.e(TAG, "Remote exception of wallpaper connection", e)
+            }
+        }
+    }
+
+    private fun LiveWallpaperModel.getWallpaperServiceIntent(): Intent {
+        return liveWallpaperData.systemWallpaperInfo.let {
+            Intent(WallpaperService.SERVICE_INTERFACE).setClassName(it.packageName, it.serviceName)
+        }
     }
 
     private suspend fun initEngine(
