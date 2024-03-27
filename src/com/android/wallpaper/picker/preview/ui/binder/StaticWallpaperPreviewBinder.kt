@@ -29,6 +29,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.android.app.tracing.TraceUtils.trace
 import com.android.wallpaper.picker.preview.shared.model.FullPreviewCropModel
 import com.android.wallpaper.picker.preview.ui.util.FullResImageViewUtil
 import com.android.wallpaper.picker.preview.ui.viewmodel.StaticWallpaperPreviewViewModel
@@ -60,33 +61,37 @@ object StaticWallpaperPreviewBinder {
 
                 launch {
                     viewModel.subsamplingScaleImageViewModel.collect { imageModel ->
-                        val cropHint = imageModel.fullPreviewCropModels?.get(displaySize)?.cropHint
-                        fullResImageView.setFullResImage(
-                            ImageSource.cachedBitmap(imageModel.rawWallpaperBitmap),
-                            imageModel.rawWallpaperSize,
-                            displaySize,
-                            cropHint,
-                            RtlUtils.isRtl(lowResImageView.context),
-                        )
-
-                        // Fill in the default crop region if the displaySize for this preview is
-                        // missing.
-                        viewModel.fullPreviewCropModels.putIfAbsent(
-                            displaySize,
-                            FullPreviewCropModel(
-                                cropHint =
-                                    WallpaperCropUtils.calculateVisibleRect(
-                                        imageModel.rawWallpaperSize,
-                                        Point(
-                                            fullResImageView.measuredWidth,
-                                            fullResImageView.measuredHeight
-                                        )
-                                    ),
-                                cropSizeModel = null,
+                        trace(TAG) {
+                            val cropHint =
+                                imageModel.fullPreviewCropModels?.get(displaySize)?.cropHint
+                            fullResImageView.setFullResImage(
+                                ImageSource.cachedBitmap(imageModel.rawWallpaperBitmap),
+                                imageModel.rawWallpaperSize,
+                                displaySize,
+                                cropHint,
+                                RtlUtils.isRtl(lowResImageView.context),
                             )
-                        )
 
-                        crossFadeInFullResImageView(lowResImageView, fullResImageView)
+                            // Fill in the default crop region if the displaySize for this preview
+                            // is
+                            // missing.
+                            viewModel.fullPreviewCropModels.putIfAbsent(
+                                displaySize,
+                                FullPreviewCropModel(
+                                    cropHint =
+                                        WallpaperCropUtils.calculateVisibleRect(
+                                            imageModel.rawWallpaperSize,
+                                            Point(
+                                                fullResImageView.measuredWidth,
+                                                fullResImageView.measuredHeight
+                                            )
+                                        ),
+                                    cropSizeModel = null,
+                                )
+                            )
+
+                            crossFadeInFullResImageView(lowResImageView, fullResImageView)
+                        }
                     }
                 }
             }
@@ -147,4 +152,6 @@ object StaticWallpaperPreviewBinder {
                 }
             )
     }
+
+    private const val TAG = "StaticWallpaperPreviewBinder"
 }
