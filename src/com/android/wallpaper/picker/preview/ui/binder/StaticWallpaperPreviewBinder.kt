@@ -25,6 +25,7 @@ import android.view.View
 import android.view.animation.Interpolator
 import android.view.animation.PathInterpolator
 import android.widget.ImageView
+import androidx.core.view.doOnLayout
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
@@ -123,18 +124,20 @@ object StaticWallpaperPreviewBinder {
         // Set the full res image
         setImage(imageSource)
         // Calculate the scale and the center point for the full res image
-        FullResImageViewUtil.getScaleAndCenter(
-                Point(measuredWidth, measuredHeight),
-                rawWallpaperSize,
-                displaySize,
-                cropHint,
-                isRtl,
-            )
-            .let { scaleAndCenter ->
-                minScale = scaleAndCenter.minScale
-                maxScale = scaleAndCenter.maxScale
-                setScaleAndCenter(scaleAndCenter.defaultScale, scaleAndCenter.center)
-            }
+        doOnLayout {
+            FullResImageViewUtil.getScaleAndCenter(
+                    Point(measuredWidth, measuredHeight),
+                    rawWallpaperSize,
+                    displaySize,
+                    cropHint,
+                    isRtl,
+                )
+                .let { scaleAndCenter ->
+                    minScale = scaleAndCenter.minScale
+                    maxScale = scaleAndCenter.maxScale
+                    setScaleAndCenter(scaleAndCenter.defaultScale, scaleAndCenter.center)
+                }
+        }
     }
 
     private fun crossFadeInFullResImageView(lowResImageView: ImageView, fullResImageView: View) {
