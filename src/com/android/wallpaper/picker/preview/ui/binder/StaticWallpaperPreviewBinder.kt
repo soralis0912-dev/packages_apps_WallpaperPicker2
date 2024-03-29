@@ -52,6 +52,7 @@ object StaticWallpaperPreviewBinder {
         viewModel: StaticWallpaperPreviewViewModel,
         displaySize: Point,
         viewLifecycleOwner: LifecycleOwner,
+        isFullScreen: Boolean = false,
     ) {
         lowResImageView.initLowResImageView()
         fullResImageView.initFullResImageView()
@@ -71,11 +72,11 @@ object StaticWallpaperPreviewBinder {
                                 displaySize,
                                 cropHint,
                                 RtlUtils.isRtl(lowResImageView.context),
+                                isFullScreen,
                             )
 
                             // Fill in the default crop region if the displaySize for this preview
-                            // is
-                            // missing.
+                            // is missing.
                             viewModel.fullPreviewCropModels.putIfAbsent(
                                 displaySize,
                                 FullPreviewCropModel(
@@ -120,6 +121,7 @@ object StaticWallpaperPreviewBinder {
         displaySize: Point,
         cropHint: Rect?,
         isRtl: Boolean,
+        isFullScreen: Boolean,
     ) {
         // Set the full res image
         setImage(imageSource)
@@ -133,9 +135,20 @@ object StaticWallpaperPreviewBinder {
                     isRtl,
                 )
                 .let { scaleAndCenter ->
-                    minScale = scaleAndCenter.minScale
+                    // For full screen, the preview image container size has already been adjusted
+                    // to preserve a boundary beyond the visible crop per comment at
+                    // FullWallpaperPreviewBinder#adjustSizesForCropping.
+                    // For small screen preview, we need to apply additional scaling since the
+                    // container is the same size as the preview.
+                    val scale =
+                        if (isFullScreen) 1f
+                        else
+                            WallpaperCropUtils.getSystemWallpaperMaximumScale(
+                                context.applicationContext
+                            )
+                    minScale = scaleAndCenter.minScale * scale
                     maxScale = scaleAndCenter.maxScale
-                    setScaleAndCenter(scaleAndCenter.defaultScale, scaleAndCenter.center)
+                    setScaleAndCenter(scaleAndCenter.defaultScale * scale, scaleAndCenter.center)
                 }
         }
     }
