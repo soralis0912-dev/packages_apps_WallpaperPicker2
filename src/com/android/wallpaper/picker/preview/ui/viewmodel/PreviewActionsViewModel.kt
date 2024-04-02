@@ -18,6 +18,7 @@ package com.android.wallpaper.picker.preview.ui.viewmodel
 
 import android.content.ClipData
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.service.wallpaper.WallpaperSettingsActivity
@@ -53,6 +54,7 @@ import com.android.wallpaper.widget.floatingsheetcontent.WallpaperEffectsView2.S
 import com.android.wallpaper.widget.floatingsheetcontent.WallpaperEffectsView2.Status.PROCESSING
 import com.android.wallpaper.widget.floatingsheetcontent.WallpaperEffectsView2.Status.SHOW_DOWNLOAD_BUTTON
 import com.android.wallpaper.widget.floatingsheetcontent.WallpaperEffectsView2.Status.SUCCESS
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.android.scopes.ViewModelScoped
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
@@ -69,6 +71,7 @@ class PreviewActionsViewModel
 constructor(
     private val interactor: PreviewActionsInteractor,
     liveWallpaperDeleteUtil: LiveWallpaperDeleteUtil,
+    @ApplicationContext private val context: Context,
 ) {
     /** [INFORMATION] */
     private val _informationFloatingSheetViewModel: Flow<InformationFloatingSheetViewModel?> =
@@ -198,8 +201,11 @@ constructor(
 
     /** [EDIT] */
     val editIntent: Flow<Intent?> =
-        interactor.wallpaperModel.map {
-            (it as? LiveWallpaperModel)?.liveWallpaperData?.getEditActivityIntent(false)
+        interactor.wallpaperModel.map { model ->
+            (model as? LiveWallpaperModel)?.liveWallpaperData?.getEditActivityIntent(false)?.let {
+                intent ->
+                if (intent.resolveActivityInfo(context.packageManager, 0) != null) intent else null
+            }
         }
     val isEditVisible: Flow<Boolean> = editIntent.map { it != null }
 
