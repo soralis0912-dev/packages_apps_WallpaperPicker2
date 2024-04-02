@@ -28,7 +28,6 @@ import android.widget.ImageView
 import androidx.core.view.doOnLayout
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.android.app.tracing.TraceUtils.trace
 import com.android.wallpaper.picker.preview.shared.model.FullPreviewCropModel
@@ -46,7 +45,7 @@ object StaticWallpaperPreviewBinder {
     private val ALPHA_OUT: Interpolator = PathInterpolator(0f, 0f, 0.8f, 1f)
     private const val CROSS_FADE_DURATION: Long = 200
 
-    fun bind(
+    suspend fun bind(
         lowResImageView: ImageView,
         fullResImageView: SubsamplingScaleImageView,
         viewModel: StaticWallpaperPreviewViewModel,
@@ -57,43 +56,40 @@ object StaticWallpaperPreviewBinder {
         lowResImageView.initLowResImageView()
         fullResImageView.initFullResImageView()
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch { viewModel.lowResBitmap.collect { lowResImageView.setImageBitmap(it) } }
+        viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            launch { viewModel.lowResBitmap.collect { lowResImageView.setImageBitmap(it) } }
 
-                launch {
-                    viewModel.subsamplingScaleImageViewModel.collect { imageModel ->
-                        trace(TAG) {
-                            val cropHint =
-                                imageModel.fullPreviewCropModels?.get(displaySize)?.cropHint
-                            fullResImageView.setFullResImage(
-                                ImageSource.cachedBitmap(imageModel.rawWallpaperBitmap),
-                                imageModel.rawWallpaperSize,
-                                displaySize,
-                                cropHint,
-                                RtlUtils.isRtl(lowResImageView.context),
-                                isFullScreen,
+            launch {
+                viewModel.subsamplingScaleImageViewModel.collect { imageModel ->
+                    trace(TAG) {
+                        val cropHint = imageModel.fullPreviewCropModels?.get(displaySize)?.cropHint
+                        fullResImageView.setFullResImage(
+                            ImageSource.cachedBitmap(imageModel.rawWallpaperBitmap),
+                            imageModel.rawWallpaperSize,
+                            displaySize,
+                            cropHint,
+                            RtlUtils.isRtl(lowResImageView.context),
+                            isFullScreen,
+                        )
+
+                        // Fill in the default crop region if the displaySize for this preview
+                        // is missing.
+                        viewModel.fullPreviewCropModels.putIfAbsent(
+                            displaySize,
+                            FullPreviewCropModel(
+                                cropHint =
+                                    WallpaperCropUtils.calculateVisibleRect(
+                                        imageModel.rawWallpaperSize,
+                                        Point(
+                                            fullResImageView.measuredWidth,
+                                            fullResImageView.measuredHeight
+                                        )
+                                    ),
+                                cropSizeModel = null,
                             )
+                        )
 
-                            // Fill in the default crop region if the displaySize for this preview
-                            // is missing.
-                            viewModel.fullPreviewCropModels.putIfAbsent(
-                                displaySize,
-                                FullPreviewCropModel(
-                                    cropHint =
-                                        WallpaperCropUtils.calculateVisibleRect(
-                                            imageModel.rawWallpaperSize,
-                                            Point(
-                                                fullResImageView.measuredWidth,
-                                                fullResImageView.measuredHeight
-                                            )
-                                        ),
-                                    cropSizeModel = null,
-                                )
-                            )
-
-                            crossFadeInFullResImageView(lowResImageView, fullResImageView)
-                        }
+                        crossFadeInFullResImageView(lowResImageView, fullResImageView)
                     }
                 }
             }
