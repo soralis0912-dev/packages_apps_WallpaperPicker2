@@ -42,9 +42,10 @@ import com.android.wallpaper.picker.preview.ui.viewmodel.Action.EFFECTS
 import com.android.wallpaper.picker.preview.ui.viewmodel.Action.INFORMATION
 import com.android.wallpaper.picker.preview.ui.viewmodel.Action.SHARE
 import com.android.wallpaper.picker.preview.ui.viewmodel.floatingSheet.CreativeEffectFloatingSheetViewModel
-import com.android.wallpaper.picker.preview.ui.viewmodel.floatingSheet.EffectFloatingSheetViewModel
+import com.android.wallpaper.picker.preview.ui.viewmodel.floatingSheet.CustomizeFloatingSheetViewModel
 import com.android.wallpaper.picker.preview.ui.viewmodel.floatingSheet.ImageEffectFloatingSheetViewModel
 import com.android.wallpaper.picker.preview.ui.viewmodel.floatingSheet.InformationFloatingSheetViewModel
+import com.android.wallpaper.picker.preview.ui.viewmodel.floatingSheet.PreviewFloatingSheetViewModel
 import com.android.wallpaper.widget.floatingsheetcontent.WallpaperEffectsView2
 import com.android.wallpaper.widget.floatingsheetcontent.WallpaperEffectsView2.EffectDownloadClickListener
 import com.android.wallpaper.widget.floatingsheetcontent.WallpaperEffectsView2.EffectSwitchListener
@@ -59,7 +60,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
 /** View model for the preview action buttons */
@@ -71,7 +71,7 @@ constructor(
     liveWallpaperDeleteUtil: LiveWallpaperDeleteUtil,
 ) {
     /** [INFORMATION] */
-    private val _informationFloatingSheetViewModel: Flow<InformationFloatingSheetViewModel?> =
+    private val informationFloatingSheetViewModel: Flow<InformationFloatingSheetViewModel?> =
         interactor.wallpaperModel.map { wallpaperModel ->
             if (wallpaperModel == null || !wallpaperModel.shouldShowInformationFloatingSheet()) {
                 null
@@ -87,22 +87,10 @@ constructor(
             }
         }
 
-    val isInformationVisible: Flow<Boolean> = _informationFloatingSheetViewModel.map { it != null }
+    val isInformationVisible: Flow<Boolean> = informationFloatingSheetViewModel.map { it != null }
 
     private val _isInformationChecked: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isInformationChecked: Flow<Boolean> = _isInformationChecked.asStateFlow()
-
-    // Floating sheet contents for the bottom sheet dialog. If content is null, the bottom sheet
-    // should collapse, otherwise, expended.
-    val informationFloatingSheetViewModel: Flow<InformationFloatingSheetViewModel?> =
-        combine(isInformationChecked, _informationFloatingSheetViewModel) { checked, viewModel ->
-                if (checked && viewModel != null) {
-                    viewModel
-                } else {
-                    null
-                }
-            }
-            .distinctUntilChanged()
 
     val onInformationClicked: Flow<(() -> Unit)?> =
         combine(isInformationVisible, isInformationChecked) { show, isChecked ->
@@ -207,8 +195,15 @@ constructor(
     val isEditChecked: Flow<Boolean> = _isEditChecked.asStateFlow()
 
     /** [CUSTOMIZE] */
-    private val _isCustomizeVisible: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val isCustomizeVisible: Flow<Boolean> = _isCustomizeVisible.asStateFlow()
+    private val customizeFloatingSheetViewModel: Flow<CustomizeFloatingSheetViewModel?> =
+        interactor.wallpaperModel.map {
+            (it as? LiveWallpaperModel)
+                ?.liveWallpaperData
+                ?.systemWallpaperInfo
+                ?.settingsSliceUri
+                ?.let { CustomizeFloatingSheetViewModel(it) }
+        }
+    val isCustomizeVisible: Flow<Boolean> = customizeFloatingSheetViewModel.map { it != null }
 
     private val _isCustomizeChecked: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isCustomizeChecked: Flow<Boolean> = _isCustomizeChecked.asStateFlow()
@@ -228,41 +223,34 @@ constructor(
         }
 
     /** [EFFECTS] */
-    private val _effectFloatingSheetViewModel: Flow<EffectFloatingSheetViewModel?> =
-        combine(
-            interactor.imageEffectsStatus,
-            interactor.imageEffect,
-            interactor.creativeEffectsModel
-        ) { imageEffectStatus, imageEffect, creativeEffectsModel ->
-            when {
-                (creativeEffectsModel != null) ->
-                    EffectFloatingSheetViewModel(
-                        creativeEffectFloatingSheetViewModel =
-                            CreativeEffectFloatingSheetViewModel(
-                                title = creativeEffectsModel.title,
-                                subtitle = creativeEffectsModel.subtitle,
-                                wallpaperActions = creativeEffectsModel.actions,
-                                wallpaperEffectSwitchListener = {
-                                    interactor.turnOnCreativeEffect(it)
-                                },
-                            )
-                    )
-                (imageEffect != null) ->
-                    when (imageEffectStatus) {
-                        ImageEffectsRepository.EffectStatus.EFFECT_DISABLE -> {
-                            null
-                        }
-                        else -> {
-                            EffectFloatingSheetViewModel(
-                                imageEffectFloatingSheetViewModel =
-                                    getImageEffectFloatingSheetViewModel(
-                                        imageEffectStatus,
-                                        imageEffect
-                                    )
-                            )
-                        }
+    private val imageEffectFloatingSheetViewModel: Flow<ImageEffectFloatingSheetViewModel?> =
+        combine(interactor.imageEffectsStatus, interactor.imageEffect) {
+            imageEffectStatus,
+            imageEffect ->
+            imageEffect?.let {
+                when (imageEffectStatus) {
+                    ImageEffectsRepository.EffectStatus.EFFECT_DISABLE -> {
+                        null
                     }
-                else -> null
+                    else -> {
+                        getImageEffectFloatingSheetViewModel(
+                            imageEffectStatus,
+                            imageEffect,
+                        )
+                    }
+                }
+            }
+        }
+
+    private val creativeEffectFloatingSheetViewModel: Flow<CreativeEffectFloatingSheetViewModel?> =
+        interactor.creativeEffectsModel.map { creativeEffectsModel ->
+            creativeEffectsModel?.let {
+                CreativeEffectFloatingSheetViewModel(
+                    title = it.title,
+                    subtitle = it.subtitle,
+                    wallpaperActions = it.actions,
+                    wallpaperEffectSwitchListener = { interactor.turnOnCreativeEffect(it) },
+                )
             }
         }
 
@@ -322,22 +310,15 @@ constructor(
         )
     }
 
-    val isEffectsVisible: Flow<Boolean> = _effectFloatingSheetViewModel.map { it != null }
+    val isEffectsVisible: Flow<Boolean> =
+        combine(imageEffectFloatingSheetViewModel, creativeEffectFloatingSheetViewModel) {
+            imageEffect,
+            creativeEffect ->
+            imageEffect != null || creativeEffect != null
+        }
 
     private val _isEffectsChecked: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isEffectsChecked: Flow<Boolean> = _isEffectsChecked.asStateFlow()
-
-    // Floating sheet contents for the bottom sheet dialog. If content is null, the bottom sheet
-    // should collapse, otherwise, expended.
-    val effectFloatingSheetViewModel: Flow<EffectFloatingSheetViewModel?> =
-        combine(isEffectsChecked, _effectFloatingSheetViewModel) { checked, viewModel ->
-                if (checked && viewModel != null) {
-                    viewModel
-                } else {
-                    null
-                }
-            }
-            .distinctUntilChanged()
 
     val onEffectsClicked: Flow<(() -> Unit)?> =
         combine(isEffectsVisible, isEffectsChecked) { show, isChecked ->
@@ -360,6 +341,46 @@ constructor(
         }
     val isShareVisible: Flow<Boolean> = shareIntent.map { it != null }
 
+    // Floating sheet contents for the bottom sheet dialog. If content is null, the bottom sheet
+    // should collapse, otherwise, expended.
+    val previewFloatingSheetViewModel: Flow<PreviewFloatingSheetViewModel?> =
+        combine7(
+            isInformationChecked,
+            isEffectsChecked,
+            isCustomizeChecked,
+            informationFloatingSheetViewModel,
+            imageEffectFloatingSheetViewModel,
+            creativeEffectFloatingSheetViewModel,
+            customizeFloatingSheetViewModel,
+        ) {
+            isInformationChecked,
+            isEffectsChecked,
+            isCustomizeChecked,
+            informationFloatingSheetViewModel,
+            imageEffectFloatingSheetViewModel,
+            creativeEffectFloatingSheetViewModel,
+            customizeFloatingSheetViewModel ->
+            if (isInformationChecked && informationFloatingSheetViewModel != null) {
+                PreviewFloatingSheetViewModel(
+                    informationFloatingSheetViewModel = informationFloatingSheetViewModel
+                )
+            } else if (isEffectsChecked && imageEffectFloatingSheetViewModel != null) {
+                PreviewFloatingSheetViewModel(
+                    imageEffectFloatingSheetViewModel = imageEffectFloatingSheetViewModel
+                )
+            } else if (isEffectsChecked && creativeEffectFloatingSheetViewModel != null) {
+                PreviewFloatingSheetViewModel(
+                    creativeEffectFloatingSheetViewModel = creativeEffectFloatingSheetViewModel
+                )
+            } else if (isCustomizeChecked && customizeFloatingSheetViewModel != null) {
+                PreviewFloatingSheetViewModel(
+                    customizeFloatingSheetViewModel = customizeFloatingSheetViewModel
+                )
+            } else {
+                null
+            }
+        }
+
     fun onFloatingSheetCollapsed() {
         // When floating collapsed, we should look for those actions that expand the floating sheet
         // and see which is checked, and uncheck it.
@@ -369,6 +390,10 @@ constructor(
 
         if (_isEffectsChecked.value) {
             _isEffectsChecked.value = false
+        }
+
+        if (_isCustomizeChecked.value) {
+            _isCustomizeChecked.value = false
         }
     }
 
@@ -449,6 +474,31 @@ constructor(
 
         fun LiveWallpaperModel.isNewCreativeWallpaper(): Boolean {
             return creativeWallpaperData?.deleteUri?.toString()?.isEmpty() == true
+        }
+
+        /** The original combine function can only take up to 5 flows. */
+        inline fun <T1, T2, T3, T4, T5, T6, T7, R> combine7(
+            flow: Flow<T1>,
+            flow2: Flow<T2>,
+            flow3: Flow<T3>,
+            flow4: Flow<T4>,
+            flow5: Flow<T5>,
+            flow6: Flow<T6>,
+            flow7: Flow<T7>,
+            crossinline transform: suspend (T1, T2, T3, T4, T5, T6, T7) -> R
+        ): Flow<R> {
+            return combine(flow, flow2, flow3, flow4, flow5, flow6, flow7) { args: Array<*> ->
+                @Suppress("UNCHECKED_CAST")
+                transform(
+                    args[0] as T1,
+                    args[1] as T2,
+                    args[2] as T3,
+                    args[3] as T4,
+                    args[4] as T5,
+                    args[5] as T6,
+                    args[6] as T7,
+                )
+            }
         }
     }
 }
