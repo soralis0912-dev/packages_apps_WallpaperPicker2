@@ -18,10 +18,12 @@ package com.android.wallpaper.picker.preview.ui.binder
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Point
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.View
+import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.cardview.widget.CardView
 import androidx.core.view.doOnLayout
@@ -309,6 +311,8 @@ object FullWallpaperPreviewBinder {
     }
 
     private fun TouchForwardingLayout.initTouchForwarding(targetView: View) {
+        // Make sure the touch forwarding layout same size of the target view
+        layoutParams = FrameLayout.LayoutParams(targetView.width, targetView.height, Gravity.CENTER)
         setForwardingEnabled(true)
         setTargetView(targetView)
     }
