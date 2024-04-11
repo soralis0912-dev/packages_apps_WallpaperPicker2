@@ -17,7 +17,7 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="wallpaper_app_name" msgid="1719889291772891695">"Kertas dinding"</string>
+    <string name="wallpaper_app_name" msgid="1719889291772891695">"Hiasan latar"</string>
     <!-- no translation found for app_name (8773648973927541493) -->
     <skip />
     <string name="select_wallpaper_label" msgid="6989581259339646085">"Kategori kertas dinding"</string>
@@ -36,7 +36,7 @@
     <string name="home_and_lock_short_label" msgid="2937922943541927983">"Skrin Utama &amp; Kunci"</string>
     <string name="set_wallpaper_dialog_message" msgid="2110475703996853076">"Tetapkan hiasan latar"</string>
     <string name="set_wallpaper_home_screen_destination" msgid="7315594722013109354">"Skrin utama"</string>
-    <string name="set_wallpaper_lock_screen_destination" msgid="6224685559375417945">"Kunci skrin"</string>
+    <string name="set_wallpaper_lock_screen_destination" msgid="6224685559375417945">"Skrin kunci"</string>
     <string name="set_wallpaper_both_destination" msgid="2536004558738350775">"Skrin utama dan skrin kunci"</string>
     <string name="no_backup_image_wallpaper_label" msgid="6316627676107284851">"Menggilirkan Kertas Dinding Imej"</string>
     <string name="permission_needed_explanation" msgid="139166837541426823">"Untuk memaparkan kertas dinding semasa di sini, <xliff:g id="APP_NAME">%1$s</xliff:g> memerlukan akses kepada storan peranti anda."</string>
@@ -98,7 +98,7 @@
     <string name="accessibility_preview_pager" msgid="1839869637405028575">"Halaman <xliff:g id="ID_1">%1$d</xliff:g> daripada <xliff:g id="ID_2">%2$d</xliff:g>"</string>
     <string name="next_page_content_description" msgid="6268461446679584152">"Seterusnya"</string>
     <string name="previous_page_content_description" msgid="1138597031571078429">"Sebelumnya"</string>
-    <string name="wallpaper_title" msgid="6754214682228331092">"Kertas dinding"</string>
+    <string name="wallpaper_title" msgid="6754214682228331092">"Hiasan latar"</string>
     <string name="wallpaper_preview_card_content_description" msgid="6049261033541034584">"Pratonton kertas dinding"</string>
     <string name="lock_wallpaper_preview_card_content_description" msgid="5236839857695985498">"Pratonton hiasan latar skrin kunci"</string>
     <string name="home_wallpaper_preview_card_content_description" msgid="4059418716070821630">"Pratonton hiasan latar skrin utama"</string>
