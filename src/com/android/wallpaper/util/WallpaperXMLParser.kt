@@ -43,7 +43,7 @@ constructor(private val context: Context, private val partnerProvider: PartnerPr
             WallpaperCategory.Builder(partnerProvider.resources, Xml.asAttributeSet(parser))
         categoryBuilder.setPriorityIfEmpty(PRIORITY_SYSTEM)
         var publishedPlaceholder = false
-        val pair = parseXML(parser, parser.depth, categoryBuilder, publishedPlaceholder)
+        val pair = parseXML(parser, parser.depth, categoryBuilder, false)
         publishedPlaceholder = pair.first
         val category = categoryBuilder.build()
         return if (category.unmodifiableWallpapers.isNotEmpty()) category else null
