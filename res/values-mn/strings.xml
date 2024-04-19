@@ -134,5 +134,5 @@
     <string name="recents_wallpaper_label" msgid="8653165542635660222">"%1$s, %2$d"</string>
     <string name="default_wallpaper_title" msgid="2541071182656978180">"Дэлгэцийн зураг"</string>
     <string name="small_preview_tooltip" msgid="1920430079013352071">"Зургаа засахын тулд товшино уу"</string>
-    <string name="full_preview_tooltip" msgid="4648994028015322759">"Зургуудынхаа байрлал, масштаб болон өнцгийг тохируулна уу"</string>
+    <string name="full_preview_tooltip" msgid="4648994028015322759">"Зургийнхаа байрлал, хэмжээ, өнцгийг тохируулна уу"</string>
 </resources>

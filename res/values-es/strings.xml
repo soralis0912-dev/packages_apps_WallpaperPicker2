@@ -134,5 +134,5 @@
     <string name="recents_wallpaper_label" msgid="8653165542635660222">"%1$s, %2$d"</string>
     <string name="default_wallpaper_title" msgid="2541071182656978180">"Fondo de pantalla"</string>
     <string name="small_preview_tooltip" msgid="1920430079013352071">"Toca para editar tu foto"</string>
-    <string name="full_preview_tooltip" msgid="4648994028015322759">"Ajusta la posición, la escala y el ángulo de tus fotos"</string>
+    <string name="full_preview_tooltip" msgid="4648994028015322759">"Ajusta la posición, escala y ángulo de tus fotos"</string>
 </resources>
