@@ -83,7 +83,7 @@ constructor(
     val wallpaper: StateFlow<WallpaperModel?> = interactor.wallpaperModel
 
     // Used to display loading indication on the preview.
-    val effectStatus = actionsInteractor.imageEffectsStatus
+    val imageEffectsModel = actionsInteractor.imageEffectsModel
 
     // This flag prevents launching the creative edit activity again when orientation change.
     // On orientation change, the fragment's onCreateView will be called again.
