@@ -69,6 +69,7 @@ constructor(
         EFFECT_APPLY_IN_PROGRESS,
         EFFECT_APPLIED,
         EFFECT_DOWNLOAD_FAILED,
+        EFFECT_APPLY_FAILED,
     }
 
     private val _effectStatus = MutableStateFlow(EffectStatus.EFFECT_DISABLE)
@@ -158,8 +159,7 @@ constructor(
                             }
                         }
                         else -> {
-                            // TODO onImageEffectFailed
-                            _effectStatus.value = EffectStatus.EFFECT_DOWNLOAD_FAILED
+                            _effectStatus.value = EffectStatus.EFFECT_APPLY_FAILED
                             logger.logEffectApply(
                                 getEffectNameForLogging(),
                                 StyleEnums.EFFECT_APPLIED_ON_FAILED,

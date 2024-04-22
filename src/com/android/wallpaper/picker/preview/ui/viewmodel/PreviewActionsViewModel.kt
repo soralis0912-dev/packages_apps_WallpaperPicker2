@@ -31,9 +31,12 @@ import com.android.wallpaper.picker.data.WallpaperModel
 import com.android.wallpaper.picker.data.WallpaperModel.LiveWallpaperModel
 import com.android.wallpaper.picker.preview.data.repository.ImageEffectsRepository
 import com.android.wallpaper.picker.preview.data.repository.ImageEffectsRepository.EffectStatus.EFFECT_APPLIED
+import com.android.wallpaper.picker.preview.data.repository.ImageEffectsRepository.EffectStatus.EFFECT_APPLY_FAILED
 import com.android.wallpaper.picker.preview.data.repository.ImageEffectsRepository.EffectStatus.EFFECT_APPLY_IN_PROGRESS
+import com.android.wallpaper.picker.preview.data.repository.ImageEffectsRepository.EffectStatus.EFFECT_DOWNLOAD_FAILED
 import com.android.wallpaper.picker.preview.data.repository.ImageEffectsRepository.EffectStatus.EFFECT_DOWNLOAD_IN_PROGRESS
 import com.android.wallpaper.picker.preview.data.repository.ImageEffectsRepository.EffectStatus.EFFECT_DOWNLOAD_READY
+import com.android.wallpaper.picker.preview.data.repository.ImageEffectsRepository.EffectStatus.EFFECT_READY
 import com.android.wallpaper.picker.preview.domain.interactor.PreviewActionsInteractor
 import com.android.wallpaper.picker.preview.ui.util.LiveWallpaperDeleteUtil
 import com.android.wallpaper.picker.preview.ui.viewmodel.Action.CUSTOMIZE
@@ -47,10 +50,10 @@ import com.android.wallpaper.picker.preview.ui.viewmodel.floatingSheet.Customize
 import com.android.wallpaper.picker.preview.ui.viewmodel.floatingSheet.ImageEffectFloatingSheetViewModel
 import com.android.wallpaper.picker.preview.ui.viewmodel.floatingSheet.InformationFloatingSheetViewModel
 import com.android.wallpaper.picker.preview.ui.viewmodel.floatingSheet.PreviewFloatingSheetViewModel
-import com.android.wallpaper.widget.floatingsheetcontent.WallpaperEffectsView2
 import com.android.wallpaper.widget.floatingsheetcontent.WallpaperEffectsView2.EffectDownloadClickListener
 import com.android.wallpaper.widget.floatingsheetcontent.WallpaperEffectsView2.EffectSwitchListener
 import com.android.wallpaper.widget.floatingsheetcontent.WallpaperEffectsView2.Status.DOWNLOADING
+import com.android.wallpaper.widget.floatingsheetcontent.WallpaperEffectsView2.Status.FAILED
 import com.android.wallpaper.widget.floatingsheetcontent.WallpaperEffectsView2.Status.IDLE
 import com.android.wallpaper.widget.floatingsheetcontent.WallpaperEffectsView2.Status.PROCESSING
 import com.android.wallpaper.widget.floatingsheetcontent.WallpaperEffectsView2.Status.SHOW_DOWNLOAD_BUTTON
@@ -278,11 +281,17 @@ constructor(
                 EFFECT_DOWNLOAD_IN_PROGRESS -> {
                     DOWNLOADING
                 }
-                ImageEffectsRepository.EffectStatus.EFFECT_DOWNLOAD_FAILED -> {
-                    WallpaperEffectsView2.Status.FAILED
+                EFFECT_DOWNLOAD_FAILED -> {
+                    SHOW_DOWNLOAD_BUTTON
+                }
+                EFFECT_READY -> {
+                    IDLE
+                }
+                EFFECT_APPLY_FAILED -> {
+                    FAILED
                 }
                 else -> {
-                    IDLE
+                    FAILED
                 }
             }
         return ImageEffectFloatingSheetViewModel(
