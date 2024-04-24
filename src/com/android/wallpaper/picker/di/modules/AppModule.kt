@@ -23,6 +23,8 @@ import com.android.wallpaper.system.UiModeManagerImpl
 import com.android.wallpaper.system.UiModeManagerWrapper
 import com.android.wallpaper.util.WallpaperXMLParser
 import com.android.wallpaper.util.WallpaperXMLParserInterface
+import com.android.wallpaper.util.converter.category.CategoryFactory
+import com.android.wallpaper.util.converter.category.DefaultCategoryFactory
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -39,6 +41,10 @@ abstract class AppModule {
     @Binds
     @Singleton
     abstract fun bindWallpaperXMLParser(impl: WallpaperXMLParser): WallpaperXMLParserInterface
+
+    @Binds
+    @Singleton
+    abstract fun bindCategoryFactory(impl: DefaultCategoryFactory): CategoryFactory
 
     companion object {
         @Provides
