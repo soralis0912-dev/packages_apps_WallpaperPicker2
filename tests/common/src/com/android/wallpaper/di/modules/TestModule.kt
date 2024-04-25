@@ -20,9 +20,11 @@ import android.content.Context
 import android.content.pm.PackageManager
 import com.android.wallpaper.picker.di.modules.AppModule
 import com.android.wallpaper.system.UiModeManagerWrapper
+import com.android.wallpaper.testing.FakeDefaultCategoryFactory
 import com.android.wallpaper.testing.FakeUiModeManager
 import com.android.wallpaper.testing.FakeWallpaperXMLParser
 import com.android.wallpaper.util.WallpaperXMLParserInterface
+import com.android.wallpaper.util.converter.category.CategoryFactory
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -39,6 +41,10 @@ internal abstract class TestModule {
     @Binds
     @Singleton
     abstract fun bindWallpaperXMLParser(impl: FakeWallpaperXMLParser): WallpaperXMLParserInterface
+
+    @Binds
+    @Singleton
+    abstract fun bindCategoryFactory(impl: FakeDefaultCategoryFactory): CategoryFactory
 
     companion object {
         @Provides
