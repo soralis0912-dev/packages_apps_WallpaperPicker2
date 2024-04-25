@@ -20,7 +20,7 @@ package {
 android_library {
     name: "WallpaperPicker2TestModule",
     defaults: ["WallpaperPicker2_defaults_with_overrides"],
-    srcs: ["src/com/android/wallpaper/TestModule.kt"],
+    srcs: ["src/com/android/wallpaper/WallpaperPicker2TestModule.kt"],
     static_libs: [
         "WallpaperPicker2TestLib",
         "hilt_android",
