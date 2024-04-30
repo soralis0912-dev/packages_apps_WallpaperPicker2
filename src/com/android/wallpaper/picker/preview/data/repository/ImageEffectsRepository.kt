@@ -352,6 +352,7 @@ constructor(
     }
 
     fun destroy() {
+        timeOutHandler.removeCallbacksAndMessages(null)
         effectsController.removeListener()
         _wallpaperEffect.value = null
     }
