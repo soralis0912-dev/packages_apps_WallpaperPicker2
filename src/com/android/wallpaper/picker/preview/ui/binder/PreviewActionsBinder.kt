@@ -60,7 +60,7 @@ object PreviewActionsBinder {
         lifecycleOwner: LifecycleOwner,
         logger: UserEventLogger,
         imageEffectDialogUtil: ImageEffectDialogUtil,
-        onStartEditActivity: (intent: Intent) -> Unit,
+        onNavigateToEditScreen: (intent: Intent) -> Unit,
         onStartShareActivity: (intent: Intent) -> Unit,
     ) {
         var deleteDialog: AlertDialog? = null
@@ -207,7 +207,7 @@ object PreviewActionsBinder {
                                     previewViewModel.setDefaultFullPreviewConfigViewModel(
                                         deviceDisplayType
                                     )
-                                    onStartEditActivity.invoke(it)
+                                    onNavigateToEditScreen.invoke(it)
                                 }
                             } else null
                         )
