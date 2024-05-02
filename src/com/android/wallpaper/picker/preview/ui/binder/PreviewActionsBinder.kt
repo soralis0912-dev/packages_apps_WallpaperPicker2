@@ -20,11 +20,13 @@ import android.net.Uri
 import android.view.View
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.android.wallpaper.R
 import com.android.wallpaper.model.wallpaper.DeviceDisplayType
 import com.android.wallpaper.module.logging.UserEventLogger
 import com.android.wallpaper.picker.preview.ui.util.ImageEffectDialogUtil
@@ -38,7 +40,6 @@ import com.android.wallpaper.picker.preview.ui.viewmodel.Action.EDIT
 import com.android.wallpaper.picker.preview.ui.viewmodel.Action.EFFECTS
 import com.android.wallpaper.picker.preview.ui.viewmodel.Action.INFORMATION
 import com.android.wallpaper.picker.preview.ui.viewmodel.Action.SHARE
-import com.android.wallpaper.picker.preview.ui.viewmodel.DeleteConfirmationDialogViewModel
 import com.android.wallpaper.picker.preview.ui.viewmodel.PreviewActionsViewModel
 import com.android.wallpaper.picker.preview.ui.viewmodel.WallpaperPreviewViewModel
 import com.android.wallpaper.widget.floatingsheetcontent.WallpaperActionsToggleAdapter
@@ -61,8 +62,9 @@ object PreviewActionsBinder {
         imageEffectDialogUtil: ImageEffectDialogUtil,
         onStartEditActivity: (intent: Intent) -> Unit,
         onStartShareActivity: (intent: Intent) -> Unit,
-        onShowDeleteConfirmationDialog: (videModel: DeleteConfirmationDialogViewModel) -> Unit,
     ) {
+        var deleteDialog: AlertDialog? = null
+        var onDelete: (() -> Unit)?
         var imageEffectConfirmDownloadDialog: ImageEffectDialog? = null
         var imageEffectConfirmExitDialog: ImageEffectDialog? = null
         var onBackPressedCallback: OnBackPressedCallback? = null
@@ -153,8 +155,34 @@ object PreviewActionsBinder {
 
                 launch {
                     actionsViewModel.deleteConfirmationDialogViewModel.collect { viewModel ->
+                        val appContext = activity.applicationContext
                         if (viewModel != null) {
-                            onShowDeleteConfirmationDialog.invoke(viewModel)
+                            onDelete = {
+                                if (viewModel.creativeWallpaperDeleteUri != null) {
+                                    appContext.contentResolver.delete(
+                                        viewModel.creativeWallpaperDeleteUri,
+                                        null,
+                                        null
+                                    )
+                                } else if (viewModel.liveWallpaperDeleteIntent != null) {
+                                    appContext.startService(viewModel.liveWallpaperDeleteIntent)
+                                }
+                                activity.finish()
+                            }
+                            val dialog =
+                                deleteDialog
+                                    ?: AlertDialog.Builder(activity)
+                                        .setMessage(R.string.delete_wallpaper_confirmation)
+                                        .setOnDismissListener { viewModel.onDismiss.invoke() }
+                                        .setPositiveButton(R.string.delete_live_wallpaper) { _, _ ->
+                                            onDelete?.invoke()
+                                        }
+                                        .setNegativeButton(android.R.string.cancel, null)
+                                        .create()
+                                        .also { deleteDialog = it }
+                            dialog.show()
+                        } else {
+                            deleteDialog?.dismiss()
                         }
                     }
                 }

@@ -230,26 +230,6 @@ class SmallPreviewFragment : Hilt_SmallPreviewFragment() {
             },
             imageEffectDialogUtil = imageEffectDialogUtil,
             onStartShareActivity = { shareActivityResult.launch(it) },
-            onShowDeleteConfirmationDialog = { viewModel ->
-                val context = context ?: return@bind
-                AlertDialog.Builder(context)
-                    .setMessage(R.string.delete_wallpaper_confirmation)
-                    .setOnDismissListener { viewModel.onDismiss.invoke() }
-                    .setPositiveButton(R.string.delete_live_wallpaper) { _, _ ->
-                        if (viewModel.creativeWallpaperDeleteUri != null) {
-                            appContext.contentResolver.delete(
-                                viewModel.creativeWallpaperDeleteUri,
-                                null,
-                                null
-                            )
-                        } else if (viewModel.liveWallpaperDeleteIntent != null) {
-                            appContext.startService(viewModel.liveWallpaperDeleteIntent)
-                        }
-                        activity?.finish()
-                    }
-                    .setNegativeButton(android.R.string.cancel, null)
-                    .show()
-            },
         )
     }
 
