@@ -15,7 +15,6 @@
  */
 package com.android.wallpaper.picker.preview.ui.fragment
 
-import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -66,7 +65,6 @@ class SmallPreviewFragment : Hilt_SmallPreviewFragment() {
     @Inject lateinit var imageEffectDialogUtil: ImageEffectDialogUtil
 
     private val wallpaperPreviewViewModel by activityViewModels<WallpaperPreviewViewModel>()
-    private lateinit var setWallpaperProgressDialog: AlertDialog
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -94,10 +92,9 @@ class SmallPreviewFragment : Hilt_SmallPreviewFragment() {
             findNavController().navigate(R.id.setWallpaperDialog)
         }
 
-        setWallpaperProgressDialog = getSetWallpaperProgressDialog(inflater)
         SetWallpaperProgressDialogBinder.bind(
-            dialog = setWallpaperProgressDialog,
             viewModel = wallpaperPreviewViewModel,
+            activity = requireActivity(),
             lifecycleOwner = viewLifecycleOwner,
         )
 
@@ -160,7 +157,6 @@ class SmallPreviewFragment : Hilt_SmallPreviewFragment() {
                 viewPager,
                 view.requireViewById(R.id.pager_previews),
                 displayUtils.getRealSize(displayUtils.getWallpaperDisplay()),
-                // TODO: pass correct view models for the view pager
                 wallpaperPreviewViewModel,
                 appContext,
                 viewLifecycleOwner,
@@ -219,25 +215,20 @@ class SmallPreviewFragment : Hilt_SmallPreviewFragment() {
             activity = requireActivity(),
             lifecycleOwner = viewLifecycleOwner,
             logger = logger,
-            onStartEditActivity = {
-                findNavController()
-                    .navigate(
-                        resId = R.id.action_smallPreviewFragment_to_creativeEditPreviewFragment,
-                        args = Bundle().apply { putParcelable(ARG_EDIT_INTENT, it) },
-                        navOptions = null,
-                        navigatorExtras = null,
-                    )
-            },
             imageEffectDialogUtil = imageEffectDialogUtil,
+            onNavigateToEditScreen = { navigateToEditScreen(it) },
             onStartShareActivity = { shareActivityResult.launch(it) },
         )
     }
 
-    private fun getSetWallpaperProgressDialog(
-        inflater: LayoutInflater,
-    ): AlertDialog {
-        val dialogView = inflater.inflate(R.layout.set_wallpaper_progress_dialog_view, null)
-        return AlertDialog.Builder(activity).setView(dialogView).create()
+    private fun navigateToEditScreen(intent: Intent) {
+        findNavController()
+            .navigate(
+                resId = R.id.action_smallPreviewFragment_to_creativeEditPreviewFragment,
+                args = Bundle().apply { putParcelable(ARG_EDIT_INTENT, intent) },
+                navOptions = null,
+                navigatorExtras = null,
+            )
     }
 
     companion object {
