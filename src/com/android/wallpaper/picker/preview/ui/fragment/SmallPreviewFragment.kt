@@ -43,6 +43,7 @@ import com.android.wallpaper.picker.preview.ui.binder.SetWallpaperProgressDialog
 import com.android.wallpaper.picker.preview.ui.fragment.smallpreview.DualPreviewViewPager
 import com.android.wallpaper.picker.preview.ui.fragment.smallpreview.adapters.TabTextPagerAdapter
 import com.android.wallpaper.picker.preview.ui.fragment.smallpreview.views.TabsPagerContainer
+import com.android.wallpaper.picker.preview.ui.util.ImageEffectDialogUtil
 import com.android.wallpaper.picker.preview.ui.view.PreviewActionGroup
 import com.android.wallpaper.picker.preview.ui.viewmodel.Action
 import com.android.wallpaper.picker.preview.ui.viewmodel.WallpaperPreviewViewModel
@@ -62,6 +63,7 @@ class SmallPreviewFragment : Hilt_SmallPreviewFragment() {
     @Inject @ApplicationContext lateinit var appContext: Context
     @Inject lateinit var displayUtils: DisplayUtils
     @Inject lateinit var logger: UserEventLogger
+    @Inject lateinit var imageEffectDialogUtil: ImageEffectDialogUtil
 
     private val wallpaperPreviewViewModel by activityViewModels<WallpaperPreviewViewModel>()
     private lateinit var setWallpaperProgressDialog: AlertDialog
@@ -214,6 +216,7 @@ class SmallPreviewFragment : Hilt_SmallPreviewFragment() {
             previewViewModel = wallpaperPreviewViewModel,
             actionsViewModel = wallpaperPreviewViewModel.previewActionsViewModel,
             deviceDisplayType = displayUtils.getCurrentDisplayType(requireActivity()),
+            activity = requireActivity(),
             lifecycleOwner = viewLifecycleOwner,
             logger = logger,
             onStartEditActivity = {
@@ -225,27 +228,8 @@ class SmallPreviewFragment : Hilt_SmallPreviewFragment() {
                         navigatorExtras = null,
                     )
             },
+            imageEffectDialogUtil = imageEffectDialogUtil,
             onStartShareActivity = { shareActivityResult.launch(it) },
-            onShowDeleteConfirmationDialog = { viewModel ->
-                val context = context ?: return@bind
-                AlertDialog.Builder(context)
-                    .setMessage(R.string.delete_wallpaper_confirmation)
-                    .setOnDismissListener { viewModel.onDismiss.invoke() }
-                    .setPositiveButton(R.string.delete_live_wallpaper) { _, _ ->
-                        if (viewModel.creativeWallpaperDeleteUri != null) {
-                            appContext.contentResolver.delete(
-                                viewModel.creativeWallpaperDeleteUri,
-                                null,
-                                null
-                            )
-                        } else if (viewModel.liveWallpaperDeleteIntent != null) {
-                            appContext.startService(viewModel.liveWallpaperDeleteIntent)
-                        }
-                        activity?.finish()
-                    }
-                    .setNegativeButton(android.R.string.cancel, null)
-                    .show()
-            },
         )
     }
 
