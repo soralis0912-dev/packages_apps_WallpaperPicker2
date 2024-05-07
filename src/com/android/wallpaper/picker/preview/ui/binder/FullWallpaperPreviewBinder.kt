@@ -69,6 +69,7 @@ object FullWallpaperPreviewBinder {
         displayUtils: DisplayUtils,
         lifecycleOwner: LifecycleOwner,
         savedInstanceState: Bundle?,
+        isFirstBinding: Boolean,
         onWallpaperLoaded: ((Boolean) -> Unit)? = null,
     ) {
         val wallpaperPreviewCrop: FullPreviewFrameLayout =
@@ -137,6 +138,7 @@ object FullWallpaperPreviewBinder {
                         surfaceTouchForwardingLayout = surfaceTouchForwardingLayout,
                         viewModel = viewModel,
                         lifecycleOwner = lifecycleOwner,
+                        isFirstBinding = isFirstBinding,
                     )
                 surfaceView.setZOrderMediaOverlay(true)
                 surfaceView.holder.addCallback(surfaceCallback)
@@ -160,6 +162,7 @@ object FullWallpaperPreviewBinder {
         surfaceTouchForwardingLayout: TouchForwardingLayout,
         viewModel: WallpaperPreviewViewModel,
         lifecycleOwner: LifecycleOwner,
+        isFirstBinding: Boolean,
     ): SurfaceViewUtil.SurfaceCallback {
         return object : SurfaceViewUtil.SurfaceCallback {
 
@@ -191,6 +194,7 @@ object FullWallpaperPreviewBinder {
                                     viewModel.getWallpaperPreviewSource().toFlag(),
                                     surfaceView,
                                     engineRenderingConfig,
+                                    isFirstBinding,
                                 )
                                 surfaceTouchForwardingLayout.initTouchForwarding(surfaceView)
                                 surfaceView.setOnTouchListener { _, event ->
