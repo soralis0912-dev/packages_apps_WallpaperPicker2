@@ -40,4 +40,6 @@ android_robolectric_test {
     upstream: true,
 
     instrumentation_for: "WallpaperPicker2Shell",
+
+    strict_mode: false,
 }
