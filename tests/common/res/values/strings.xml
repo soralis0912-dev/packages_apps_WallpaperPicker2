@@ -1,5 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright (C) 2023 The Android Open Source Project
+  ~ Copyright (C) 2024 The Android Open Source Project
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -13,12 +14,14 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="32dp"
-    android:height="32dp"
-    android:viewportWidth="24"
-    android:viewportHeight="24">
-    <path
-        android:fillColor="@color/system_on_secondary"
-        android:pathData="M9,16.17L4.83,12l-1.42,1.41L9,19 21,7l-1.41,-1.41L9,16.17z"/>
-</vector>
+
+<resources>
+    <!-- Sample partner wallpapers used in unit testing -->
+    <array name="partner_wallpapers">
+        <item>wallpaper1</item>
+    </array>
+
+    <drawable name="wallpaper1">@drawable/wallpaper</drawable>
+    <drawable name="wallpaper1_small">@drawable/wallpaper_thumb</drawable>
+
+</resources>
