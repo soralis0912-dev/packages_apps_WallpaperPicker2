@@ -113,18 +113,24 @@ object FullWallpaperPreviewBinder {
         val surfaceTouchForwardingLayout: TouchForwardingLayout =
             view.requireViewById(R.id.touch_forwarding_layout)
 
-        val displayId = view.context.display.displayId
         if (displayUtils.hasMultiInternalDisplays()) {
             val currentDescription = surfaceTouchForwardingLayout.contentDescription?.toString()
-            val descriptionResourceId =
-                if (viewModel.getDisplayId(DeviceDisplayType.FOLDED) == displayId) {
-                    R.string.folded_device_state_description
-                } else {
-                    R.string.unfolded_device_state_description
+            lifecycleOwner.lifecycleScope.launch {
+                lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                    viewModel.fullPreviewConfigViewModel.collect { fullPreviewConfigViewModel ->
+                        val deviceDisplayType = fullPreviewConfigViewModel?.deviceDisplayType
+                        val descriptionResourceId =
+                            when (deviceDisplayType) {
+                                DeviceDisplayType.FOLDED -> R.string.folded_device_state_description
+                                else -> R.string.unfolded_device_state_description
+                            }
+                        val descriptionString =
+                            surfaceTouchForwardingLayout.context.getString(descriptionResourceId)
+                        surfaceTouchForwardingLayout.contentDescription =
+                            currentDescription + descriptionString
+                    }
                 }
-            val descriptionString =
-                surfaceTouchForwardingLayout.context.getString(descriptionResourceId)
-            surfaceTouchForwardingLayout.contentDescription = currentDescription + descriptionString
+            }
         }
 
         var surfaceCallback: SurfaceViewUtil.SurfaceCallback? = null
