@@ -379,6 +379,9 @@
     <!-- Content description of wallpaper preview card. [CHAR_LIMIT=40]-->
     <string name="wallpaper_preview_card_content_description">Wallpaper preview</string>
 
+    <!-- Content description of wallpaper preview card when preview can be edited, including folded state of preview. [CHAR_LIMIT=40]-->
+    <string name="wallpaper_preview_card_content_description_editable">Wallpaper preview %1$s, tap to edit your photo</string>
+
     <!-- Content description of lock screen wallpaper preview card. [CHAR_LIMIT=NONE]-->
     <string name="lock_wallpaper_preview_card_content_description">Lock screen wallpaper preview</string>
 
