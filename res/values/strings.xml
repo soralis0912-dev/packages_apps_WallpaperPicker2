@@ -237,6 +237,9 @@
     <!-- Content description for the wallpaper preview screen. [CHAR LIMIT=none] -->
     <string name="preview_screen_description">Wallpaper preview screen</string>
 
+    <!-- Content description for the wallpaper preview screen when preview can be edited, including folded state of preview. [CHAR LIMIT=none] -->
+    <string name="preview_screen_description_editable">Wallpaper preview screen %1$s. Use two fingers to pan and zoom.</string>
+
     <!-- Content description when the device is in a folded state. [CHAR LIMIT=none] -->
     <string name="folded_device_state_description">Folded</string>
 
