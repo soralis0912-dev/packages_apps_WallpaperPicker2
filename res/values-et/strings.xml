@@ -35,7 +35,7 @@
     <string name="lock_screen_message" msgid="1534506081955058013">"Lukustuskuva"</string>
     <string name="home_and_lock_short_label" msgid="2937922943541927983">"Avaekraan ja lukustuskuva"</string>
     <string name="set_wallpaper_dialog_message" msgid="2110475703996853076">"Määra taustapildiks:"</string>
-    <string name="set_wallpaper_home_screen_destination" msgid="7315594722013109354">"Avaekraan"</string>
+    <string name="set_wallpaper_home_screen_destination" msgid="7315594722013109354">"Avakuva"</string>
     <string name="set_wallpaper_lock_screen_destination" msgid="6224685559375417945">"Lukustuskuva"</string>
     <string name="set_wallpaper_both_destination" msgid="2536004558738350775">"Ava- ja lukustuskuva"</string>
     <string name="no_backup_image_wallpaper_label" msgid="6316627676107284851">"Vahelduva kujutisega taustapilt"</string>

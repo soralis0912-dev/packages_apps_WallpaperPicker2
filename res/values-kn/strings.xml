@@ -35,7 +35,7 @@
     <string name="lock_screen_message" msgid="1534506081955058013">"ಲಾಕ್ ಪರದೆ"</string>
     <string name="home_and_lock_short_label" msgid="2937922943541927983">"ಮುಖಪುಟ ಮತ್ತು ಲಾಕ್‌"</string>
     <string name="set_wallpaper_dialog_message" msgid="2110475703996853076">"ವಾಲ್‌ಪೇಪರ್ ಅನ್ನು ಆನ್‌ಗೆ ಹೊಂದಿಸಿ"</string>
-    <string name="set_wallpaper_home_screen_destination" msgid="7315594722013109354">"ಮುಖಪುಟದ ಪರದೆ"</string>
+    <string name="set_wallpaper_home_screen_destination" msgid="7315594722013109354">"ಹೋಮ್ ಸ್ಕ್ರೀನ್"</string>
     <string name="set_wallpaper_lock_screen_destination" msgid="6224685559375417945">"ಲಾಕ್ ಪರದೆ"</string>
     <string name="set_wallpaper_both_destination" msgid="2536004558738350775">"ಹೋಮ್ ಮತ್ತು ಲಾಕ್ ಸ್ಕ್ರೀನ್‌ಗಳು"</string>
     <string name="no_backup_image_wallpaper_label" msgid="6316627676107284851">"ತಿರುಗುವ ಚಿತ್ರದ ವಾಲ್‌ಪೇಪರ್"</string>
