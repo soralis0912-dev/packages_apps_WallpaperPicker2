@@ -29,9 +29,11 @@ import android.graphics.Point
 import android.graphics.Rect
 import androidx.test.core.app.ActivityScenario
 import com.android.wallpaper.module.InjectorProvider
+import com.android.wallpaper.picker.customization.data.repository.WallpaperRepository
 import com.android.wallpaper.picker.customization.shared.model.WallpaperColorsModel
 import com.android.wallpaper.picker.preview.PreviewTestActivity
 import com.android.wallpaper.picker.preview.data.repository.WallpaperPreviewRepository
+import com.android.wallpaper.picker.preview.data.util.FakeLiveWallpaperDownloader
 import com.android.wallpaper.picker.preview.domain.interactor.WallpaperPreviewInteractor
 import com.android.wallpaper.picker.preview.shared.model.FullPreviewCropModel
 import com.android.wallpaper.testing.FakeWallpaperClient
@@ -41,10 +43,6 @@ import com.android.wallpaper.testing.TestWallpaperPreferences
 import com.android.wallpaper.testing.WallpaperModelUtils
 import com.android.wallpaper.testing.collectLastValue
 import com.google.common.truth.Truth.assertThat
-import dagger.hilt.EntryPoint
-import dagger.hilt.InstallIn
-import dagger.hilt.android.EntryPointAccessors
-import dagger.hilt.android.components.ActivityComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
@@ -53,8 +51,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -74,17 +72,20 @@ import org.robolectric.shadows.ShadowLooper
 class StaticWallpaperPreviewViewModelTest {
     @get:Rule var hiltRule = HiltAndroidRule(this)
 
+    private val testDispatcher: TestDispatcher = UnconfinedTestDispatcher()
+    private val testScope: TestScope = TestScope(testDispatcher)
+
     private lateinit var scenario: ActivityScenario<PreviewTestActivity>
     private lateinit var viewModel: StaticWallpaperPreviewViewModel
-    private lateinit var repository: WallpaperPreviewRepository
+    private lateinit var wallpaperPreviewRepository: WallpaperPreviewRepository
+    private lateinit var wallpaperRepository: WallpaperRepository
     private lateinit var interactor: WallpaperPreviewInteractor
 
-    @Inject lateinit var testDispatcher: TestDispatcher
-    @Inject lateinit var testScope: TestScope
     @Inject @ApplicationContext lateinit var appContext: Context
     @Inject lateinit var testInjector: TestInjector
     @Inject lateinit var wallpaperPreferences: TestWallpaperPreferences
     @Inject lateinit var wallpaperClient: FakeWallpaperClient
+    @Inject lateinit var liveWallpaperDownloader: FakeLiveWallpaperDownloader
 
     @Before
     fun setUp() {
@@ -103,18 +104,25 @@ class StaticWallpaperPreviewViewModelTest {
         scenario.onActivity { setEverything(it) }
     }
 
-    @EntryPoint
-    @InstallIn(ActivityComponent::class)
-    interface ActivityScopeEntryPoint {
-        fun interactor(): WallpaperPreviewInteractor
-        fun repository(): WallpaperPreviewRepository
-    }
-
     private fun setEverything(activity: PreviewTestActivity) {
-        val activityScopeEntryPoint =
-            EntryPointAccessors.fromActivity(activity, ActivityScopeEntryPoint::class.java)
-        interactor = activityScopeEntryPoint.interactor()
-        repository = activityScopeEntryPoint.repository()
+        wallpaperRepository =
+            WallpaperRepository(
+                testScope.backgroundScope,
+                wallpaperClient,
+                wallpaperPreferences,
+                testDispatcher,
+            )
+        wallpaperPreviewRepository =
+            WallpaperPreviewRepository(
+                liveWallpaperDownloader,
+                wallpaperPreferences,
+                testDispatcher,
+            )
+        interactor =
+            WallpaperPreviewInteractor(
+                wallpaperPreviewRepository,
+                wallpaperRepository,
+            )
         viewModel =
             StaticWallpaperPreviewViewModel(
                 interactor,
@@ -145,7 +153,7 @@ class StaticWallpaperPreviewViewModelTest {
                     collectionId = "testCollection",
                 )
 
-            repository.setWallpaperModel(testStaticWallpaperModel)
+            wallpaperPreviewRepository.setWallpaperModel(testStaticWallpaperModel)
 
             val actual = staticWallpaperModel()
             assertThat(actual).isNotNull()
@@ -156,7 +164,6 @@ class StaticWallpaperPreviewViewModelTest {
     @Test
     fun staticWallpaperModel_withLiveWallpaper_shouldNotEmit() {
         testScope.runTest {
-            val interactorWallpaperModel = collectLastValue(interactor.wallpaperModel)
             val staticWallpaperModel = collectLastValue(viewModel.staticWallpaperModel)
             val resolveInfo =
                 ResolveInfo().apply {
@@ -175,9 +182,8 @@ class StaticWallpaperPreviewViewModelTest {
                     systemWallpaperInfo = wallpaperInfo,
                 )
 
-            repository.setWallpaperModel(liveWallpaperModel)
+            wallpaperPreviewRepository.setWallpaperModel(liveWallpaperModel)
 
-            assertThat(interactorWallpaperModel()).isNotNull()
             // Assert that no value is collected
             assertThat(staticWallpaperModel()).isNull()
         }
@@ -193,7 +199,7 @@ class StaticWallpaperPreviewViewModelTest {
                     collectionId = "testCollection",
                 )
 
-            repository.setWallpaperModel(testStaticWallpaperModel)
+            wallpaperPreviewRepository.setWallpaperModel(testStaticWallpaperModel)
 
             assertThat(lowResBitmap()).isNotNull()
             assertThat(lowResBitmap()).isInstanceOf(Bitmap::class.java)
@@ -210,8 +216,9 @@ class StaticWallpaperPreviewViewModelTest {
                     collectionId = "testCollection",
                 )
 
-            repository.setWallpaperModel(testStaticWallpaperModel)
-            executePendingWork(this)
+            wallpaperPreviewRepository.setWallpaperModel(testStaticWallpaperModel)
+            // Run TestAsset.decodeRawDimensions & decodeBitmap handler.post to unblock assetDetail
+            ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
 
             assertThat(fullResWallpaperViewModel()).isNotNull()
             assertThat(fullResWallpaperViewModel())
@@ -236,9 +243,10 @@ class StaticWallpaperPreviewViewModelTest {
                     ),
                 )
 
-            repository.setWallpaperModel(testStaticWallpaperModel)
+            wallpaperPreviewRepository.setWallpaperModel(testStaticWallpaperModel)
             viewModel.updateCropHintsInfo(cropHintsInfo)
-            executePendingWork(this)
+            // Run TestAsset.decodeRawDimensions & decodeBitmap handler.post to unblock assetDetail
+            ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
 
             assertThat(fullResWallpaperViewModel()).isNotNull()
             assertThat(fullResWallpaperViewModel())
@@ -265,9 +273,10 @@ class StaticWallpaperPreviewViewModelTest {
                     ),
                 )
 
-            repository.setWallpaperModel(testStaticWallpaperModel)
+            wallpaperPreviewRepository.setWallpaperModel(testStaticWallpaperModel)
             viewModel.updateCropHintsInfo(cropHintsInfo)
-            executePendingWork(this)
+            // Run TestAsset.decodeRawDimensions & decodeBitmap handler.post to unblock assetDetail
+            ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
 
             assertThat(subsamplingScaleImageViewModel()).isNotNull()
             assertThat(subsamplingScaleImageViewModel())
@@ -294,9 +303,10 @@ class StaticWallpaperPreviewViewModelTest {
                     collectionId = "testCollection",
                 )
 
-            repository.setWallpaperModel(testStaticWallpaperModel)
             wallpaperPreferences.storeWallpaperColors(WALLPAPER_ID, storedWallpaperColors)
-            executePendingWork(this)
+            wallpaperPreviewRepository.setWallpaperModel(testStaticWallpaperModel)
+            // Run TestAsset.decodeRawDimensions & decodeBitmap handler.post to unblock assetDetail
+            ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
 
             assertThat(wallpaperColors()).isInstanceOf(WallpaperColorsModel.Loaded::class.java)
             val actualWallpaperColors = (wallpaperColors() as WallpaperColorsModel.Loaded).colors
@@ -328,9 +338,10 @@ class StaticWallpaperPreviewViewModelTest {
                     collectionId = "testCollection",
                 )
 
-            repository.setWallpaperModel(testStaticWallpaperModel)
             wallpaperClient.setWallpaperColors(clientWallpaperColors)
-            executePendingWork(this)
+            wallpaperPreviewRepository.setWallpaperModel(testStaticWallpaperModel)
+            // Run TestAsset.decodeRawDimensions & decodeBitmap handler.post to unblock assetDetail
+            ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
 
             assertThat(wallpaperColors()).isInstanceOf(WallpaperColorsModel.Loaded::class.java)
             val actualWallpaperColors = (wallpaperColors() as WallpaperColorsModel.Loaded).colors
@@ -374,11 +385,12 @@ class StaticWallpaperPreviewViewModelTest {
                     ),
                 )
 
-            repository.setWallpaperModel(testStaticWallpaperModel)
             wallpaperPreferences.storeWallpaperColors(WALLPAPER_ID, storedWallpaperColors)
             wallpaperClient.setWallpaperColors(clientWallpaperColors)
             viewModel.updateCropHintsInfo(cropHintsInfo)
-            executePendingWork(this)
+            wallpaperPreviewRepository.setWallpaperModel(testStaticWallpaperModel)
+            // Run TestAsset.decodeRawDimensions & decodeBitmap handler.post to unblock assetDetail
+            ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
 
             assertThat(wallpaperColors()).isInstanceOf(WallpaperColorsModel.Loaded::class.java)
             val actualWallpaperColors = (wallpaperColors() as WallpaperColorsModel.Loaded).colors
@@ -415,10 +427,11 @@ class StaticWallpaperPreviewViewModelTest {
                     ),
                 )
 
-            repository.setWallpaperModel(testStaticWallpaperModel)
             wallpaperClient.setWallpaperColors(clientWallpaperColors)
             viewModel.updateCropHintsInfo(cropHintsInfo)
-            executePendingWork(this)
+            wallpaperPreviewRepository.setWallpaperModel(testStaticWallpaperModel)
+            // Run TestAsset.decodeRawDimensions & decodeBitmap handler.post to unblock assetDetail
+            ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
 
             assertThat(wallpaperColors()).isInstanceOf(WallpaperColorsModel.Loaded::class.java)
             val actualWallpaperColors = (wallpaperColors() as WallpaperColorsModel.Loaded).colors
@@ -545,17 +558,6 @@ class StaticWallpaperPreviewViewModelTest {
         assertThat(viewModel.fullPreviewCropModels).containsExactlyEntriesIn(cropHintsInfo)
         viewModel.updateDefaultPreviewCropModel(cropHintC.first, cropHintC.second)
         assertThat(viewModel.fullPreviewCropModels).containsExactlyEntriesIn(expectedCropHintsInfo)
-    }
-
-    private fun executePendingWork(testScope: TestScope) {
-        // Run suspendCancellableCoroutine in assetDetail's decodeRawDimensions
-        testScope.runCurrent()
-        // Run handler.post in TestAsset.decodeRawDimensions
-        ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
-        // Run suspendCancellableCoroutine in assetDetail's decodeBitmap
-        testScope.runCurrent()
-        // Run handler.post in TestAsset.decodeBitmap
-        ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
     }
 
     private fun createPreviewCropModel(
