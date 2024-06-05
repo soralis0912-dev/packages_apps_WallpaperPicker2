@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
-package com.android.wallpaper.picker.category.ui.viewmodel
+package com.android.wallpaper.picker.category.domain.interactor
+
+import com.android.wallpaper.picker.data.category.CategoryModel
+import kotlinx.coroutines.flow.Flow
 
 /**
- * This class represents the view model for a single section that can contain a number of individual
- * tiles.
+ * Classes that implement this interface implement the business logic in assembling creative
+ * category models
  */
-class SectionViewModel(val tileViewModels: List<TileViewModel>, val columnCount: Int)
+interface CreativeCategoryInteractor {
+    val categories: Flow<List<CategoryModel>>
+}
