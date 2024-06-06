@@ -18,6 +18,7 @@ package com.android.wallpaper.picker.customization.ui.binder
 
 import android.view.View
 import androidx.lifecycle.LifecycleOwner
+import com.android.wallpaper.picker.customization.ui.util.CustomizationOptionUtil.CustomizationOption
 import com.android.wallpaper.picker.customization.ui.viewmodel.CustomizationOptionsViewModel
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -27,6 +28,7 @@ class DefaultCustomizationOptionsBinder @Inject constructor() : CustomizationOpt
 
     override fun bind(
         view: View,
+        lockScreenCustomizationOptionEntries: List<Pair<CustomizationOption, View>>,
         viewModel: CustomizationOptionsViewModel,
         lifecycleOwner: LifecycleOwner
     ) {}
