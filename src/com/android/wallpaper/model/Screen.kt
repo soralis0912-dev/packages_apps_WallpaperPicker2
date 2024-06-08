@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-package com.android.wallpaper.picker.customization.ui.binder
+package com.android.wallpaper.model
 
-import android.view.View
-import androidx.lifecycle.LifecycleOwner
-import com.android.wallpaper.picker.customization.ui.util.CustomizationOptionUtil.CustomizationOption
-import com.android.wallpaper.picker.customization.ui.viewmodel.CustomizationOptionsViewModel
+import android.app.WallpaperManager
 
-interface CustomizationOptionsBinder {
+/** Screens for customization. */
+enum class Screen {
+    LOCK_SCREEN,
+    HOME_SCREEN;
 
-    fun bind(
-        view: View,
-        lockScreenCustomizationOptionEntries: List<Pair<CustomizationOption, View>>,
-        viewModel: CustomizationOptionsViewModel,
-        lifecycleOwner: LifecycleOwner,
-    )
+    /** Map the Screen enum to the flag used for setting wallpapers. */
+    fun toFlag(): Int {
+        return when (this) {
+            HOME_SCREEN -> WallpaperManager.FLAG_SYSTEM
+            LOCK_SCREEN -> WallpaperManager.FLAG_LOCK
+        }
+    }
 }

@@ -15,8 +15,8 @@
  */
 package com.android.wallpaper.picker.preview.ui.viewmodel
 
+import com.android.wallpaper.model.Screen
 import com.android.wallpaper.model.wallpaper.DeviceDisplayType
-import com.android.wallpaper.module.CustomizationSections.Screen
 
 /** Configuration for a full preview, used by both wallpaper and workspace. */
 data class FullPreviewConfigViewModel(
