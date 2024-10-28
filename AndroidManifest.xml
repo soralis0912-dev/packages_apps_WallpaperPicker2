@@ -158,6 +158,11 @@
          android:resizeableActivity="false"
          android:theme="@style/WallpaperTheme.Preview">
     </activity>
+
+    <receiver android:name=".dailywallpaper.BingWallpaperReceiver"
+        android:exported="false">
+    </receiver>
+
   </application>
 
 </manifest>
